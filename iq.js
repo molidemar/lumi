@@ -66,6 +66,9 @@ const S={
   go:['Empezar','Comença','Start'], goOn:['Seguir','Continua','Continue'],
   exampleT:['Ejemplo (no cuenta)','Exemple (no compta)','Example (does not count)'],
   right:['¡Correcto!','Correcte!','Correct!'], wrongWas:['La respuesta era: {0}','La resposta era: {0}','The answer was: {0}'],
+  timeUp:['Se acabó el tiempo.','S\'ha acabat el temps.','Time\'s up.'], seeGreen:['La correcta está en verde.','La correcta és la verda.','The correct one is in green.'],
+  corsiWrong:['No era ese orden: mirá los números.','No era aquest ordre: mira els números.','Wrong order: look at the numbers.'],
+  cptGood:['¡Bien!','Molt bé!','Good!'], cptX:['¡Con la X no se toca!','Amb la X no es toca!','Do not tap on X!'], cptMiss:['Te faltó tocar.','No has tocat.','You missed it.'], cptXok:['Bien: con la X no tocaste.','Molt bé: amb la X no has tocat.','Good: you did not tap on X.'],
   ok:['OK','OK','OK'], yes:['SÍ','SÍ','YES'], noB:['NO','NO','NO'],
   watch:['Mirá…','Mira…','Watch…'], yourTurn:['Ahora vos','Ara tu','Your turn'],
   tapBtn:['TOCAR','TOCA','TAP'],
@@ -370,19 +373,19 @@ const SUBI={
   dbw:['Vas a ver números de a uno. Cuando terminen, escribilos al revés: del último al primero.','Veuràs números d\'un en un. Quan acabin, escriu-los a l\'inrevés: de l\'últim al primer.','You will see digits one at a time. When they finish, type them in reverse: from last to first.'],
   cor:['Algunos cuadrados se encienden de a uno. Cuando terminen, tocalos en el mismo orden.','Alguns quadrats s\'encenen d\'un en un. Quan acabin, toca\'ls en el mateix ordre.','Some squares light up one at a time. When they finish, tap them in the same order.'],
   sym:['¿Está el símbolo de la izquierda en el grupo de la derecha? Respondé SÍ o NO lo más rápido que puedas, sin equivocarte. Tenés {0} segundos.','Hi ha el símbol de l\'esquerra al grup de la dreta? Respon SÍ o NO tan de pressa com puguis, sense equivocar-te. Tens {0} segons.','Is the symbol on the left in the group on the right? Answer YES or NO as fast as you can without mistakes. You have {0} seconds.'],
-  cpt:['Van a aparecer letras de a una. Tocá el botón con cada letra, MENOS con la X. Dura {0} segundos: mantené la atención hasta el final.','Apareixeran lletres d\'una en una. Toca el botó amb cada lletra, MENYS amb la X. Dura {0} segons: mantén l\'atenció fins al final.','Letters will appear one at a time. Tap the button for every letter EXCEPT X. It lasts {0} seconds: stay focused until the end.']};
+  cpt:['Van a aparecer letras de a una. Tocá el botón con cada letra, MENOS con la X. Tenés tiempo hasta que salga la letra siguiente; el botón se pone verde si está bien y rojo si no. Dura {0} segundos: mantené la atención hasta el final.','Apareixeran lletres d\'una en una. Toca el botó amb cada lletra, MENYS amb la X. Tens temps fins que surti la lletra següent; el botó es posa verd si està bé i vermell si no. Dura {0} segons: mantén l\'atenció fins al final.','Letters will appear one at a time. Tap the button for every letter EXCEPT X. You have until the next letter appears; the button turns green if right and red if not. It lasts {0} seconds: stay focused until the end.']};
 
 /* ---------- componentes comunes ---------- */
 function TimeBar({limit, onEnd}){ const [left,setLeft]=useState(limit); const t0=useRef(now()); const done=useRef(false);
   useEffect(()=>{ const id=setInterval(()=>{ const l=limit-(now()-t0.current)/1000; setLeft(l); if(l<=0 && !done.current){ done.current=true; clearInterval(id); onEnd(); } },200); return ()=>clearInterval(id); },[]);
   return h`<div className="iq-time" aria-hidden="true"><i style=${{width:clamp(left/limit,0,1)*100+'%', background: left<limit*.2? 'var(--coral,#FF4D4D)' : 'var(--berry,#7B5CFF)'}}></i></div>`; }
-function Keypad({val, setVal, onOk, max=6}){ const add=d=>setVal(v=>(v+d).slice(0,max));
-  useEffect(()=>{ const k=e=>{ if(/^[0-9]$/.test(e.key)) add(e.key); else if(e.key==='Backspace') setVal(v=>v.slice(0,-1)); else if(e.key==='Enter' && val) onOk(); };
-    window.addEventListener('keydown',k); return ()=>window.removeEventListener('keydown',k); },[val]);
-  return h`<div className="iq-kp"><div className="iq-disp" aria-live="polite">${val||' '}</div>
+function Keypad({val, setVal, onOk, max=6, st}){ const add=d=>{ if(!st) setVal(v=>(v+d).slice(0,max)); };
+  useEffect(()=>{ const k=e=>{ if(st) return; if(/^[0-9]$/.test(e.key)) add(e.key); else if(e.key==='Backspace') setVal(v=>v.slice(0,-1)); else if(e.key==='Enter' && val) onOk(); };
+    window.addEventListener('keydown',k); return ()=>window.removeEventListener('keydown',k); },[val,st]);
+  return h`<div className="iq-kp"><div className=${'iq-disp'+(st? ' '+st : '')} aria-live="polite">${val||' '}</div>
     <div className="iq-keys">${['1','2','3','4','5','6','7','8','9'].map(d=>h`<button key=${d} className="iq-key" onClick=${()=>add(d)}>${d}</button>`)}
-      <button className="iq-key soft" aria-label="⌫" onClick=${()=>setVal(v=>v.slice(0,-1))}>⌫</button><button className="iq-key" onClick=${()=>add('0')}>0</button>
-      <button className="iq-key ok" disabled=${!val} onClick=${onOk}>${t('ok')}</button></div></div>`; }
+      <button className="iq-key soft" aria-label="⌫" onClick=${()=>{ if(!st) setVal(v=>v.slice(0,-1)); }}>⌫</button><button className="iq-key" onClick=${()=>add('0')}>0</button>
+      <button className="iq-key ok" disabled=${!val||!!st} onClick=${onOk}>${t('ok')}</button></div></div>`; }
 function answerText(it){ if(it.kind==='num') return String(it.answer); if(it.sub==='voc'||it.sub==='ana') return it.opts[it.answer]; return '✓'; }
 
 /* ---------- prueba de potencia adaptativa ---------- */
@@ -396,7 +399,7 @@ function PowerSub({sub, mode, mu, practice, train, onDone, start, n:nTrain}){
   useEffect(next,[]);
   function answer(v){ if(!it || fb) return; const ok= v!==null && (it.kind==='num'? +v===it.answer : v===it.answer);
     s.current.resp.push({b:it.b, c:it.c, a:1.6, ok, rt:Math.round(now()-it.t0), lv:it.lv, to:v===null});
-    if(practice||train){ setFb({ok, pick:v}); setTimeout(()=>{ setFb(null); next(); }, ok? 700 : 2200); } else next(); }
+    const slow=practice||train; setFb({ok, pick:v, to:v===null}); setTimeout(()=>{ setFb(null); next(); }, ok? (slow? 700 : 550) : (slow? 2200 : 1600)); }
   if(!it) return null;
   const optCls=i=> 'iq-opt'+(fb? (i===it.answer? ' good' : fb.pick===i? ' bad' : '') : '');
   let body;
@@ -408,12 +411,13 @@ function PowerSub({sub, mode, mu, practice, train, onDone, start, n:nTrain}){
       <div className="iq-wopts">${it.opts.map((o,i)=>h`<button key=${i} className=${optCls(i)} onClick=${()=>answer(i)}>${o}</button>`)}</div>`;
   else if(sub==='ana') body=h`<p className="iq-q">${t('anaQ', it.w1, it.w2, it.w3)}</p>
       <div className="iq-wopts">${it.opts.map((o,i)=>h`<button key=${i} className=${optCls(i)} onClick=${()=>answer(i)}>${o}</button>`)}</div>`;
-  else if(sub==='ser') body=h`<p className="iq-seq">${it.seq.join(' · ')} · <b>?</b></p><${Keypad} val=${val} setVal=${setVal} onOk=${()=>answer(val)}/>`;
-  else body=h`<p className=${it.word? 'iq-q' : 'iq-seq'}>${it.q}${it.word? '' : ' = ?'}</p><${Keypad} val=${val} setVal=${setVal} onOk=${()=>answer(val)}/>`;
+  const kst= fb? (fb.ok? 'good' : 'bad') : null;
+  if(sub==='ser') body=h`<p className="iq-seq">${it.seq.join(' · ')} · <b>${fb? it.answer : '?'}</b></p><${Keypad} val=${val} setVal=${setVal} st=${kst} onOk=${()=>answer(val)}/>`;
+  else if(it.kind==='num') body=h`<p className=${it.word? 'iq-q' : 'iq-seq'}>${it.q}${it.word? '' : ' = '+(fb? it.answer : '?')}</p><${Keypad} val=${val} setVal=${setVal} st=${kst} onOk=${()=>answer(val)}/>`;
   return h`<div className="iq-stage" key=${it.key}>
-    ${!practice && !train && h`<${TimeBar} key=${'t'+it.key} limit=${P.limit} onEnd=${()=>answer(null)}/>`}
+    ${!practice && !train && (fb? h`<div className="iq-time"></div>` : h`<${TimeBar} key=${'t'+it.key} limit=${P.limit} onEnd=${()=>answer(null)}/>`)}
     ${body}
-    ${fb && h`<p className=${'iq-fb '+(fb.ok?'good':'bad')}>${fb.ok? t('right') : t('wrongWas', answerText(it))}</p>`}
+    ${fb && h`<p className=${'iq-fb '+(fb.ok?'good':'bad')} role="status">${fb.ok? '✓ '+t('right') : '✗ '+(fb.to? t('timeUp')+' ' : '')+(it.kind==='num'||it.sub==='voc'||it.sub==='ana'? t('wrongWas', answerText(it)) : t('seeGreen'))}</p>`}
   </div>`; }
 S.vocQ=['¿Qué palabra significa lo mismo que…','Quina paraula vol dir el mateix que…','Which word means the same as…'];
 S.anaQ=['{0} es a {1} como {2} es a…','{0} és a {1} com {2} és a…','{0} is to {1} as {2} is to…'];
@@ -435,16 +439,16 @@ function SpanSub({sub, mode, practice, train, onDone, startL}){
   useEffect(()=>{ run(); },[]);
   function submit(ans){ const st=s.current; const want= sub==='dbw'? seq.slice().reverse() : seq; const ok= ans.join(',')===want.join(',');
     st.resp.push({b:(st.L-SPAN_REF[sub])/1, c:0, a:1.8, ok, L:st.L}); st.L=clamp(st.L+(ok?1:-1), 2, 10);
-    setPh('fb'); if(practice||train){ setFb(ok); setTimeout(()=>{ setFb(null); run(); }, ok?800:2000); } else setTimeout(run, 350); }
+    const slow=practice||train; setPh('fb'); setFb(ok); setTimeout(()=>{ setFb(null); run(); }, ok? (slow? 800 : 650) : (slow? 2200 : 1800)); }
   function tapBlock(i){ if(ph!=='input') return; const nt=[...taps,i]; setTaps(nt); setLit(-2-i); setTimeout(()=>setLit(-1),180); if(nt.length===seq.length) setTimeout(()=>submit(nt),250); }
   const want= sub==='dbw'? seq.slice().reverse() : seq;
   if(sub==='cor') return h`<div className="iq-stage">
       <p className="iq-q">${ph==='show'? t('watch') : ph==='input'? t('yourTurn') : ' '}</p>
-      <div className="iq-corsi">${CORSI.map(([x,y],i)=>h`<button key=${i} className=${'iq-blk'+((ph==='show'&&seq[lit]===i)||lit===-2-i?' on':'')} style=${{left:x+'%', top:y+'%'}} disabled=${ph!=='input'} aria-label=${String(i+1)} onClick=${()=>tapBlock(i)}></button>`)}</div>
-      ${fb!==null && h`<p className=${'iq-fb '+(fb?'good':'bad')}>${fb? t('right') : t('wrongWas', '—')}</p>`}</div>`;
+      <div className="iq-corsi">${CORSI.map(([x,y],i)=>h`<button key=${i} className=${'iq-blk'+((ph==='show'&&seq[lit]===i)||lit===-2-i?' on':'')+(fb===false && seq.includes(i)? ' ans' : '')} style=${{left:x+'%', top:y+'%'}} disabled=${ph!=='input'} aria-label=${String(i+1)} onClick=${()=>tapBlock(i)}>${fb===false? seq.map((b,j)=>b===i? j+1 : null).filter(Boolean).join('·') : ''}</button>`)}</div>
+      ${fb!==null && h`<p className=${'iq-fb '+(fb?'good':'bad')} role="status">${fb? '✓ '+t('right') : '✗ '+t('corsiWrong')}</p>`}</div>`;
   return h`<div className="iq-stage">
-    ${ph==='show'? h`<p className="iq-digit">${lit>=0? seq[lit] : ' '}</p>` : ph==='input'? h`<p className="iq-q">${t('yourTurn')}</p><${Keypad} val=${val} setVal=${setVal} max=${12} onOk=${()=>submit(val.split('').map(Number))}/>` : h`<p className="iq-digit"> </p>`}
-    ${fb!==null && h`<p className=${'iq-fb '+(fb?'good':'bad')}>${fb? t('right') : t('wrongWas', want.join(' '))}</p>`}</div>`; }
+    ${ph==='show'? h`<p className="iq-digit">${lit>=0? seq[lit] : ' '}</p>` : ph==='input' || (ph==='fb' && fb!==null)? h`<p className="iq-q">${t('yourTurn')}</p><${Keypad} val=${val} setVal=${setVal} max=${12} st=${ph==='fb'? (fb? 'good' : 'bad') : null} onOk=${()=>submit(val.split('').map(Number))}/>` : h`<p className="iq-digit"> </p>`}
+    ${fb!==null && h`<p className=${'iq-fb '+(fb?'good':'bad')} role="status">${fb? '✓ '+t('right') : '✗ '+t('wrongWas', want.join(' '))}</p>`}</div>`; }
 
 /* ---------- velocidad: búsqueda de símbolos ---------- */
 const DOTS=[[12,12],[50,12],[88,12],[12,50],[50,50],[88,50],[12,88],[50,88],[88,88]];
@@ -457,30 +461,39 @@ function symTrial(){ const r=Math.random; const tg=glyph(r); const has=Math.rand
   while(grp.length<5){ const g= Math.random()<.45? variant(tg) : glyph(r); const k=gk(g); if(!seen.has(k)){ seen.add(k); grp.push(g); } }
   if(has) grp[rnd(5)]=tg; return {tg, grp, has}; }
 function SymSub({mode, practice, train, onDone}){ const dur= practice? 0 : train? 45 : MODES[mode].sym;
-  const s=useRef({ok:0, bad:0, n:0, t0:now(), rts:[]}); const [tr,setTr]=useState(symTrial); const [fb,setFb]=useState(null); const [left,setLeft]=useState(dur); const fin=useRef(false);
-  useEffect(()=>{ if(practice) return; const id=setInterval(()=>{ const l=dur-(now()-s.current.t0)/1000; setLeft(l); if(l<=0 && !fin.current){ fin.current=true; clearInterval(id); end(); } },200); return ()=>clearInterval(id); },[]);
+  const s=useRef({ok:0, bad:0, n:0, t0:now(), rts:[]}); const [tr,setTr]=useState(symTrial); const [fb,setFb]=useState(null); const [left,setLeft]=useState(dur); const fin=useRef(false); const busy=useRef(false); const fbT=useRef(null);
+  useEffect(()=>()=>clearTimeout(fbT.current),[]);
+  useEffect(()=>{ if(practice) return; const id=setInterval(()=>{ if(busy.current) return; const l=dur-(now()-s.current.t0)/1000; setLeft(l); if(l<=0 && !fin.current){ fin.current=true; clearInterval(id); end(); } },200); return ()=>clearInterval(id); },[]);
   function end(){ const st=s.current; const mins=dur/60; const rate=(st.ok-st.bad)/mins; const th=clamp((rate-34)/8, -4, 3.5);
     onDone({th, se: dur>=120? .3 : dur>=90? .34 : .42, ok:st.ok, bad:st.bad, rate:Math.round(rate*10)/10}); }
-  function answer(v){ if(fin.current) return; const st=s.current; const ok=v===tr.has; st.n++; if(ok) st.ok++; else st.bad++;
-    if(practice){ setFb(ok); setTimeout(()=>{ setFb(null); if(st.n>=4){ fin.current=true; onDone({}); } else setTr(symTrial()); }, ok?500:1300); return; }
-    setTr(symTrial()); }
+  function answer(v){ if(fin.current || busy.current) return; const st=s.current; const ok=v===tr.has; st.n++; if(ok) st.ok++; else st.bad++;
+    if(practice){ busy.current=true; setFb({ok, v, has:tr.has}); setTimeout(()=>{ busy.current=false; setFb(null); if(st.n>=4){ fin.current=true; onDone({}); } else setTr(symTrial()); }, ok?600:1500); return; }
+    clearTimeout(fbT.current);
+    if(ok){ setFb({ok, v, has:tr.has}); setTr(symTrial()); fbT.current=setTimeout(()=>setFb(null), 450); return; }
+    /* error: se detiene el reloj, se muestra el porqué y se sigue (la pausa no cuenta) */
+    busy.current=true; setFb({ok, v, has:tr.has, stay:true}); const t1=now();
+    fbT.current=setTimeout(()=>{ s.current.t0+=now()-t1; busy.current=false; setFb(null); if(!fin.current) setTr(symTrial()); }, 1300); }
+  const stay= fb && (practice || fb.stay); const ynCls=v=> 'iq-ynb '+(v? 'yes' : 'no')+(fb && fb.v===v? (fb.ok? ' fbok' : ' fbbad') : '');
   return h`<div className="iq-stage">
     ${!practice && h`<div className="iq-time"><i style=${{width:clamp(left/dur,0,1)*100+'%'}}></i></div>`}
-    <div className="iq-sym"><div className="iq-symt"><${Glyph} g=${tr.tg}/></div><span className="iq-sep"></span>
-      <div className="iq-symg">${tr.grp.map((g,i)=>h`<div key=${i} className="iq-symc"><${Glyph} g=${g}/></div>`)}</div></div>
-    <div className="iq-yn"><button className="iq-ynb yes" onClick=${()=>answer(true)}>${t('yes')}</button><button className="iq-ynb no" onClick=${()=>answer(false)}>${t('noB')}</button></div>
-    ${fb!==null && h`<p className=${'iq-fb '+(fb?'good':'bad')}>${fb? t('right') : t('wrongWas', tr.has? t('yes') : t('noB'))}</p>`}
+    <div className="iq-sym"><div className=${'iq-symt'+(fb? (fb.ok? ' good' : ' bad') : '')}><${Glyph} g=${tr.tg}/></div><span className="iq-sep"></span>
+      <div className="iq-symg">${tr.grp.map((g,i)=>h`<div key=${i} className=${'iq-symc'+(stay && !fb.ok && gk(g)===gk(tr.tg)? ' match' : '')}><${Glyph} g=${g}/></div>`)}</div></div>
+    <div className="iq-yn"><button className=${ynCls(true)} onClick=${()=>answer(true)}>${t('yes')}${fb && fb.v===true? (fb.ok? ' ✓' : ' ✗') : ''}</button><button className=${ynCls(false)} onClick=${()=>answer(false)}>${t('noB')}${fb && fb.v===false? (fb.ok? ' ✓' : ' ✗') : ''}</button></div>
+    <p className=${'iq-fb '+(fb? (fb.ok?'good':'bad') : '')} role="status">${fb? (fb.ok? '✓ '+t('right') : '✗ '+t('wrongWas', fb.has? t('yes') : t('noB'))) : ' '}</p>
   </div>`; }
 
 /* ---------- atención sostenida (tocar con todas las letras menos la X) ---------- */
 const LET='ABCDEFHKLMOPRTU'.split('');
 function CptSub({mode, practice, train, onDone}){ const dur= practice? 15 : train? 60 : MODES[mode].cpt;
-  const s=useRef(null); const [cur,setCur]=useState(null); const [flash,setFlash]=useState(null); const [left,setLeft]=useState(dur);
+  const s=useRef(null); const [cur,setCur]=useState(null); const [fb,setFb]=useState(null); const [left,setLeft]=useState(dur); const fbT=useRef(null);
+  const show=(ok,msg)=>{ clearTimeout(fbT.current); setFb({ok,msg}); fbT.current=setTimeout(()=>setFb(null), 800); };
   useEffect(()=>{ const isis=[1000,1500,2000]; const trials=[]; let tt=0; let prevX=false;
     while(tt<dur*1000){ const isi=pick(isis); const x= !prevX && Math.random()<.2; prevX=x; trials.push({ch: x? 'X' : pick(LET), x, on:tt, isi, resp:null}); tt+=isi; }
     s.current={trials, i:-1, t0:now(), timers:[]}; let alive=true;
-    const step=i=>{ if(!alive) return; const st=s.current; if(i>=trials.length){ finish(); return; } st.i=i; trials[i].at=now(); setCur({ch:trials[i].ch, k:i});
-      st.timers.push(setTimeout(()=>{ if(alive) setCur(c=>c&&c.k===i? {ch:'', k:i} : c); },250)); st.timers.push(setTimeout(()=>step(i+1), trials[i].isi)); };
+    const step=i=>{ if(!alive) return; const st=s.current; const pv=trials[i-1];
+      if(pv && pv.resp===null) show(pv.x, pv.x? t('cptXok') : t('cptMiss'));
+      if(i>=trials.length){ finish(); return; } st.i=i; trials[i].at=now(); setCur({ch:trials[i].ch, k:i});
+      st.timers.push(setTimeout(()=>{ if(alive) setCur(c=>c&&c.k===i? {ch:'', k:i} : c); },450)); st.timers.push(setTimeout(()=>step(i+1), trials[i].isi)); };
     st0(); function st0(){ s.current.timers.push(setTimeout(()=>step(0),800)); }
     const id=setInterval(()=>setLeft(dur-(now()-s.current.t0)/1000),250);
     function finish(){ clearInterval(id); const tr=s.current.trials; const go=tr.filter(x=>!x.x), nx=tr.filter(x=>x.x);
@@ -489,13 +502,14 @@ function CptSub({mode, practice, train, onDone}){ const dur= practice? 15 : trai
       const rts=hits.map(x=>x.resp); const m=rts.reduce((a,b)=>a+b,0)/Math.max(1,rts.length); const sd=Math.sqrt(rts.reduce((a,b)=>a+(b-m)**2,0)/Math.max(1,rts.length));
       const cv= m? sd/m : .5; const th=clamp(.75*(dp-2.7)/.75 + .25*(.24-cv)/.07, -4, 3);
       onDone({th, se: dur>=180? .33 : dur>=120? .4 : .5, om:go.length-hits.length, com, nGo:go.length, nX:nx.length, rt:Math.round(m), cv:Math.round(cv*100)/100, dp:Math.round(dp*100)/100}); }
-    return ()=>{ alive=false; clearInterval(id); s.current.timers.forEach(clearTimeout); }; },[]);
+    return ()=>{ alive=false; clearInterval(id); clearTimeout(fbT.current); s.current.timers.forEach(clearTimeout); }; },[]);
   function tap(e){ e.preventDefault(); const st=s.current; if(!st || st.i<0) return; const tr=st.trials[st.i]; if(tr.resp!==null) return; tr.resp=Math.round(now()-tr.at);
-    if(practice){ setFlash(tr.x? 'bad' : 'good'); setTimeout(()=>setFlash(null),250); } }
+    show(!tr.x, tr.x? t('cptX') : t('cptGood')); }
   return h`<div className="iq-stage">
     <div className="iq-time"><i style=${{width:clamp(left/dur,0,1)*100+'%'}}></i></div>
-    <div className=${'iq-letter'+(flash? ' '+flash : '')}>${cur? cur.ch : ''}</div>
-    <button className="iq-tap" onPointerDown=${tap}>${t('tapBtn')}</button>
+    <div className="iq-letter">${cur? cur.ch : ''}</div>
+    <button className=${'iq-tap'+(fb? (fb.ok? ' good' : ' bad') : '')} onPointerDown=${tap}>${t('tapBtn')}${fb? (fb.ok? ' ✓' : ' ✗') : ''}</button>
+    <p className=${'iq-fb '+(fb? (fb.ok?'good':'bad') : '')} role="status">${fb? (fb.ok? '✓ ' : '✗ ')+fb.msg : ' '}</p>
   </div>`; }
 
 /* ---------- puntuación ---------- */
@@ -670,7 +684,12 @@ const CSS=`
 .iq-ynb.yes{background:var(--leaf,#1DB954);box-shadow:0 5px 0 var(--leaf-dark,#128A3D)} .iq-ynb.no{background:var(--coral,#FF4D4D);box-shadow:0 5px 0 var(--coral-dark,#C62828)}
 .iq-ynb:active{transform:translateY(3px);box-shadow:none}
 .iq-letter{font-family:var(--f-display);font-weight:800;font-size:min(36vmin,220px);line-height:1;min-height:1em;width:1.2em;border-radius:24px}
-.iq-letter.good{background:var(--leaf-2,#D2F7DF)} .iq-letter.bad{background:var(--coral-2,#FFE0E0)}
+.iq-tap.good{background:var(--leaf,#1DB954);box-shadow:0 6px 0 var(--leaf-dark,#128A3D)} .iq-tap.bad{background:var(--coral,#FF4D4D);box-shadow:0 6px 0 var(--coral-dark,#C62828)}
+.iq-disp.good{border-color:var(--leaf,#1DB954);background:var(--leaf-2,#D2F7DF)} .iq-disp.bad{border-color:var(--coral,#FF4D4D);background:var(--coral-2,#FFE0E0);text-decoration:line-through}
+.iq-symt.good{border-color:var(--leaf,#1DB954);background:var(--leaf-2,#D2F7DF)} .iq-symt.bad{border-color:var(--coral,#FF4D4D);background:var(--coral-2,#FFE0E0)} .iq-symc.match{border:4px solid var(--leaf,#1DB954);background:var(--leaf-2,#D2F7DF)}
+.iq-ynb.fbok{outline:6px solid var(--sun,#FFC21A);outline-offset:3px} .iq-ynb.fbbad{outline:6px solid #111;outline-offset:3px}
+.iq-blk.ans{background:var(--leaf,#1DB954);box-shadow:0 3px 0 var(--leaf-dark,#128A3D);color:#fff;font-family:var(--f-display);font-weight:800;font-size:min(5vmin,26px)}
+.iq-fb{min-height:1.3em}
 .iq-tap{width:min(80vw,520px);min-height:110px;border:none;border-radius:32px;background:var(--berry,#7B5CFF);color:#fff;font-family:var(--f-display);font-weight:800;font-size:36px;box-shadow:0 6px 0 #4B32C3;touch-action:none}
 .iq-tap:active{transform:translateY(4px);box-shadow:0 2px 0 #4B32C3}
 .iq-head{flex-direction:row;align-items:center;gap:20px;flex-wrap:wrap}
