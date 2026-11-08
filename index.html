@@ -398,6 +398,33 @@ input[type=password]{font:inherit; font-size:22px; padding:10px 14px; border-rad
 .b-now.long{font-size:clamp(20px,3.2vw,30px); line-height:1.45; text-align:left}
 
 .album-act{display:flex; flex-direction:column; align-items:center; gap:8px; margin:6px 0}
+
+html{-webkit-text-size-adjust:100%; text-size-adjust:100%}
+html,body{height:100%; height:100dvh}
+#root{padding-bottom:max(12px,env(safe-area-inset-bottom,0px)); padding-top:max(12px,env(safe-area-inset-top,0px))}
+.stage{justify-content:safe center}
+.stage.brain{overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; width:100%}
+.stage.brain>*{flex-shrink:0}
+.b-legend{height:auto}
+@media (max-width:560px){ .stage{overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; width:100%; padding-bottom:6px} }
+@media (max-width:560px), (max-height:700px){
+  .stage.brain{gap:10px}
+  .stage.brain .b-instr{font-size:16px!important; line-height:1.25}
+  .stage.brain .b-cols .bdot{width:clamp(34px,min(6.8vh,13vw),58px); height:clamp(34px,min(6.8vh,13vw),58px)}
+  .stage.brain .b-board .bdot{width:clamp(34px,min(7vh,13vw),64px); height:clamp(34px,min(7vh,13vw),64px)}
+  .b-col{gap:0}
+  .b-flow{font-size:20px; line-height:1}
+  .b-legend{min-height:52px; padding:6px 10px; gap:6px 12px}
+  .b-leg svg{width:34px; height:34px}
+  .b-num{font-size:28px}
+  .b-hidden{font-size:32px}
+  .b-legend .btn.small{min-height:44px; font-size:17px; padding:6px 14px}
+  .b-opts{flex-wrap:nowrap; gap:8px}
+  .b-opt{width:clamp(56px,min(11vh,20vw),88px); height:clamp(56px,min(11vh,20vw),88px); border-radius:18px}
+  .b-opt svg{width:70%; height:70%}
+  .b-num.big{font-size:clamp(30px,5.6vh,44px)}
+  .sig{padding-top:4px}
+}
 </style>
 
 <div id="root"></div>
