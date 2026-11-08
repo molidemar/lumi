@@ -2,7 +2,7 @@
    Reglas (ver el documento «Lumi: plan de progresión de dificultad y evaluación de nivel»):
    - Aprendizaje para el dominio (Bloom/Guskey): subir solo con 90 % de media y ninguna partida bajo 80 %.
    - Fluidez (Kumon, Precision Teaching): además, más rápido que al llegar al nivel, o casi perfecto sin enlentecerse.
-   - Práctica espaciada (Cepeda y otros, 2006): el dominio se repite en días distintos y hay días mínimos por nivel.
+   - Práctica espaciada (Cepeda y otros, 2006): el dominio se confirma en días distintos (sin espera fija: avanza por progreso).
    - Zona de aprendizaje (~85 %): entre 60 % y 89 % el nivel se mantiene.
    - Bajar: dos partidas seguidas bajo 60 %. Tras 14 días sin jugar, la primera partida es de repaso.
    El tope de nivel por edad lo pone index.html (capLv) y se pasa como o.cap.
@@ -13,9 +13,9 @@ const LG=()=>{ const l=(document.documentElement.lang||'es').slice(0,2); return 
 
 /* ---------- reglas ---------- */
 const RULES={
-  k:{sess:4, days:3, wait:7, mean:.9, min:.8, perDay:1},   /* 2 a 6 años */
-  s:{sess:3, days:2, wait:4, mean:.9, min:.8, perDay:2},   /* 7 a 12 años */
-  a:{sess:2, days:2, wait:2, mean:.85, min:.7, perDay:3}   /* adultos */
+  k:{sess:4, days:3, wait:0, mean:.9, min:.8, perDay:1},   /* 2 a 6 años */
+  s:{sess:3, days:2, wait:0, mean:.9, min:.8, perDay:2},   /* 7 a 12 años */
+  a:{sess:2, days:2, wait:0, mean:.85, min:.7, perDay:3}   /* adultos */
 };
 const MASTER=.9, LOW=.6, PAUSE=14, KEEP=24;
 /* juegos donde la duración la marca el propio juego (secuencias, respiración, espera): no se mide la velocidad */
@@ -35,7 +35,7 @@ function track(n, game, lv, today){ const P=n.prog=n.prog||{}; let p=P[game];
 function check(p, game, age, today, P){ const R=rulesFor(age); const hs=p.h.filter(x=>!x.r); const need=[];
   if(hs.length<R.sess) need.push(['sess', R.sess-hs.length]);
   const good=new Set(hs.filter(x=>x.a>=MASTER).map(x=>x.d)).size; if(good<R.days) need.push(['days', R.days-good]);
-  const waited=ddiff(p.since, today); if(waited<R.wait) need.push(['wait', R.wait-waited]);
+  if(R.wait){ const waited=ddiff(p.since, today); if(waited<R.wait) need.push(['wait', R.wait-waited]); }
   const l3=hs.slice(-3); const mean=l3.length? r2(l3.reduce((s,x)=>s+x.a,0)/l3.length,1000) : 0; const mn=l3.length? Math.min(...l3.map(x=>x.a)) : 0;
   if(l3.length && (mean<R.mean || mn<R.min)) need.push(['acc', Math.round(R.mean*100)]);
   if(!NOSPEED.has(game)){ const t=hs.filter(x=>x.s); if(t.length>=4){ const base=median(t.slice(0,2).map(x=>x.s)), rec=median(t.slice(-2).map(x=>x.s));
@@ -67,7 +67,7 @@ function step(n, game, o){ const today=o.today||todayKey(); const lv=o.lv||1, ma
 const TX={
  es:{sess:'{0} partidas más', days:'{0} días más con 90 %', wait:'esperar {0} días', acc:'llegar a {0} % de media', speed:'responder con más soltura', today:'mañana (hoy ya subió otro juego)',
    ready:'Listo: sube en la próxima partida buena', need:'Para subir: ', top:'En el tope de su edad',
-   explain:'Cada juego sube de nivel solo cuando hay dominio: varias partidas, 90 % de aciertos en {0} días distintos, al menos {1} días en el nivel y más soltura al responder (el tiempo por respuesta). Como mucho sube {2} juego(s) por día. Entre 60 % y 89 % se queda en el nivel, que es donde aprende; con dos partidas seguidas bajo 60 % baja uno. En papel, 3 estrellas cuentan como 90 % y 2 estrellas como 75 %. Al lado de cada juego ves en qué edad y dificultad está y qué le falta para subir. Lo que le cuesta vuelve a aparecer. Puntos = estrellas × 10 × nivel.',
+   explain:'Cada juego sube de nivel solo cuando hay dominio: varias partidas, 90 % de aciertos confirmado en {0} días distintos y más soltura al responder (el tiempo por respuesta). No hay plazos fijos: si le sale fácil avanza, si le cuesta repite. Como mucho sube {2} juego(s) por día. Entre 60 % y 89 % se queda en el nivel, que es donde aprende; con dos partidas seguidas bajo 60 % baja uno. En papel, 3 estrellas cuentan como 90 % y 2 estrellas como 75 %. Al lado de cada juego ves en qué edad y dificultad está y qué le falta para subir. Lo que le cuesta vuelve a aparecer. Puntos = estrellas × 10 × nivel.',
    title:'🧭 Evaluación de nivel', go:'Hacer la evaluación', short:'Varias pruebas cortas seguidas que recomiendan en qué nivel o edad conviene empezar, por área. Es orientativa: nada cambia hasta que tocás «Aplicar».', open:'🧭 Evaluación de nivel',
    lead:'Varias pruebas cortas, por área, con los juegos de Lumi. Empiezan en lo esperable para {0} años y suben o bajan según cómo le va, hasta encontrar su nivel. Tarda entre 10 y 20 minutos.',
    kids:'Con chicos chicos conviene hacerla en 2 o 3 tandas: lo hecho queda guardado y se sigue donde quedó.',
@@ -78,7 +78,7 @@ const TX={
    capNote:'Si algún nivel pasa el tope de su edad, Lumi lo deja en el tope.', of:'nivel {0} de {1}', tries:'{0} pruebas', try1:'1 prueba', weak:'Para reforzar: {0}.', strong:'Va adelantado en: {0}.', diff:['fácil','medio','difícil'], lastOk:'Última prueba: {0} % de aciertos', back2:'← Volver'},
  ca:{sess:'{0} partides més', days:'{0} dies més amb un 90 %', wait:'esperar {0} dies', acc:'arribar a un {0} % de mitjana', speed:'respondre amb més soltesa', today:'demà (avui ja ha pujat un altre joc)',
    ready:'A punt: puja a la propera partida bona', need:'Per pujar: ', top:'Al límit de la seva edat',
-   explain:'Cada joc puja de nivell només quan hi ha domini: diverses partides, un 90 % d\'encerts en {0} dies diferents, almenys {1} dies al nivell i més soltesa en respondre (el temps per resposta). Com a molt puja {2} joc(s) per dia. Entre el 60 % i el 89 % es queda al nivell, que és on aprèn; amb dues partides seguides per sota del 60 % baixa un nivell. En paper, 3 estrelles compten com un 90 % i 2 estrelles com un 75 %. Al costat de cada joc veus a quina edat i dificultat és i què li falta per pujar. El que li costa torna a sortir. Punts = estrelles × 10 × nivell.',
+   explain:'Cada joc puja de nivell només quan hi ha domini: diverses partides, un 90 % d\'encerts confirmat en {0} dies diferents i més soltesa en respondre (el temps per resposta). No hi ha terminis fixos: si li surt fàcil avança, si li costa repeteix. Com a molt puja {2} joc(s) per dia. Entre el 60 % i el 89 % es queda al nivell, que és on aprèn; amb dues partides seguides per sota del 60 % baixa un nivell. En paper, 3 estrelles compten com un 90 % i 2 estrelles com un 75 %. Al costat de cada joc veus a quina edat i dificultat és i què li falta per pujar. El que li costa torna a sortir. Punts = estrelles × 10 × nivell.',
    title:'🧭 Avaluació de nivell', go:'Fer l\'avaluació', short:'Unes quantes proves curtes seguides que recomanen per quin nivell o edat convé començar, per àrea. És orientativa: no canvia res fins que toques «Aplicar».', open:'🧭 Avaluació de nivell',
    lead:'Unes quantes proves curtes, per àrea, amb els jocs de Lumi. Comencen pel que és esperable als {0} anys i pugen o baixen segons com li va, fins a trobar el seu nivell. Dura entre 10 i 20 minuts.',
    kids:'Amb infants petits val més fer-la en 2 o 3 tandes: el que s\'ha fet queda desat i es continua on s\'havia quedat.',
@@ -89,7 +89,7 @@ const TX={
    capNote:'Si algun nivell passa el límit de la seva edat, Lumi el deixa al límit.', of:'nivell {0} de {1}', tries:'{0} proves', try1:'1 prova', weak:'Per reforçar: {0}.', strong:'Va avançat en: {0}.', diff:['fàcil','mitjà','difícil'], lastOk:'Última prova: {0} % d\'encerts', back2:'← Tornar'},
  en:{sess:'{0} more games', days:'{0} more days at 90 %', wait:'wait {0} days', acc:'reach a {0} % average', speed:'answer more fluently', today:'tomorrow (another game already went up today)',
    ready:'Ready: goes up on the next good game', need:'To go up: ', top:'At the top for their age',
-   explain:'Each game only goes up a level when there is mastery: several games, 90 % correct on {0} different days, at least {1} days at the level and more fluent answers (time per answer). At most {2} game(s) go up per day. Between 60 % and 89 % it stays at the level, which is where learning happens; two games in a row below 60 % take it down one level. On paper, 3 stars count as 90 % and 2 stars as 75 %. Next to each game you see its age and difficulty and what is missing to go up. Whatever is hard comes back again. Points = stars × 10 × level.',
+   explain:'Each game only goes up a level when there is mastery: several games, 90 % correct confirmed on {0} different days and more fluent answers (time per answer). There are no fixed deadlines: if it is easy they move on, if it is hard they repeat. At most {2} game(s) go up per day. Between 60 % and 89 % it stays at the level, which is where learning happens; two games in a row below 60 % take it down one level. On paper, 3 stars count as 90 % and 2 stars as 75 %. Next to each game you see its age and difficulty and what is missing to go up. Whatever is hard comes back again. Points = stars × 10 × level.',
    title:'🧭 Level check', go:'Take the check', short:'A few short tests in a row that recommend which level or age to start at, by area. It is only guidance: nothing changes until you tap «Apply».', open:'🧭 Level check',
    lead:'A few short tests per area, using Lumi\'s games. They start at what is expected at {0} and go up or down depending on how it goes, until they find the right level. It takes 10 to 20 minutes.',
    kids:'With young children it is best done in 2 or 3 rounds: progress is saved and you continue where you left off.',
