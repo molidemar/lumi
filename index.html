@@ -960,7 +960,7 @@ function KidsScreen({list, err, onOpen, onAdd, onSignOut, onRetry, onDeleteAccou
     <div className="kid-grid">${list.map(k=>{ const s=k.settings||{}; return html`<button key=${k.id} className="kid" onClick=${()=>onOpen(k.id)}>
         <span className="emoji">${s.onboarded? '🧒' : '✨'}</span><b data-notr>${s.name || k.name || ''}</b>${!(s.name||k.name) && html`<b>Nuevo</b>`}
         <span>${s.age? F('{0} años',s.age) : 'Sin configurar'}</span></button>`; })}
-      <button className="kid add" disabled=${busy} onClick=${add}><span className="emoji">➕</span><b>Agregar un chico</b></button></div>`}
+      <button className="kid add" disabled=${busy} onClick=${add}><span className="emoji">➕</span><b>Agregar nuevo individuo</b></button></div>`}
     ${msg && html`<p className="acct-err">${msg}</p>`}
     <div className="row" style=${{justifyContent:'center'}}><span className="small muted">${F('Cuenta: {0}', Acct.label())}</span><button className="btn soft small" onClick=${onSignOut}>Cerrar sesión</button></div>
     ${del? html`<div className="row" style=${{justifyContent:'center'}}><span className="small">¿Seguro? Se borra la cuenta y todos sus chicos, para siempre.</span><button className="btn danger small" disabled=${busy} onClick=${async()=>{ setBusy(true); try{ await onDeleteAccount(); }catch(e){ setMsg(acctErr(e)); setBusy(false); } }}>Sí, borrar</button><button className="btn soft small" onClick=${()=>setDel(false)}>No</button></div>`
@@ -1805,15 +1805,15 @@ function Setup({initial, start=0, onDone, onCancel, onLang}){
         <p className="small muted">Con la edad se eligen los ejercicios. Hasta los 6 años, la voz lee lo que toca en la pantalla; desde los 7, lee solo.</p>`}
       ${step===2 && html`<h2>¿Qué dificultad?</h2>
         <div className="diff-grid">${DIFFS.map(([k,l,d])=>html`<button key=${k} className=${'diff'+(diff===k?' on':'')} onClick=${()=>{ setDiff(k); go(3); }}>
-          <span className="emoji">${k==='facil'?'🌱':k==='medio'?'🌳':'🚀'}</span><b>${l}</b><span>${d}</span><small>${F('Ejercicios de {0} años · {1}', Math.min(12,age||5), l.toLowerCase())}</small></button>`)}</div>
-        <p className="small muted">No hace falta acertar: cada ejercicio se adapta solo. Si le va muy bien, pasa a lo que hace un chico más grande; si le cuesta, baja.</p>`}
+          <span className="emoji">${k==='facil'?'🌱':k==='medio'?'🌳':'🚀'}</span><b>${l}</b>${age>12 && window.LumiIQ? html`<span>${window.LumiIQ.adultDiff(k)[0]}</span><small>${window.LumiIQ.adultDiff(k)[1]}</small>` : html`<span>${d}</span><small>${F('Ejercicios de {0} años · {1}', Math.min(12,age||5), l.toLowerCase())}</small>`}</button>`)}</div>
+        <p className="small muted">${age>12? 'No hace falta acertar: cada ejercicio se adapta solo. Sube si te va bien y baja si cuesta.' : 'No hace falta acertar: cada ejercicio se adapta solo. Si le va muy bien, pasa a lo que hace un chico más grande; si le cuesta, baja.'}</p>`}
       ${step===3 && html`<h2>¡Todo listo, ${nm}!</h2>
         <div className="panel summary">
           <div><b>${F('{0} años',age)}</b> · ${DIFFS[diffIdx(diff)][1]}</div>
+          ${age>12 && window.LumiIQ? html`<div className="small" data-notr>${window.LumiIQ.adultSummary(initial.size===3? 4 : 6)}</div>` : html`
           <div className="small">${F('Cada día: {0} y dos juegos de lógica, memoria o atención.', ageGames(age).slice(0,3).map(g=>tr(gname(g,lv))).join(', '))}</div>
           <div className="small">${tapToRead(age)? 'Si no sabe leer, que toque cualquier texto y Lumi se lo lee.' : 'Las consignas están escritas para que las lea solo; Lumi también las dice.'}</div>
-          <div className="small">Va aprendiendo de cada respuesta: lo que le cuesta vuelve a aparecer y el nivel sube cuando acierta.</div>
-          ${age>12 && html`<div className="small">Para adultos, los ejercicios diarios son los de los chicos más grandes y se adaptan solos al nivel (más fáciles si cuesta). El test de CI está en la zona de padres.</div>`}
+          <div className="small">Va aprendiendo de cada respuesta: lo que le cuesta vuelve a aparecer y el nivel sube cuando acierta.</div>`}
         </div>
         <button className="btn" onClick=${()=>onDone({name:name.trim(), age, diff})}>¡Empezar! <span className="emoji">▶</span></button>`}
     </div>
@@ -2908,10 +2908,6 @@ function Parents({save, setSave, update, sync, streak, onBack, onCalendar, toast
       <div className="panel"><h3>✉️ Buzón de sugerencias</h3><p className="small muted">¿Una idea, un ejercicio que falta o algo que no anda? Escribilo acá y se abre tu correo para mandarlo.</p>
         <textarea className="buzon" value=${sug} maxLength="1500" placeholder=${tr('Escribí tu sugerencia…')} onChange=${e=>setSug(e.target.value)}></textarea>
         <a className=${'btn small'+(sug.trim()?'':' off')} href=${'mailto:'+CONTACT+'?subject='+encodeURIComponent('Lumi · '+tr('Sugerencia'))+'&body='+encodeURIComponent(sug+'\n\n— Lumi · '+LANG+' · '+F('{0} años',st.age||''))} onClick=${e=>{ if(!sug.trim()) e.preventDefault(); }}>✉️ Enviar por correo</a></div>
-      ${window.LumiIQ && onIQ && html`<div className="panel"><h3>🧠 Test de coeficiente intelectual</h3>
-        <p className="small muted">Para 12 a 100 años: razonamiento, lenguaje, visoespacial, memoria, velocidad, cálculo y atención. Da un CI estimado con su margen de error y un plan de refuerzo.</p>
-        ${(save.iq||[]).length>0 && (r=>html`<p className="small">${F('Último resultado: CI estimado {0} ({1}–{2}), {3}.', r.iq, r.lo, r.hi, new Date(r.date).toLocaleDateString())}</p>`)(save.iq[save.iq.length-1])}
-        <div><button className="btn small" onClick=${onIQ}>🧠 Hacer el test</button></div></div>`}
       <div className="panel"><h3>🎯 Áreas a reforzar</h3>
         <p className="small muted">Las áreas marcadas aparecen más seguido en el plan de cada día. Sirve para cualquier edad: por ejemplo, Atención y Concentración para un chico que se distrae, o Matemática para un adulto que quiere aprender a sumar.</p>
         <div className="seg">${[...new Set(ageGames(st.age).map(g=>GAME_AREA0[g]))].filter(a=>a!=='Activación').map(a=>{ const on=(st.focus||[]).includes(a); return html`<button key=${a} className=${on?'on':''} onClick=${()=>update(n=>{ const f=new Set(n.settings.focus||[]); if(on) f.delete(a); else f.add(a); n.settings.focus=[...f]; return n; })}>${on?'✓ ':''}${tr(a)}</button>`; })}</div>
@@ -2949,7 +2945,7 @@ function Parents({save, setSave, update, sync, streak, onBack, onCalendar, toast
       </div>
       ${acct && html`<div className="panel">
         <div className="row"><h3>Cuenta</h3><span className="spacer"></span><span className="small muted" data-notr>${Acct.label()}</span></div><div className="row"><${InstallBtn}/></div>
-        <div className="row"><button className="btn soft small" onClick=${acct.onKids}>👧 Cambiar de chico</button><button className="btn soft small" onClick=${acct.onSignOut}>Cerrar sesión</button></div>
+        <div className="row"><button className="btn soft small" onClick=${acct.onKids}>👤 Cambiar de individuo</button><button className="btn soft small" onClick=${acct.onSignOut}>Cerrar sesión</button></div>
         <p className="small muted">Cada chico tiene su progreso. Con la misma cuenta entrás desde cualquier dispositivo.</p>
         ${delK? html`<div className="row"><span>${F('¿Seguro? Se borra {0} de la cuenta, con todo su progreso.', st.name)}</span><button className="btn danger small" onClick=${acct.onDelete}>Sí, borrar</button><button className="btn soft small" onClick=${()=>setDelK(false)}>No</button></div>`
           : html`<div><button className="btn soft small" onClick=${()=>setDelK(true)}>${F('Quitar a {0} de la cuenta', st.name)}</button></div>`}
@@ -3064,7 +3060,10 @@ function App({acct}={}){
   const pinModal = modal&&modal.k==='pin' && html`<${PinPad} pin=${save.settings.pin} onCreate=${p=>update(n=>{ n.settings.pin=p; return n; })} onOk=${()=>modal.then()} onCancel=${()=>setModal(null)}/>`;
 
   let body;
-  if(view.s==='home') body=html`<${HomeScreen} save=${save} today=${today} plan=${plan} round=${round} streak=${streak} onRedo=${redo} talking=${talking} busy=${busy}
+  const adultHome=(save.settings.age||5)>12 && window.LumiIQ && window.LumiIQ.AdultHome;
+  if(view.s==='home' && adultHome) body=html`<${window.LumiIQ.AdultHome} save=${save} update=${update} onExit=${acct? acct.onKids : null} onIQ=${()=>setView({s:'iq'})}
+      onParents=${()=>setModal({k:'pin', then:()=>{ setModal(null); setView({s:'parents'}); }})}/>`;
+  else if(view.s==='home') body=html`<${HomeScreen} save=${save} today=${today} plan=${plan} round=${round} streak=${streak} onRedo=${redo} talking=${talking} busy=${busy}
       onStart=${startDaily} onNextRound=${nextRound} onPlay=${playSlot} onPrint=${g=>doPrint([g])} onPrintAll=${()=>doPrint(plan.filter(p=>p.st!=='done').map(p=>p.g))} onValidate=${validate} onPaper=${paper}
       onCalendar=${()=>setView({s:'calendar'})} onExit=${acct? acct.onKids : null} onAlbum=${()=>setModal({k:'album'})} onParents=${()=>setModal({k:'pin', then:()=>{ setModal(null); setView({s:'parents'}); }})}
       onLumi=${()=>{ unlock(); const hi=NT(save.settings.name).hello; speak(plan.every(p=>p.st==='done')? T.moreToday : (Voice.has(hi)||!Voice.files? hi : T.hiGeneric)); }}/>`;
@@ -3085,7 +3084,7 @@ function App({acct}={}){
   else if(view.s==='iq' && window.LumiIQ) body=html`<${window.LumiIQ.App} name=${save.settings.name} age=${save.settings.age} history=${save.iq||[]} canApply=${(save.settings.age||5)>=12} tr=${tr} areas=${[...new Set(ageGames(save.settings.age).map(g=>GAME_AREA0[g]))]}
       onSave=${r=>update(n=>{ n.iq=[...(n.iq||[]), r].slice(-20); return n; })} onDelete=${id=>update(n=>{ n.iq=(n.iq||[]).filter(x=>(x.id||x.date)!==id); return n; })}
       onApply=${(focus,weak,r)=>{ update(n=>{ n.settings.focus=focus; weak.filter(k=>r.areas[k] && r.areas[k].v<85).forEach(k=>{ const v=r.areas[k].v; const ar=window.LumiIQ.FOCUS[k]||[]; Object.keys(n.levels).forEach(g=>{ if(!ar.includes(GAME_AREA0[g])) return; const l=n.levels[g]||1; n.levels[g]=Math.max(1, v<65? Math.round(l*.3) : v<75? l-4 : l-2); }); }); return n; }); toast('Plan de refuerzo aplicado.'); }}
-      onBack=${()=>setView({s:'parents'})}/>`;
+      onBack=${home}/>`;
   else if(view.s==='parents') body=html`<${Parents} onIQ=${()=>setView({s:'iq'})} save=${save} setSave=${setSave} update=${update} sync=${sync} streak=${streak} toast=${toast} onBack=${home} onCalendar=${()=>setView({s:'calendar'})} onPrintDay=${()=>doPrint(slots)} onPaper=${()=>{ setView({s:'home'}); setModal({k:'batch', g:null}); }} onSkip=${()=>nextRound(true)} onSetup=${()=>setView({s:'setup'})} slots=${slots} onLang=${switchLang} acct=${acct}/>`;
   const batchModal = modal&&modal.k==='batch' && html`<${PaperBatch} plan=${plan} only=${modal.g} lv=${save.levels}
       onRate=${(g,s)=>{ if(!g){ setModal({k:'batch', g:null}); return; } rateMany([[g,s]]); if(modal.g) setModal({k:'batch', g:null}); }}
