@@ -305,7 +305,8 @@ input[type=password]{font:inherit; font-size:22px; padding:10px 14px; border-rad
 .kid:active{box-shadow:0 1px 0 var(--line); transform:translateY(3px)}
 .kid b{font-family:var(--f-display); font-size:26px; line-height:1.1} .kid .emoji{font-size:44px} .kid span{font-size:16px}
 .kid.add{border-style:dashed}
-.credit{font-size:15px; color:var(--ink-2); text-align:center; line-height:1.5; padding:4px 0 8px} .credit a{color:var(--ink); font-weight:700} .credit b{color:var(--ink)}
+.sig{flex:none; display:flex; flex-wrap:wrap; justify-content:center; column-gap:4px; font-size:13px; line-height:1.3; color:var(--ink-2); text-align:center; text-transform:none; padding:6px 8px 0; font-family:var(--f-body)} .sig b{color:var(--ink)} .sig a{color:var(--ink); font-weight:700}
+@media (max-width:640px){ .sig{font-size:11px} .sig-sep{display:none} .sig>span{width:100%} }
 .linkish{background:none; border:none; color:var(--ink-2); text-decoration:underline; font:inherit; padding:6px 8px; cursor:pointer}
 </style>
 
@@ -745,7 +746,7 @@ function acctErr(e){ const c=(e&&(e.code||e.message))||''; const m=String(c).toL
   if(m.includes('max_kids')) return 'Llegaste al máximo de 12 chicos en esta cuenta.';
   return 'No se pudo. Probá de nuevo en un rato.'; }
 const CONTACT='info@molidemarlloret.com';
-function Credit(){ return html`<div className="credit"><b>Creado por</b> <b data-notr>GUIDO A. ROMAGNOLI</b><br/><span>Contacto, sugerencias o donaciones:</span> <a data-notr href=${'mailto:'+CONTACT+'?subject=Lumi'}>${CONTACT}</a></div>`; }
+function Credit(){ return html`<footer className="sig" data-noread><span><b>Creado por</b> <b data-notr>GUIDO A. ROMAGNOLI</b></span><span className="sig-sep"> · </span><span><span>Contacto, sugerencias o donaciones:</span> <a data-notr href=${'mailto:'+CONTACT+'?subject=Lumi'}>${CONTACT}</a></span></footer>`; }
 function LangSeg(){ return html`<div className="seg" data-notr style=${{justifyContent:'center'}}>${LANGS.map(([k,l])=>html`<button key=${k} className=${LANG===k?'on':''} onClick=${()=>{ if(k===LANG) return; lsSet('lumi-lang',k); location.reload(); }}>${l}</button>`)}</div>`; }
 function AuthScreen({onIn}){
   const [mode,setMode]=useState('in'); const [id,setId]=useState(''); const [pw,setPw]=useState(''); const [pw2,setPw2]=useState(''); const [err,setErr]=useState(''); const [busy,setBusy]=useState(false);
@@ -770,7 +771,6 @@ function AuthScreen({onIn}){
       ${Acct.google && html`<button className="btn soft small" disabled=${busy} onClick=${()=>Acct.signInGoogle().catch(e=>setErr(acctErr(e)))}>Entrar con Google</button>`}
       <p className="small muted">${isNew? 'Podés usar tu correo o inventar un usuario (sin espacios). La cuenta es de un adulto: adentro agregás a cada chico con su propio progreso.' : 'Con la misma cuenta entrás desde el iPad, la tablet o la compu, y el progreso se comparte.'}</p>
     </div>
-    <${Credit}/>
   </div></div>`;
 }
 function KidsScreen({list, err, onOpen, onAdd, onSignOut, onRetry, onDeleteAccount}){
@@ -788,7 +788,6 @@ function KidsScreen({list, err, onOpen, onAdd, onSignOut, onRetry, onDeleteAccou
     <div className="row" style=${{justifyContent:'center'}}><span className="small muted">${F('Cuenta: {0}', Acct.label())}</span><button className="btn soft small" onClick=${onSignOut}>Cerrar sesión</button></div>
     ${del? html`<div className="row" style=${{justifyContent:'center'}}><span className="small">¿Seguro? Se borra la cuenta y todos sus chicos, para siempre.</span><button className="btn danger small" disabled=${busy} onClick=${async()=>{ setBusy(true); try{ await onDeleteAccount(); }catch(e){ setMsg(acctErr(e)); setBusy(false); } }}>Sí, borrar</button><button className="btn soft small" onClick=${()=>setDel(false)}>No</button></div>`
       : html`<div className="row" style=${{justifyContent:'center'}}><button className="linkish small" onClick=${()=>setDel(true)}>Borrar la cuenta</button><a className="linkish small" href="privacidad.html">Privacidad</a></div>`}
-    <${Credit}/>
   </div></div>`;
 }
 function Root(){
@@ -2036,7 +2035,6 @@ function Parents({save, setSave, update, sync, streak, onBack, onCalendar, toast
           <li>Felicitá el esfuerzo y la calma («te fijaste un montón»), no solo el acierto.</li>
         </ul>
       </div>
-      <${Credit}/>
     </div></div>
     ${newPin && html`<${PinPad} pin="" onCreate=${p=>{ setSetting('pin',p); toast('Código guardado.'); }} onOk=${()=>setNewPin(false)} onCancel=${()=>setNewPin(false)}/>`}
   </div>`;
@@ -2162,7 +2160,7 @@ function App({acct}={}){
 
 try{ if('serviceWorker' in navigator && window.isSecureContext && !FRAMED && /^https?:$/.test(location.protocol)) fetch('sw.js',{method:'HEAD'}).then(r=>{ if(r.ok) navigator.serviceWorker.register('sw.js').catch(()=>{}); }).catch(()=>{}); }catch(e){}
 COL=tokens();
-ReactDOM.createRoot(document.getElementById('root')).render(html`<${Acct.on? Root : App}/>`);
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${Acct.on? Root : App}/><${Credit}/>`);
 })();
 </script>
 </body></html>
