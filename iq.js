@@ -386,9 +386,9 @@ function Keypad({val, setVal, onOk, max=6}){ const add=d=>setVal(v=>(v+d).slice(
 function answerText(it){ if(it.kind==='num') return String(it.answer); if(it.sub==='voc'||it.sub==='ana') return it.opts[it.answer]; return '✓'; }
 
 /* ---------- prueba de potencia adaptativa ---------- */
-function PowerSub({sub, mode, mu, practice, train, onDone}){
-  const P=PW[sub]; const s=useRef({resp:[], used:new Set(), n:0, th:mu-.8}); const [it,setIt]=useState(null); const [fb,setFb]=useState(null); const [val,setVal]=useState('');
-  const [mn,mx]= practice? [1,1] : train? [10,10] : MODES[mode].n[sub]; const seStop=!practice&&!train&&MODES[mode].se;
+function PowerSub({sub, mode, mu, practice, train, onDone, start, n:nTrain}){
+  const P=PW[sub]; const s=useRef({resp:[], used:new Set(), n:0, th: start!==undefined? start : mu-.8}); const [it,setIt]=useState(null); const [fb,setFb]=useState(null); const [val,setVal]=useState('');
+  const [mn,mx]= practice? [1,1] : train? [nTrain||10, nTrain||10] : MODES[mode].n[sub]; const seStop=!practice&&!train&&MODES[mode].se;
   function next(){ const st=s.current;
     if(st.n>=mx || (seStop && st.n>=mn && eap(st.resp,mu).se<seStop) || (!seStop && st.n>=mn)){ onDone({resp:st.resp}); return; }
     const th= st.resp.length? eap(st.resp,mu).th : st.th; const lv= practice? 1 : chooseLevel(P, th);
@@ -421,8 +421,8 @@ S.anaQ=['{0} es a {1} como {2} es a…','{0} és a {1} com {2} és a…','{0} is
 /* ---------- memoria: dígitos y cuadrados (escalera adaptativa) ---------- */
 const SPAN_REF={dfw:6.6, dbw:4.9, cor:5.5}; /* largo que un adulto joven medio acierta la mitad de las veces (aprox.) */
 const CORSI=[[16,16],[58,13],[84,30],[32,42],[66,48],[12,70],[48,72],[86,74],[30,88]];
-function SpanSub({sub, mode, practice, train, onDone}){
-  const total= practice? 1 : train? 6 : MODES[mode].span[sub]; const s=useRef({resp:[], L: practice? 3 : sub==='dfw'? 4 : 3, n:0});
+function SpanSub({sub, mode, practice, train, onDone, startL}){
+  const total= practice? 1 : train? 6 : MODES[mode].span[sub]; const s=useRef({resp:[], L: practice? 3 : startL || (sub==='dfw'? 4 : 3), n:0});
   const [ph,setPh]=useState('wait'); const [seq,setSeq]=useState([]); const [lit,setLit]=useState(-1); const [val,setVal]=useState(''); const [taps,setTaps]=useState([]); const [fb,setFb]=useState(null);
   const alive=useRef(true); useEffect(()=>()=>{ alive.current=false; },[]);
   async function run(){ const st=s.current; if(st.n>=total){ onDone({resp:st.resp}); return; } st.n++;
@@ -531,13 +531,13 @@ function Instr({sub, i, n, mode, onPractice, onStart, train}){ const m=MODES[mod
     ${!train && h`<p className="small muted">${t('testN', i+1, n)}</p>`}
     <h2>${T3(SUBN[sub])}</h2><p className="iq-lead">${txt}</p>
     <div className="row" style=${{justifyContent:'center'}}>
-      <button className="btn soft small" onClick=${onPractice}>${t('example')}</button>
+      ${!train && h`<button className="btn soft small" onClick=${onPractice}>${t('example')}</button>`}
       <button className="btn small" onClick=${onStart}>${t('go')} ▶</button></div></div>`; }
-function SubRunner({sub, mode, mu, practice, train, onDone}){
-  if(PW[sub]) return h`<${PowerSub} sub=${sub} mode=${mode} mu=${mu} practice=${practice} train=${train} onDone=${onDone}/>`;
+function SubRunner({sub, mode, mu, practice, train, onDone, start, startL, n}){
+  if(PW[sub]) return h`<${PowerSub} sub=${sub} mode=${mode} mu=${mu} practice=${practice} train=${train} onDone=${onDone} start=${start} n=${n}/>`;
   if(sub==='sym') return h`<${SymSub} mode=${mode} practice=${practice} train=${train} onDone=${onDone}/>`;
   if(sub==='cpt') return h`<${CptSub} mode=${mode} practice=${practice} train=${train} onDone=${onDone}/>`;
-  return h`<${SpanSub} sub=${sub} mode=${mode} practice=${practice} train=${train} onDone=${onDone}/>`; }
+  return h`<${SpanSub} sub=${sub} mode=${mode} practice=${practice} train=${train} onDone=${onDone} startL=${startL}/>`; }
 const AREA_OF=Object.fromEntries(AREAS.flatMap(A=>A.subs.map(s=>[s,A.k])));
 function Runner({mode, age, onFinish, onQuit}){ const seq=MODES[mode].seq; const [i,setI]=useState(0); const [ph,setPh]=useState('instr'); const data=useRef({}); const [ask,setAsk]=useState(false);
   const sub=seq[i]; const mu=normMu(AREA_OF[sub], age);
@@ -703,6 +703,95 @@ const CSS=`
 `;
 try{ const st=document.createElement('style'); st.id='lumi-iq-css'; st.textContent=CSS; document.head.appendChild(st); }catch(e){}
 
+/* ===================== Plan diario para adultos =====================
+   Los perfiles de más de 12 años usan esta pantalla de inicio en vez de la de los chicos.
+   Ejercicios = los mismos tipos de prueba del test, en modo entrenamiento (con corrección al momento).
+   Nivel por área en theta (0 = adulto joven medio): arranca según Fácil / Medio / Difícil o según el último test,
+   y se ajusta con cada sesión. Las áreas a reforzar (y las flojas del último test) salen más seguido. */
+S.hello=['¡Hola, {0}!','Hola, {0}!','Hi, {0}!'];
+S.planToday=['Plan de hoy · {0} de {1}','Pla d\'avui · {0} de {1}','Today\'s plan · {0} of {1}'];
+S.allDone=['¡Plan de hoy completo! Mañana hay más. Si querés, podés repetir cualquier ejercicio.','Pla d\'avui complet! Demà n\'hi ha més. Si vols, pots repetir qualsevol exercici.','Today\'s plan is complete! More tomorrow. You can repeat any exercise if you like.'];
+S.iqBtn=['🧠 Test de CI','🧠 Test de CI','🧠 IQ test'];
+S.iqLast=['Último: {0} ({1}–{2})','Últim: {0} ({1}–{2})','Latest: {0} ({1}–{2})'];
+S.admin=['Admin','Admin','Admin'];
+S.switchP=['Cambiar de individuo','Canvia d\'individu','Switch person'];
+S.streakD=['{0} días seguidos','{0} dies seguits','{0} days in a row'];
+S.levels=['Tu nivel por área (100 = lo esperable a tu edad)','El teu nivell per àrea (100 = el que s\'espera a la teva edat)','Your level by area (100 = expected for your age)'];
+S.levelsNote=['Sale de tus respuestas en los ejercicios. Es una guía para entrenar; el número serio es el del test.','Surt de les teves respostes als exercicis. És una guia per entrenar; el número seriós és el del test.','Based on your exercise answers. It is a training guide; the serious number is the test one.'];
+S.sessDone=['{0} de {1} bien','{0} de {1} bé','{0} of {1} correct'];
+S.lvUp=['Nivel: sube ↑','Nivell: puja ↑','Level: up ↑'], S.lvDown=['Nivel: baja ↓ (para afianzar)','Nivell: baixa ↓ (per consolidar)','Level: down ↓ (to consolidate)'], S.lvSame=['Nivel: se mantiene','Nivell: es manté','Level: stays the same'];
+S.toPlan=['Volver al plan','Torna al pla','Back to plan'];
+S.doneMark=['Hecho','Fet','Done'];
+S.adultSum=['Cada día: {0} ejercicios cortos de razonamiento, lenguaje, memoria, cálculo, velocidad y atención. Se adaptan solos a tu nivel y dan más lugar a lo que te cuesta. El test de CI está en la pantalla principal.','Cada dia: {0} exercicis curts de raonament, llenguatge, memòria, càlcul, velocitat i atenció. S\'adapten sols al teu nivell i donen més lloc al que et costa. El test de CI és a la pantalla principal.','Every day: {0} short exercises in reasoning, language, memory, maths, speed and attention. They adapt to your level and give more room to what you find hard. The IQ test is on the main screen.'];
+const ADIFF={facil:[['Para empezar de cero: cuentas simples, palabras comunes y secuencias cortas.','Per començar de zero: comptes simples, paraules comunes i seqüències curtes.','Starting from scratch: simple sums, common words and short sequences.'],['Adultos · nivel inicial','Adults · nivell inicial','Adults · beginner level'],-1.4],
+  medio:[['Lo esperable para un adulto. Sube o baja solo.','El que s\'espera per a un adult. Puja o baixa sol.','What is expected for an adult. Goes up or down by itself.'],['Adultos · nivel medio','Adults · nivell mitjà','Adults · average level'],-.3],
+  dificil:[['Problemas exigentes, para superarse.','Problemes exigents, per superar-se.','Demanding problems, to push yourself.'],['Adultos · nivel alto','Adults · nivell alt','Adults · advanced level'],.8]};
+const adultDiff=k=>{ const d=ADIFF[k]||ADIFF.medio; return [T3(d[0]), T3(d[1])]; };
+const ACTS=[['mat','gf','🔷'],['ser','gf','🔢'],['voc','gc','📖'],['ana','gc','🔗'],['rot','gv','🔄'],['dfw','gwm','🧮'],['dbw','gwm','↩️'],['cor','gwm','🟦'],['sym','gs','🔍'],['cal','gq','➕'],['cpt','att','🎯']];
+const ACT=Object.fromEntries(ACTS.map(([k,a,i])=>[k,{k,a,i}]));
+const dKey=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const dNum=k=>Math.round(new Date(k+'T12:00:00').getTime()/864e5);
+function focusAreas(save){ const f=(save.settings&&save.settings.focus)||[]; const out=new Set(Object.keys(FOCUS).filter(k=>FOCUS[k].some(x=>f.includes(x))));
+  const last=(save.iq||[]).slice(-1)[0]; if(last && last.areas) weakAreas(last).slice(0,3).forEach(k=>out.add(k)); return out; }
+function adultPlan(save, key){ const n=(save.settings.size===3)? 4 : 6; const r=mulberry(dNum(key)*131+7); const fa=focusAreas(save);
+  const areas=AREAS.map(A=>A.k); const chosen=[]; const pool=areas.slice();
+  while(chosen.length<n && pool.length){ const w=pool.map(a=>1+(fa.has(a)? 2.5 : 0)); let x=r()*w.reduce((a,b)=>a+b,0); let j=0; for(;j<pool.length;j++){ x-=w[j]; if(x<=0) break; } chosen.push(pool.splice(Math.min(j,pool.length-1),1)[0]); }
+  const order=['gc','gf','gwm','gq','gv','gs','att']; chosen.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+  return chosen.map(a=>{ const subs=ACTS.filter(x=>x[1]===a).map(x=>x[0]); return subs[(dNum(key)+Math.floor(r()*7))%subs.length]; }); }
+function adultTh(save){ const st=save.settings; const A=save.adult||{}; if(A.th && A.diff===st.diff) return A.th;
+  const base=(ADIFF[st.diff]||ADIFF.medio)[2]; const age=clamp(st.age||30,12,100); const last=(save.iq||[]).slice(-1)[0]; const th={};
+  AREAS.forEach(X=>{ th[X.k]= last && last.areas && last.areas[X.k]? Math.round((normMu(X.k,age)+last.areas[X.k].z)*100)/100 : base; }); return th; }
+function adultStreak(A, key){ let n=0; let d=dNum(key); const days=(A&&A.days)||{}; const ok=k=>days[k] && days[k].full;
+  const keyOf=num=>dKey(new Date(num*864e5+432e5)); if(!ok(key)) d--; while(ok(keyOf(d))){ n++; d--; } return n; }
+function AdultHome({save, update, onParents, onExit, onIQ}){
+  const st=save.settings; const key=dKey(); const plan=useMemo(()=>adultPlan(save,key),[key, st.size, JSON.stringify(st.focus||[]), (save.iq||[]).length]);
+  const th=adultTh(save); const A=save.adult||{}; const done=(A.days&&A.days[key]&&A.days[key].done)||[];
+  const [play,setPlay]=useState(null); const [res,setRes]=useState(null);
+  useEffect(()=>{ if(!save.adult || save.adult.diff!==st.diff || !save.adult.th) update(n=>{ n.adult={...(n.adult||{}), th:adultTh(n), diff:n.settings.diff, days:(n.adult&&n.adult.days)||{}}; return n; }); },[st.diff]);
+  const age=clamp(st.age||30,12,100); const last=(save.iq||[]).slice(-1)[0];
+  function finish(sub, r){ const a=ACT[sub].a; const old=th[a]; let nt=old, ok=0, tot=0;
+    if(r.resp){ ok=r.resp.filter(x=>x.ok).length; tot=r.resp.length; nt=eap(r.resp, old, .8).th; }
+    else if(r.th!==undefined){ nt=old*.5+r.th*.5; if(r.ok!==undefined){ ok=r.ok; tot=r.ok+r.bad; } else if(r.nGo){ ok=r.nGo-r.om+(r.nX-r.com); tot=r.nGo+r.nX; } }
+    nt=old+clamp((nt-old)*.6,-.5,.5); nt=Math.round(clamp(nt,-4.5,3.5)*100)/100; /* cambio suave: como mucho medio desvío por sesión */
+    update(n=>{ const ad=n.adult||{th:adultTh(n), diff:n.settings.diff, days:{}}; ad.th={...adultTh(n), ...(ad.th||{}), [a]:nt}; ad.days=ad.days||{};
+      const d=ad.days[key]||{done:[]}; if(!d.done.includes(sub)) d.done.push(sub); d.full= plan.every(p=>d.done.includes(p)); ad.days[key]=d; ad.diff=n.settings.diff; n.adult=ad; n.updatedAt=Date.now(); return n; });
+    setRes({ok, tot, dir: nt>old+.1? 'lvUp' : nt<old-.1? 'lvDown' : 'lvSame'}); }
+  if(play) return h`<div className="screen adult iq-root" data-notr><div className="iq">
+    <div className="row"><button className="icon-btn" onClick=${()=>{ setPlay(null); setRes(null); }} aria-label=${t('back')}>←</button><h2>${ACT[play.sub].i} ${T3(SUBN[play.sub])}</h2></div>
+    ${play.ph==='instr'? h`<${Instr} sub=${play.sub} train=${true} mode="medium" onPractice=${()=>setPlay({...play, ph:'test'})} onStart=${()=>setPlay({...play, ph:'test'})}/>`
+      : !res? h`<${SubRunner} key=${play.k} sub=${play.sub} mode="medium" mu=${th[ACT[play.sub].a]} start=${th[ACT[play.sub].a]-.3} n=${10} startL=${clamp(Math.round((SPAN_REF[play.sub]||5)+th[ACT[play.sub].a]),2,9)} train=${true} onDone=${r=>finish(play.sub, r)}/>`
+      : h`<div className="iq-stage"><p className="iq-big2">${res.tot? t('sessDone', res.ok, res.tot) : '✓'}</p><p className="iq-lead">${t(res.dir)}</p>
+          <div className="row" style=${{justifyContent:'center'}}><button className="btn small" onClick=${()=>{ setPlay(null); setRes(null); }}>${t('toPlan')} ▶</button></div></div>`}
+  </div></div>`;
+  const nDone=plan.filter(p=>done.includes(p)).length; const streak=adultStreak(A,key); const next=plan.find(p=>!done.includes(p));
+  return h`<div className="screen adult iq-root" data-notr><div className="iq">
+    <div className="row"><h2 style=${{margin:0}}>${t('hello', st.name||'')}</h2><span className="spacer"></span>
+      ${streak>0 && h`<span className="iq-chip">🔥 ${t('streakD', streak)}</span>`}
+      ${onExit && h`<button className="btn soft small" onClick=${onExit}>👤 ${t('switchP')}</button>`}
+      <button className="btn soft small" onClick=${onParents} aria-label="Admin">🔒 ${t('admin')}</button></div>
+    <div className="scroll"><div className="iq-col">
+      <div className="iq-card"><div className="row"><h3 style=${{margin:0}}>${t('planToday', nDone, plan.length)}</h3><span className="spacer"></span>
+          ${next && h`<button className="btn small" onClick=${()=>setPlay({sub:next, ph:'instr', k:Date.now()})}>▶ ${T3(SUBN[next])}</button>`}</div>
+        ${plan.map(p=>{ const isDone=done.includes(p); return h`<button key=${p} className=${'iq-act'+(isDone?' done':'')} onClick=${()=>setPlay({sub:p, ph:'instr', k:Date.now()})}>
+          <span className="iq-acti">${ACT[p].i}</span><span className="iq-actt"><b>${T3(SUBN[p])}</b>${T3(AREA[ACT[p].a].n)!==T3(SUBN[p]) && h`<small>${T3(AREA[ACT[p].a].n)}</small>`}</span><span className="iq-acts">${isDone? '✓ '+t('doneMark') : '▶'}</span></button>`; })}
+        ${!next && h`<p className="note">${t('allDone')}</p>`}</div>
+      <div className="iq-card iq-iqcard"><button className="btn" onClick=${onIQ}>${t('iqBtn')}</button>
+        <span className="small muted">${last? t('iqLast', last.iq, last.lo, last.hi) : t('sub')}</span></div>
+      <div className="iq-card"><h3 style=${{margin:0}}>${t('levels')}</h3>
+        ${AREAS.map(X=>{ const v=clamp(Math.round(100+15*(th[X.k]-normMu(X.k,age))),40,160); return h`<div key=${X.k} className="iq-row lv"><span className="iq-lab">${T3(X.n)}</span><${Bar} v=${v} lo=${v} hi=${v}/><b className="iq-v">${v}</b></div>`; })}
+        <p className="small muted" style=${{margin:0}}>${t('levelsNote')}</p></div>
+    </div></div></div></div>`; }
+const CSS2=`
+.iq-act{display:flex;align-items:center;gap:12px;border:none;border-radius:18px;padding:10px 14px;background:var(--sky-2,#EEF9FF);text-align:left;width:100%;box-shadow:0 3px 0 var(--line,#B9D7F0)}
+.iq-act.done{background:var(--leaf-2,#D2F7DF)} .iq-acti{font-size:30px;width:40px;text-align:center} .iq-actt{flex:1;display:flex;flex-direction:column} .iq-actt b{font-family:var(--f-display);font-size:22px} .iq-actt small{color:var(--ink-2);font-size:15px}
+.iq-acts{font-weight:800;font-size:18px;color:var(--ink-2)} .iq-act.done .iq-acts{color:var(--leaf-dark,#128A3D)}
+.iq-chip{background:var(--card,#fff);border-radius:99px;padding:8px 14px;box-shadow:0 3px 0 var(--line,#B9D7F0);font-weight:700}
+.iq-iqcard{flex-direction:row;align-items:center;flex-wrap:wrap;gap:16px}
+.iq-row.lv{grid-template-columns:minmax(120px,210px) 1fr 44px}
+@media (max-width:640px){ .iq-row.lv{grid-template-columns:1fr 40px;grid-template-areas:"l v" "t t"} }
+`;
+try{ const st2=document.createElement('style'); st2.textContent=CSS2; document.head.appendChild(st2); }catch(e){}
+
 /* ---------- textos nuevos de index.html (clave en español → ca / en) ---------- */
 const DICT_IDX={
   ca:{'Test de coeficiente intelectual':'Test de coeficient intel·lectual','Para 12 a 100 años: razonamiento, lenguaje, visoespacial, memoria, velocidad, cálculo y atención. Da un CI estimado con su margen de error y un plan de refuerzo.':'De 12 a 100 anys: raonament, llenguatge, visuoespacial, memòria, velocitat, càlcul i atenció. Dona un CI estimat amb el seu marge d\'error i un pla de reforç.',
@@ -710,14 +799,14 @@ const DICT_IDX={
     'Las áreas marcadas aparecen más seguido en el plan de cada día. Sirve para cualquier edad: por ejemplo, Atención y Concentración para un chico que se distrae, o Matemática para un adulto que quiere aprender a sumar.':'Les àrees marcades surten més sovint al pla de cada dia. Serveix per a qualsevol edat: per exemple, Atenció i Concentració per a un nen que es distreu, o Matemàtiques per a un adult que vol aprendre a sumar.',
     'Ninguna marcada: el plan rota todo y da más lugar a lo que le cuesta.':'Cap marcada: el pla ho fa rotar tot i dona més lloc al que li costa.','Adulto':'Adult','13 a 100':'13 a 100','¿Qué edad?':'Quina edat?',
     'Para adultos, los ejercicios diarios son los de los chicos más grandes y se adaptan solos al nivel (más fáciles si cuesta). El test de CI está en la zona de padres.':'Per als adults, els exercicis diaris són els dels nens més grans i s\'adapten sols al nivell (més fàcils si costa). El test de CI és a la zona de pares.',
-    'Los perfiles de adulto no participan en el top 10.':'Els perfils d\'adult no participen en el top 10.','Plan de refuerzo aplicado.':'Pla de reforç aplicat.'},
+    'Los perfiles de adulto no participan en el top 10.':'Els perfils d\'adult no participen en el top 10.','Plan de refuerzo aplicado.':'Pla de reforç aplicat.','Agregar nuevo individuo':'Afegeix un nou individu','No hace falta acertar: cada ejercicio se adapta solo. Sube si te va bien y baja si cuesta.':'No cal encertar: cada exercici s\'adapta sol. Puja si et va bé i baixa si costa.','Cambiar de individuo':'Canvia d\'individu'},
   en:{'Test de coeficiente intelectual':'IQ test','Para 12 a 100 años: razonamiento, lenguaje, visoespacial, memoria, velocidad, cálculo y atención. Da un CI estimado con su margen de error y un plan de refuerzo.':'Ages 12 to 100: reasoning, language, visual-spatial, memory, speed, maths and attention. Gives an estimated IQ with its margin of error and a training plan.',
     'Hacer el test':'Take the test','Último resultado: CI estimado {0} ({1}–{2}), {3}.':'Latest result: estimated IQ {0} ({1}–{2}), {3}.','Áreas a reforzar':'Areas to strengthen',
     'Las áreas marcadas aparecen más seguido en el plan de cada día. Sirve para cualquier edad: por ejemplo, Atención y Concentración para un chico que se distrae, o Matemática para un adulto que quiere aprender a sumar.':'Marked areas appear more often in the daily plan. Works at any age: for example, Attention and Focus for a child who gets distracted, or Maths for an adult who wants to learn to add.',
     'Ninguna marcada: el plan rota todo y da más lugar a lo que le cuesta.':'None marked: the plan rotates everything and gives more room to what is hard.','Adulto':'Adult','13 a 100':'13 to 100','¿Qué edad?':'What age?',
     'Para adultos, los ejercicios diarios son los de los chicos más grandes y se adaptan solos al nivel (más fáciles si cuesta). El test de CI está en la zona de padres.':'For adults, daily exercises are those for the oldest children and adapt to the level by themselves (easier if it is hard). The IQ test is in the parents\' area.',
-    'Los perfiles de adulto no participan en el top 10.':'Adult profiles do not take part in the top 10.','Plan de refuerzo aplicado.':'Training plan applied.'}};
+    'Los perfiles de adulto no participan en el top 10.':'Adult profiles do not take part in the top 10.','Plan de refuerzo aplicado.':'Training plan applied.','Agregar nuevo individuo':'Add new person','No hace falta acertar: cada ejercicio se adapta solo. Sube si te va bien y baja si cuesta.':'No need to get it right: each exercise adapts by itself. It goes up if you do well and down if it is hard.','Cambiar de individuo':'Switch person'}};
 
-window.LumiIQ={App:IQApp, dict:DICT_IDX, FOCUS, focusFor, weakAreas, classify,
-  /* para pruebas automáticas */ _t:{eap, normMu, scoreAll, genMat, genRot, genSer, genCal, genWord, VOC, ANA, PW, MODES, symTrial, canon, mirror, rotKeys}};
+window.LumiIQ={App:IQApp, AdultHome, adultDiff, adultSummary:n=>t('adultSum', n), dict:DICT_IDX, FOCUS, focusFor, weakAreas, classify,
+  /* para pruebas automáticas */ _t:{adultPlan, adultTh, eap, normMu, scoreAll, genMat, genRot, genSer, genCal, genWord, VOC, ANA, PW, MODES, symTrial, canon, mirror, rotKeys}};
 })();
