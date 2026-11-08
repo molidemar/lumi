@@ -466,6 +466,7 @@ html,body{height:100%; height:100dvh}
 <script src="lib/htm.umd.js"></script>
 <script src="lib/jspdf.umd.min.js"></script>
 <script src="iq.js"></script>
+<script src="progress.js?v=1"></script>
 <script>
 (function(){
 'use strict';
@@ -2933,7 +2934,7 @@ function ProfilePanel({save, update}){
   </div>`;
 }
 
-function Parents({save, setSave, update, sync, streak, onBack, onCalendar, toast, onPrintDay, onPaper, onSkip, onSetup, slots, onLang, acct, onIQ}){
+function Parents({save, setSave, update, sync, streak, onBack, onCalendar, toast, onPrintDay, onPaper, onSkip, onSetup, slots, onLang, acct, onIQ, onPlace}){
   const [confirm,setConfirm]=useState(false); const [sug,setSug]=useState(''); const [delK,setDelK]=useState(false); const [pages,setPages]=useState(null); const [busy,setBusy]=useState(false); const [newPin,setNewPin]=useState(false);
   const st=save.settings; const today=dayKey(); const round=(save.days[today]&&save.days[today].round)||0; const [pmode,setPmode]=useState(st.printMode||'bw');
   const setSetting=(k,v)=>update(n=>{ n.settings[k]=v; return n; });
@@ -2962,12 +2963,13 @@ function Parents({save, setSave, update, sync, streak, onBack, onCalendar, toast
         <p className="small muted">Las áreas marcadas aparecen más seguido en el plan de cada día. Sirve para cualquier edad: por ejemplo, Atención y Concentración para un chico que se distrae, o Matemática para un adulto que quiere aprender a sumar.</p>
         <div className="seg">${[...new Set(ageGames(st.age).map(g=>GAME_AREA0[g]))].filter(a=>a!=='Activación').map(a=>{ const on=(st.focus||[]).includes(a); return html`<button key=${a} className=${on?'on':''} onClick=${()=>update(n=>{ const f=new Set(n.settings.focus||[]); if(on) f.delete(a); else f.add(a); n.settings.focus=[...f]; return n; })}>${on?'✓ ':''}${tr(a)}</button>`; })}</div>
         ${!(st.focus||[]).length && html`<p className="small muted">Ninguna marcada: el plan rota todo y da más lugar a lo que le cuesta.</p>`}</div>
+      ${window.LumiProg && (st.age||5)<=12 && onPlace && html`<div className="panel"><div className="row"><h3>${window.LumiProg.t('title')}</h3><span className="spacer"></span><button className="btn small" onClick=${onPlace}>${window.LumiProg.t('go')}</button></div><p className="small muted">${window.LumiProg.t('short')}</p><${window.LumiProg.Easy} save=${save} games=${ageGames(st.age)} update=${update} levelsFor=${levelsFor} maxLv=${maxLv} toast=${toast}/></div>`}
       <${ProfilePanel} save=${save} update=${update}/>
       <div className="panel">
         <div className="row"><h3>Progreso</h3><span className="spacer"></span><button className="btn soft small" onClick=${onCalendar}>📅 Calendario e historial</button></div>
         <div className="tiles"><div className="tile"><b>🔥 ${streak.cur}</b><span>racha actual</span></div><div className="tile"><b>${streak.best}</b><span>mejor racha</span></div><div className="tile"><b>${streak.worked}</b><span>días completos</span></div><div className="tile"><b>${save.points}</b><span>puntos</span></div><div className="tile"><b>${avgLevel(save).toFixed(1)}</b><span>nivel medio</span></div></div>
-        <p className="small muted">Cada ejercicio se adapta solo: con 85 % de aciertos (o «Muy bien»/«Bien» en papel) pasa a lo que hace un chico más grande o con más dificultad, y por debajo del 50 % baja. Al lado de cada juego ves en qué edad y dificultad está (↑ subió, ↓ bajó desde que empezó). Lo que le cuesta vuelve a aparecer, y el plan del día da más lugar a lo que hace días que no juega. No es inteligencia artificial: son reglas que miran cada respuesta. Puntos = estrellas × 10 × nivel.</p>
-        ${skills.map(s=>html`<div key=${s.g} className="skill"><span className="emoji">${GAMES[s.g].icon}</span><span>${gname(s.g,s.lv)} <span className="muted small">· ${GAMES[s.g].area}${s.acc!==null?` · ${s.acc} % aciertos · ${s.plays} veces`:''}</span></span><span className="lvlnum">${maxLv(s.g)===12? html`${lvLabel(s.lv)}${s.lv>s.start? ' ↑' : s.lv<s.start? ' ↓' : ''}` : `${s.lv} / ${maxLv(s.g)}`}</span></div>`)}
+        <p className="small muted">${window.LumiProg? window.LumiProg.explain(st.age) : tr('Cada ejercicio se adapta solo: con 85 % de aciertos (o «Muy bien»/«Bien» en papel) pasa a lo que hace un chico más grande o con más dificultad, y por debajo del 50 % baja. Al lado de cada juego ves en qué edad y dificultad está (↑ subió, ↓ bajó desde que empezó). Lo que le cuesta vuelve a aparecer, y el plan del día da más lugar a lo que hace días que no juega. No es inteligencia artificial: son reglas que miran cada respuesta. Puntos = estrellas × 10 × nivel.')}</p>
+        ${skills.map(s=>html`<div key=${s.g} className="skill"><span className="emoji">${GAMES[s.g].icon}</span><span>${gname(s.g,s.lv)} <span className="muted small">· ${GAMES[s.g].area}${s.acc!==null?` · ${s.acc} % aciertos · ${s.plays} veces`:''}${window.LumiProg? html`<br/><span className="muted small">${window.LumiProg.status(save, s.g, maxLv(s.g), v=>(typeof capLv==='function'? capLv(s.g, st.age, v) : v))}</span>` : ''}</span></span><span className="lvlnum">${maxLv(s.g)===12? html`${lvLabel(s.lv)}${s.lv>s.start? ' ↑' : s.lv<s.start? ' ↓' : ''}` : `${s.lv} / ${maxLv(s.g)}`}</span></div>`)}
         <h3>Lo que está repasando</h3>
         ${misses.length? html`<div className="misses">${misses.map(x=>html`<span key=${x.g+x.k}>${GAMES[x.g].icon} ${missLabel(x)}</span>`)}</div><p className="small muted">Lo que le cuesta vuelve a aparecer en los próximos ejercicios hasta que lo acierta.</p>` : html`<p className="small muted">Todavía nada: cuando se equivoque en algo, aparece acá y se repasa.</p>`}
         <h3>Letras</h3>
@@ -3060,7 +3062,7 @@ function App({acct}={}){
   function play(game, mode){ setProg(0); setHint(''); sess.current.t0=Date.now(); sess.current.mh={miss:[],hit:[]}; setView({s:'play', game, mode, key:Date.now()}); }
   function practice(game, mode){ unlock(); sess.current={slots:[game], practice:true}; play(game, mode); }
   function record(n, game, stars, acc, mode, extra, mins, practiceRun){ const lv=n.levels[game]||1; const pts=POINTS(stars,lv);
-    n.levels[game]= acc>=.85? Math.min(maxLv(game),lv+1) : acc<.5? Math.max(1,lv-1) : lv;
+    n.levels[game]= window.LumiProg? ((v=>(typeof capLv==='function'? capLv(game, n.settings.age, v) : v))(window.LumiProg.step(n, game, {lv, max:maxLv(game), age:n.settings.age, acc, stars, mode, mins, total:extra&&extra.t, practice:practiceRun, today, cap:v=>(typeof capLv==='function'? capLv(game, n.settings.age, v) : v)}))) : acc>=.85? Math.min(maxLv(game),lv+1) : acc<.5? Math.max(1,lv-1) : lv;
     if(extra && (extra.miss||extra.hit)){ const m=n.miss[game]=n.miss[game]||{}; (extra.miss||[]).forEach(k=>{ m[k]=Math.min(5,(m[k]||0)+2); }); (extra.hit||[]).forEach(k=>{ if(m[k]){ m[k]--; if(m[k]<=0) delete m[k]; } });
       const ks=Object.keys(m); if(ks.length>40) ks.sort((a,b)=>m[a]-m[b]).slice(0,ks.length-40).forEach(k=>delete m[k]); }
     if(extra){ const s=n.stats[game]||{plays:0,c:0,t:0}; n.stats[game]={plays:s.plays+1,c:s.c+extra.c,t:s.t+extra.t}; (extra.letters||[]).forEach(ch=>{ n.letters[ch]=(n.letters[ch]||0)+1; }); }
@@ -3070,7 +3072,9 @@ function App({acct}={}){
     if(!practiceRun && !d.done.includes(game)) d.done.push(game); if(mode==='papel') d.paper[game]='ok';
     if(!d.complete && slots.every(x=>d.done.includes(x))){ d.complete=true; d.fig=figOf(today,d.round||0); d.sticker=d.sticker||FIGS[d.fig].e; }
     n.days[today]=d; return pts; }
-  function onDone(game, c, total, extra){ const acc= total? c/total : 1; const stars= acc>=.85?3: acc>=.6?2:1; const lv=save.levels[game]||1;
+  function onDone(game, c, total, extra){ if(sess.current && sess.current.place && window.LumiProg){ const plv=sess.current.place, secs= total? (Date.now()-(sess.current.t0||Date.now()))/1000/total : null, pacc= total? c/total : 1;
+      update(n=>{ window.LumiProg.placeAdd(n, game, plv, pacc, secs); return n; }); sess.current={slots:[], practice:true}; setView({s:'place'}); return; }
+    const acc= total? c/total : 1; const stars= acc>=.85?3: acc>=.6?2:1; const lv=save.levels[game]||1;
     const mins=(Date.now()-(sess.current.t0||Date.now()))/60000; const pr=sess.current.practice;
     const mh=sess.current.mh||{miss:[],hit:[]}; update(n=>{ record(n, game, stars, acc, 'tablet', {c,t:total,letters:extra&&extra.letters, miss:mh.miss, hit:mh.hit}, mins, pr); return n; });
     const d0=save.days[today]; const before=(d0&&d0.done? d0.done.filter(g=>slots.includes(g)).length : 0); const isNew=!pr && slots.includes(game) && !(d0&&d0.done||[]).includes(game);
@@ -3097,6 +3101,8 @@ function App({acct}={}){
     const letters= g==='trace' && (save.levels.trace||1)<=5? Array(stars).fill(makeSheetPlan(save,today,round).letter) : [];
     update(n=>{ record(n, g, stars, acc, 'papel', {c:Math.round(acc*10), t:10, letters}, 0, false); return n; }); Sfx.play('star'); speak(T.paperOk); }
   const home=()=>{ Voice.stop(); setView({s:'home'}); };
+  function placeGames(){ const age=save.settings.age||5; const L=levelsFor(age,'medio'); const gs= isToddler(age)? TODDLER : ['syll','trace','math','logic','find','memory'];
+    return gs.filter(g=>GAME_COMP[g]).map(g=>{ const mx=maxLv(g); const cap= typeof capLv==='function'? Math.max(1, capLv(g, age, mx)) : mx; return {g, icon:GAMES[g].icon, area:tr(GAMES[g].area), name:gname(g, L[g]), start:Math.min(cap, L[g]||1), max:cap}; }); }
   function switchLang(l){ const n=JSON.parse(JSON.stringify(save)); n.settings.lang=l; n.updatedAt=Date.now(); saveLocal(n);
     try{ fetch('api/progress',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(n),keepalive:true}).catch(()=>{}); }catch(e){}
     try{ Cloud.push(n); }catch(e){} try{ sessionStorage.removeItem('lumi-relang'); }catch(e){}
@@ -3119,10 +3125,10 @@ function App({acct}={}){
       onLumi=${()=>{ unlock(); const hi=NT(save.settings.name).hello; speak(plan.every(p=>p.st==='done')? T.moreToday : (Voice.has(hi)||!Voice.files? hi : T.hiGeneric)); }}/>`;
   else if(view.s==='play'){ const G=GAME_COMP[view.game]; const s=sess.current; const idx=s.practice?0:s.slots.indexOf(view.game);
     const mh=s.mh||(s.mh={miss:[],hit:[]});
-    const api={ level:save.levels[view.game]||1, name:save.settings.name, say:speak, sfx:(k,a)=>Sfx.play(k,a), setProg, done:(c,t,e)=>onDone(view.game,c,t,e),
+    const api={ level:(s.place? s.place : save.levels[view.game]||1), name:save.settings.name, say:speak, sfx:(k,a)=>Sfx.play(k,a), setProg, done:(c,t,e)=>onDone(view.game,c,t,e),
       caps:!readsAlone(save.settings.age), age:save.settings.age, review:reviewKeys(save, view.game, 2), miss:k=>{ if(k) mh.miss.push(k); }, hit:k=>{ if(k) mh.hit.push(k); } };
     body=html`<div className="screen">
-      <div className="topbar"><button className="icon-btn" onClick=${home} aria-label="Salir">✕</button>
+      <div className="topbar"><button className="icon-btn" onClick=${()=>{ if(s.place){ Voice.stop(); sess.current={slots:[], practice:true}; setView({s:'place'}); } else home(); }} aria-label="Salir">✕</button>
         <div className="trackwrap"><div className="track"><i style=${{background:gcol(view.game), width:(Math.max(.03,prog)*100)+'%'}}></i></div>
           ${!s.practice && html`<div className="daydots" aria-label=${F('Ejercicio {0} de {1}', idx+1, s.slots.length)}>${s.slots.map((g,k)=>html`<span key=${k} className=${k<idx?'on':k===idx?'cur':''} style=${k<=idx?{background:gcol(g)}:null}></span>`)}</div>`}</div>
         <button className="icon-btn" onClick=${()=>speak(hint)} aria-label="Repetir"><span className="emoji">🔊</span></button></div>
@@ -3135,7 +3141,9 @@ function App({acct}={}){
       onSave=${r=>update(n=>{ n.iq=[...(n.iq||[]), r].slice(-20); return n; })} onDelete=${id=>update(n=>{ n.iq=(n.iq||[]).filter(x=>(x.id||x.date)!==id); return n; })}
       onApply=${(focus,weak,r)=>{ update(n=>{ n.settings.focus=focus; weak.filter(k=>r.areas[k] && r.areas[k].v<85).forEach(k=>{ const v=r.areas[k].v; const ar=window.LumiIQ.FOCUS[k]||[]; Object.keys(n.levels).forEach(g=>{ if(!ar.includes(GAME_AREA0[g])) return; const l=n.levels[g]||1; n.levels[g]=Math.max(1, v<65? Math.round(l*.3) : v<75? l-4 : l-2); }); }); return n; }); toast('Plan de refuerzo aplicado.'); }}
       onBack=${home}/>`;
-  else if(view.s==='parents') body=html`<${Parents} onIQ=${()=>setView({s:'iq'})} save=${save} setSave=${setSave} update=${update} sync=${sync} streak=${streak} toast=${toast} onBack=${home} onCalendar=${()=>setView({s:'calendar'})} onPrintDay=${()=>doPrint(slots)} onPaper=${()=>{ setView({s:'home'}); setModal({k:'batch', g:null}); }} onSkip=${()=>nextRound(true)} onSetup=${()=>setView({s:'setup'})} slots=${slots} onLang=${switchLang} acct=${acct}/>`;
+  else if(view.s==='place' && window.LumiProg) body=html`<${window.LumiProg.Place} save=${save} update=${update} games=${placeGames()} levelsFor=${levelsFor} maxLv=${maxLv} label=${lvLabel} ages=${AGES} toast=${toast}
+      onBack=${()=>setView({s:'parents'})} onPlay=${(g,lv)=>{ unlock(); sess.current={slots:[g], practice:true, place:lv}; play(g); }}/>`;
+  else if(view.s==='parents') body=html`<${Parents} onPlace=${()=>setView({s:'place'})} onIQ=${()=>setView({s:'iq'})} save=${save} setSave=${setSave} update=${update} sync=${sync} streak=${streak} toast=${toast} onBack=${home} onCalendar=${()=>setView({s:'calendar'})} onPrintDay=${()=>doPrint(slots)} onPaper=${()=>{ setView({s:'home'}); setModal({k:'batch', g:null}); }} onSkip=${()=>nextRound(true)} onSetup=${()=>setView({s:'setup'})} slots=${slots} onLang=${switchLang} acct=${acct}/>`;
   const batchModal = modal&&modal.k==='batch' && html`<${PaperBatch} plan=${plan} only=${modal.g} lv=${save.levels}
       onRate=${(g,s)=>{ if(!g){ setModal({k:'batch', g:null}); return; } rateMany([[g,s]]); if(modal.g) setModal({k:'batch', g:null}); }}
       onAll=${s=>rateMany(plan.filter(p=>p.st!=='done').map(p=>[p.g,s]))} onSkip=${()=>nextRound(true)} onClose=${()=>setModal(null)}/>`;
