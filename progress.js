@@ -2,7 +2,8 @@
    Reglas (ver el documento «Lumi: plan de progresión de dificultad y evaluación de nivel»):
    - Aprendizaje para el dominio (Bloom/Guskey): subir solo con 90 % de media y ninguna partida bajo 80 %.
    - Fluidez (Kumon, Precision Teaching): además, más rápido que al llegar al nivel, o casi perfecto sin enlentecerse.
-   - Práctica espaciada (Cepeda y otros, 2006): el dominio se confirma en días distintos (sin espera fija: avanza por progreso).
+   - Práctica espaciada (Cepeda y otros, 2006): el dominio se confirma en días distintos, con un mínimo de 7 días por nivel (pedido de Guido).
+   - Si le resulta fácil antes de los 7 días, se recomienda al padre pasar a Medio o Difícil (easyHint / Easy).
    - Zona de aprendizaje (~85 %): entre 60 % y 89 % el nivel se mantiene.
    - Bajar: dos partidas seguidas bajo 60 %. Tras 14 días sin jugar, la primera partida es de repaso.
    El tope de nivel por edad lo pone index.html (capLv) y se pasa como o.cap.
@@ -13,9 +14,9 @@ const LG=()=>{ const l=(document.documentElement.lang||'es').slice(0,2); return 
 
 /* ---------- reglas ---------- */
 const RULES={
-  k:{sess:4, days:3, wait:0, mean:.9, min:.8, perDay:1},   /* 2 a 6 años */
-  s:{sess:3, days:2, wait:0, mean:.9, min:.8, perDay:2},   /* 7 a 12 años */
-  a:{sess:2, days:2, wait:0, mean:.85, min:.7, perDay:3}   /* adultos */
+  k:{sess:4, days:3, wait:7, mean:.9, min:.8, perDay:1},   /* 2 a 6 años */
+  s:{sess:3, days:2, wait:7, mean:.9, min:.8, perDay:2},   /* 7 a 12 años */
+  a:{sess:2, days:2, wait:7, mean:.85, min:.7, perDay:3}   /* adultos */
 };
 const MASTER=.9, LOW=.6, PAUSE=14, KEEP=24;
 /* juegos donde la duración la marca el propio juego (secuencias, respiración, espera): no se mide la velocidad */
@@ -67,8 +68,8 @@ function step(n, game, o){ const today=o.today||todayKey(); const lv=o.lv||1, ma
 const TX={
  es:{sess:'{0} partidas más', days:'{0} días más con 90 %', wait:'esperar {0} días', acc:'llegar a {0} % de media', speed:'responder con más soltura', today:'mañana (hoy ya subió otro juego)',
    ready:'Listo: sube en la próxima partida buena', need:'Para subir: ', top:'En el tope de su edad',
-   explain:'Cada juego sube de nivel solo cuando hay dominio: varias partidas, 90 % de aciertos confirmado en {0} días distintos y más soltura al responder (el tiempo por respuesta). No hay plazos fijos: si le sale fácil avanza, si le cuesta repite. Como mucho sube {2} juego(s) por día. Entre 60 % y 89 % se queda en el nivel, que es donde aprende; con dos partidas seguidas bajo 60 % baja uno. En papel, 3 estrellas cuentan como 90 % y 2 estrellas como 75 %. Al lado de cada juego ves en qué edad y dificultad está y qué le falta para subir. Lo que le cuesta vuelve a aparecer. Puntos = estrellas × 10 × nivel.',
-   title:'🧭 Evaluación de nivel', go:'Hacer la evaluación', short:'Varias pruebas cortas seguidas que recomiendan en qué nivel o edad conviene empezar, por área. Es orientativa: nada cambia hasta que tocás «Aplicar».', open:'🧭 Evaluación de nivel',
+   explain:'Cada juego sube de nivel solo cuando hay dominio: varias partidas, 90 % de aciertos confirmado en {0} días distintos, al menos {1} días en el nivel y más soltura al responder (el tiempo por respuesta). Si le cuesta, repite; si le sale fácil antes de tiempo, acá te recomendamos pasar a Medio o Difícil. Como mucho sube {2} juego(s) por día. Entre 60 % y 89 % se queda en el nivel, que es donde aprende; con dos partidas seguidas bajo 60 % baja uno. En papel, 3 estrellas cuentan como 90 % y 2 estrellas como 75 %. Al lado de cada juego ves en qué edad y dificultad está y qué le falta para subir. Lo que le cuesta vuelve a aparecer. Puntos = estrellas × 10 × nivel.',
+   title:'🧭 Evaluación de nivel', go:'Hacer la evaluación', easy:'Le está resultando fácil: en {0} de {1} juegos ya domina su nivel antes de los 7 días. Te recomendamos pasar a {2}.', raise:'Pasar a {0}', raised:'Listo: ahora en {0}. Los juegos que estaban más abajo suben a ese nivel.', dname:['Fácil','Medio','Difícil'], short:'Varias pruebas cortas seguidas que recomiendan en qué nivel o edad conviene empezar, por área. Es orientativa: nada cambia hasta que tocás «Aplicar».', open:'🧭 Evaluación de nivel',
    lead:'Varias pruebas cortas, por área, con los juegos de Lumi. Empiezan en lo esperable para {0} años y suben o bajan según cómo le va, hasta encontrar su nivel. Tarda entre 10 y 20 minutos.',
    kids:'Con chicos chicos conviene hacerla en 2 o 3 tandas: lo hecho queda guardado y se sigue donde quedó.',
    orient:'Es una orientación basada en cómo jugó esos días, no un diagnóstico ni una nota. Un día cansado puede dar un nivel más bajo: conviene repetirla cada 2 o 3 meses.',
@@ -78,8 +79,8 @@ const TX={
    capNote:'Si algún nivel pasa el tope de su edad, Lumi lo deja en el tope.', of:'nivel {0} de {1}', tries:'{0} pruebas', try1:'1 prueba', weak:'Para reforzar: {0}.', strong:'Va adelantado en: {0}.', diff:['fácil','medio','difícil'], lastOk:'Última prueba: {0} % de aciertos', back2:'← Volver'},
  ca:{sess:'{0} partides més', days:'{0} dies més amb un 90 %', wait:'esperar {0} dies', acc:'arribar a un {0} % de mitjana', speed:'respondre amb més soltesa', today:'demà (avui ja ha pujat un altre joc)',
    ready:'A punt: puja a la propera partida bona', need:'Per pujar: ', top:'Al límit de la seva edat',
-   explain:'Cada joc puja de nivell només quan hi ha domini: diverses partides, un 90 % d\'encerts confirmat en {0} dies diferents i més soltesa en respondre (el temps per resposta). No hi ha terminis fixos: si li surt fàcil avança, si li costa repeteix. Com a molt puja {2} joc(s) per dia. Entre el 60 % i el 89 % es queda al nivell, que és on aprèn; amb dues partides seguides per sota del 60 % baixa un nivell. En paper, 3 estrelles compten com un 90 % i 2 estrelles com un 75 %. Al costat de cada joc veus a quina edat i dificultat és i què li falta per pujar. El que li costa torna a sortir. Punts = estrelles × 10 × nivell.',
-   title:'🧭 Avaluació de nivell', go:'Fer l\'avaluació', short:'Unes quantes proves curtes seguides que recomanen per quin nivell o edat convé començar, per àrea. És orientativa: no canvia res fins que toques «Aplicar».', open:'🧭 Avaluació de nivell',
+   explain:'Cada joc puja de nivell només quan hi ha domini: diverses partides, un 90 % d\'encerts confirmat en {0} dies diferents, almenys {1} dies al nivell i més soltesa en respondre (el temps per resposta). Si li costa, repeteix; si li surt fàcil abans d\'hora, aquí et recomanem passar a Mitjà o Difícil. Com a molt puja {2} joc(s) per dia. Entre el 60 % i el 89 % es queda al nivell, que és on aprèn; amb dues partides seguides per sota del 60 % baixa un nivell. En paper, 3 estrelles compten com un 90 % i 2 estrelles com un 75 %. Al costat de cada joc veus a quina edat i dificultat és i què li falta per pujar. El que li costa torna a sortir. Punts = estrelles × 10 × nivell.',
+   title:'🧭 Avaluació de nivell', go:'Fer l\'avaluació', easy:'Li està resultant fàcil: en {0} de {1} jocs ja domina el nivell abans dels 7 dies. Et recomanem passar a {2}.', raise:'Passar a {0}', raised:'Fet: ara a {0}. Els jocs que eren més avall pugen a aquest nivell.', dname:['Fàcil','Mitjà','Difícil'], short:'Unes quantes proves curtes seguides que recomanen per quin nivell o edat convé començar, per àrea. És orientativa: no canvia res fins que toques «Aplicar».', open:'🧭 Avaluació de nivell',
    lead:'Unes quantes proves curtes, per àrea, amb els jocs de Lumi. Comencen pel que és esperable als {0} anys i pugen o baixen segons com li va, fins a trobar el seu nivell. Dura entre 10 i 20 minuts.',
    kids:'Amb infants petits val més fer-la en 2 o 3 tandes: el que s\'ha fet queda desat i es continua on s\'havia quedat.',
    orient:'És una orientació basada en com ha jugat aquells dies, no un diagnòstic ni una nota. Un dia cansat pot donar un nivell més baix: val la pena repetir-la cada 2 o 3 mesos.',
@@ -89,8 +90,8 @@ const TX={
    capNote:'Si algun nivell passa el límit de la seva edat, Lumi el deixa al límit.', of:'nivell {0} de {1}', tries:'{0} proves', try1:'1 prova', weak:'Per reforçar: {0}.', strong:'Va avançat en: {0}.', diff:['fàcil','mitjà','difícil'], lastOk:'Última prova: {0} % d\'encerts', back2:'← Tornar'},
  en:{sess:'{0} more games', days:'{0} more days at 90 %', wait:'wait {0} days', acc:'reach a {0} % average', speed:'answer more fluently', today:'tomorrow (another game already went up today)',
    ready:'Ready: goes up on the next good game', need:'To go up: ', top:'At the top for their age',
-   explain:'Each game only goes up a level when there is mastery: several games, 90 % correct confirmed on {0} different days and more fluent answers (time per answer). There are no fixed deadlines: if it is easy they move on, if it is hard they repeat. At most {2} game(s) go up per day. Between 60 % and 89 % it stays at the level, which is where learning happens; two games in a row below 60 % take it down one level. On paper, 3 stars count as 90 % and 2 stars as 75 %. Next to each game you see its age and difficulty and what is missing to go up. Whatever is hard comes back again. Points = stars × 10 × level.',
-   title:'🧭 Level check', go:'Take the check', short:'A few short tests in a row that recommend which level or age to start at, by area. It is only guidance: nothing changes until you tap «Apply».', open:'🧭 Level check',
+   explain:'Each game only goes up a level when there is mastery: several games, 90 % correct confirmed on {0} different days, at least {1} days at the level and more fluent answers (time per answer). If it is hard, they repeat; if it is easy early, we recommend switching to Medium or Hard here. At most {2} game(s) go up per day. Between 60 % and 89 % it stays at the level, which is where learning happens; two games in a row below 60 % take it down one level. On paper, 3 stars count as 90 % and 2 stars as 75 %. Next to each game you see its age and difficulty and what is missing to go up. Whatever is hard comes back again. Points = stars × 10 × level.',
+   title:'🧭 Level check', go:'Take the check', easy:'It is coming easily: in {0} of {1} games they already master their level before the 7 days. We recommend switching to {2}.', raise:'Switch to {0}', raised:'Done: now on {0}. Games that were lower go up to that level.', dname:['Easy','Medium','Hard'], short:'A few short tests in a row that recommend which level or age to start at, by area. It is only guidance: nothing changes until you tap «Apply».', open:'🧭 Level check',
    lead:'A few short tests per area, using Lumi\'s games. They start at what is expected at {0} and go up or down depending on how it goes, until they find the right level. It takes 10 to 20 minutes.',
    kids:'With young children it is best done in 2 or 3 rounds: progress is saved and you continue where you left off.',
    orient:'It is guidance based on how they played on those days, not a diagnosis or a grade. A tired day can give a lower level: repeat it every 2 or 3 months.',
@@ -175,5 +176,20 @@ function Place(props){ const {save, update, games, levelsFor, maxLv, label, onPl
         ${(save.placeHist||[]).slice().reverse().map((x,j)=>h`<div key=${j} className="skill"><span className="emoji">🧭</span><span>${x.d}</span><span className="lvlnum">${f('rec', x.rec[0], t('diff')[x.rec[1]])}</span></div>`)}</div>`}
     </div></div></div>`; }
 
-window.LumiProg={RULES, rulesFor, step, check, status, explain, nextTry, placed, placeNew, placeAdd, recommend, Place, t, f};
+
+/* ---------- «le resulta fácil»: recomendar Medio o Difícil ---------- */
+const DIFF_KEYS=['facil','medio','dificil'];
+function easyHint(save, games){ const st=save.settings||{}; const age=st.age||5; const P=save.prog||{}; const today=todayKey(); let easy=0, n=0;
+  (games||[]).forEach(g=>{ const lv=(save.levels||{})[g]||1; const p=P[g]; if(!p || p.lv!==lv || !p.h.length) return; n++;
+    const c=check(p, g, age, today, P); if(c.need.length && c.need.every(([k])=>k==='wait'||k==='today')) easy++; });
+  const k=Math.max(0, DIFF_KEYS.indexOf(st.diff||'medio')); if(k>=2 || n<2 || easy*2<n) return null;
+  return {easy, n, next:k+1}; }
+function Easy({save, games, update, levelsFor, maxLv, toast}){ const React=window.React; const h=window.htm.bind(React.createElement);
+  const e=easyHint(save, games); if(!e) return null; const name=t('dname')[e.next];
+  function raise(){ const age=(save.settings&&save.settings.age)||5; const key=DIFF_KEYS[e.next];
+    update(n=>{ n.settings.diff=key; const L=levelsFor(age, key); Object.keys(n.levels).forEach(g=>{ const v=Math.min(maxLv(g), L[g]||1); if(v>n.levels[g]) n.levels[g]=v; }); return n; });
+    if(toast) toast(f('raised', name)); }
+  return h`<div className="note"><p>${f('easy', e.easy, e.n, name)}</p><button className="btn small" onClick=${raise}>${f('raise', name)}</button></div>`; }
+
+window.LumiProg={easyHint, Easy, RULES, rulesFor, step, check, status, explain, nextTry, placed, placeNew, placeAdd, recommend, Place, t, f};
 })();
