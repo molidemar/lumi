@@ -45,12 +45,12 @@ function check(p, game, age, today, P){ const R=rulesFor(age); const hs=p.h.filt
   return {ok:!need.length, need}; }
 
 /* Registra una partida y devuelve el nivel nuevo.
-   o = {lv, max, age, acc, stars, mode, mins, total, practice, today, cap} */
+   o = {lv, max, age, acc, stars, mode, mins, total, practice, timed, today, cap} */
 function step(n, game, o){ const today=o.today||todayKey(); const lv=o.lv||1, max=o.max||12, age=o.age||5;
   const cap=typeof o.cap==='function'? o.cap : (l=>l); const p=track(n, game, lv, today); const P=n.prog;
   let acc=+o.acc||0, spd=null;
   if(o.mode==='papel'){ acc= o.stars>=3? .9 : o.stars===2? .75 : .5; }
-  else if(o.total && o.mins>0){ spd=o.mins*60/o.total; if(!(spd>=.3 && spd<=600)) spd=null; }
+  else if(o.total && o.mins>0 && !o.timed){ spd=o.mins*60/o.total; if(!(spd>=.3 && spd<=600)) spd=null; } /* contra reloj: el tiempo no se compara */
   const last=p.h.length? p.h[p.h.length-1] : (P[game+'_last']? {d:P[game+'_last']} : null);
   const review= !!(last && last.d && ddiff(last.d, today)>=PAUSE);
   const prev=p.h.length? p.h[p.h.length-1] : null;
