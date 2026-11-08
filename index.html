@@ -527,7 +527,9 @@ const Voice = {
   ok:('speechSynthesis' in window), voice:null, rate:.95, name:'', files:null, human:'', bufs:{}, cur:null, seq:0, missing:new Set(),
   init(){ this.loadManifest(); if(!this.ok) return; const choose=()=>{ const vs=speechSynthesis.getVoices()||[]; const es=vs.filter(v=>(v.lang||'').toLowerCase().startsWith(LANG));
       const score=v=>{ const l=(v.lang||'').toLowerCase().replace('_','-'); let s= LANG!=='es'? (l===VOICE_LANG.toLowerCase()?50:20) : l==='es-ar'?50 : /es-(419|us|mx|uy|cl|co)/.test(l)?35 : l==='es-es'?10 : 20;
-        if(/premium|enhanced|mejorad|natural|neural|google|online/i.test(v.name)) s+=20; if(v.localService===false) s+=5; return s; };
+        if(/premium|enhanced|mejorad|millorad|natural|neural|google|online/i.test(v.name)) s+=20; if(v.localService===false) s+=5;
+        if(/^(Eddy|Flo|Grandma|Grandpa|Abuel[ao]|Reed|Rocko|Sandy|Shelley|Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Wobble|Zarvox|Trinoids|Whisper|Superstar|Organ|Jester|Good News|Junior|Kathy|Ralph|Fred)\b/i.test(v.name)) s-=100;
+        if(/^(M[oó]nica|Paulina|Marisol|Jorge|Juan|Diego|Ang[eé]lica|Isabela|Francisca|Montse|Jordi|Daniel|Serena|Kate|Martha|Arthur|Samantha)\b/i.test(v.name)) s+=15; return s; };
       this.voice = es.sort((a,b)=>score(b)-score(a))[0]||null; this.name=this.voice? this.voice.name+' ('+this.voice.lang+')' : ''; };
     choose(); try{ speechSynthesis.addEventListener('voiceschanged',choose); }catch(e){ speechSynthesis.onvoiceschanged=choose; } },
   async loadManifest(){ try{ const r=await fetch(AUDIO_BASE+'manifest.json',{cache:'no-cache'}); if(r.ok){ const m=await r.json(); if(m&&m.files){ this.files=m.files; this.human=m.voice||'voz humana'; } } }catch(e){} },
@@ -536,7 +538,9 @@ const Voice = {
   stop(){ this.seq++; if(this.cur){ try{ this.cur.stop(); }catch(e){} this.cur=null; } if(this.ok) try{ speechSynthesis.cancel(); }catch(e){} },
   async say(parts){ const list=(Array.isArray(parts)?parts:[parts]).filter(Boolean).map(t=>normText(tr(t))); this.stop(); const my=this.seq;
     for(const t of list){ if(my!==this.seq) return; await this.one(t,my); } },
-  one(t,my){ if(this.has(t)){ if(!Sfx.ctx) Sfx.unlock(); if(Sfx.ctx) return this.playHuman(t,my).catch(()=>this.tts(t,my)); } else if(this.files) this.missing.add(t); return this.tts(t,my); },
+  one(t,my){ if(this.has(t)){ if(!Sfx.ctx) Sfx.unlock(); const el=()=>this.playEl(t,my).catch(()=>this.tts(t,my)); if(Sfx.ctx) return this.playHuman(t,my).catch(el); return el(); } else if(this.files) this.missing.add(t); return this.tts(t,my); },
+  playEl(t,my){ return new Promise((res,rej)=>{ if(my!==this.seq) return res(); const a=new Audio(AUDIO_BASE+audioKey(t)+'.mp3'); let done=false; const fin=()=>{ if(!done){ done=true; res(); } };
+    this.cur={stop:()=>{ try{ a.pause(); }catch(e){} fin(); }}; a.onended=fin; a.onerror=()=>{ if(!done){ done=true; rej(new Error('audio')); } }; const p=a.play(); if(p&&p.catch) p.catch(e=>{ if(!done){ done=true; rej(e); } }); }); },
   async buffer(t){ const k=audioKey(t); if(this.bufs[k]) return this.bufs[k]; const r=await fetch(AUDIO_BASE+k+'.mp3'); if(!r.ok) throw new Error('audio');
     const ab=await r.arrayBuffer(); const b=await new Promise((res,rej)=>Sfx.ctx.decodeAudioData(ab,res,rej)); this.bufs[k]=b; return b; },
   async playHuman(t,my){ const b=await this.buffer(t); if(my!==this.seq) return; Sfx.unlock();
