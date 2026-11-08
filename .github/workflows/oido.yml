@@ -10,14 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Listar tamaños (para elegir)
-        run: |
-          for r in onnx-community/whisper-base onnx-community/whisper-small onnx-community/whisper-tiny; do
-            echo "== $r"; curl -fsSL "https://huggingface.co/api/models/$r/tree/main/onnx" | python3 -c "import json,sys;[print(f\"{x['size']/1e6:8.1f} MB  {x['path']}\") for x in json.load(sys.stdin)]" || true
-          done
-          for v in es/es_AR/daniela/high ca/ca_ES/upc_ona/medium en/en_GB/jenny_dioco/medium; do
-            curl -fsSL "https://huggingface.co/api/models/rhasspy/piper-voices/tree/main/$v" | python3 -c "import json,sys;[print(f\"{x['size']/1e6:8.1f} MB  {x['path']}\") for x in json.load(sys.stdin)]" || true
-          done
       - name: Descargar (MIT / Apache 2.0)
         run: |
           set -e
@@ -25,20 +17,17 @@ jobs:
             [ -f "$3" ] || ls "$3".part* >/dev/null 2>&1 && { echo "ya está $3"; return; } || true
             mkdir -p "$(dirname "$3")"; curl -fsSL -o "$3" "https://huggingface.co/$1/resolve/main/$2"
             sz=$(stat -c %s "$3"); echo "$sz $3"
-            if [ "$sz" -gt 90000000 ]; then split -b 90000000 -d -a 1 "$3" "$3.part"; rm "$3"; ls -la "$3".part*; fi
+            if [ "$sz" -gt 90000000 ]; then split -b 90000000 -d -a 1 "$3" "$3.part"; rm "$3"; n=$(ls "$3".part* | wc -l); echo "[$(seq -s, 0 $((n-1)))]" > "$3.parts.json"; ls -la "$3".part*; fi
+            # de a un archivo por push (si no, GitHub corta por tiempo)
+            git add "$(dirname "$3")"; git diff --cached --quiet || { git commit -qm "Modelo de voz: $(basename "$3")"; for i in 1 2 3 4; do git push && break || sleep $((i*5)); done; }
           }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
           W=onnx-community/whisper-base; D=models/whisper-base
           for f in config.json generation_config.json preprocessor_config.json tokenizer.json tokenizer_config.json; do get $W $f $D/$f; done
-          for f in encoder_model.onnx encoder_model_quantized.onnx decoder_model_merged_q4.onnx decoder_model_merged_quantized.onnx; do get $W onnx/$f $D/onnx/$f; done
+          for f in encoder_model.onnx encoder_model_quantized.onnx decoder_model_merged_quantized.onnx; do get $W onnx/$f $D/onnx/$f; done
           P=rhasspy/piper-voices
           for v in es/es_AR/daniela/high/es_AR-daniela-high ca/ca_ES/upc_ona/medium/ca_ES-upc_ona-medium en/en_GB/jenny_dioco/medium/en_GB-jenny_dioco-medium; do
             n=$(basename $v); get $P $v.onnx models/piper/$n.onnx; get $P $v.onnx.json models/piper/$n.onnx.json
           done
           du -sh models/*
-      - name: Guardar en el repo
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-          git add models
-          git diff --cached --quiet || git commit -m "Modelos Whisper base (oído) y Piper (voz Daniela, Ona, Jenny) para usar en el dispositivo"
-          git push
