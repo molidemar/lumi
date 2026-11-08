@@ -26,9 +26,6 @@ jobs:
           W=onnx-community/whisper-base; D=models/whisper-base
           for f in config.json generation_config.json preprocessor_config.json tokenizer.json tokenizer_config.json; do get $W $f $D/$f; done
           for f in encoder_model.onnx encoder_model_quantized.onnx decoder_model_merged_quantized.onnx; do get $W onnx/$f $D/onnx/$f; done
-          W=onnx-community/whisper-tiny; D=models/whisper-tiny
-          for f in config.json generation_config.json preprocessor_config.json tokenizer.json tokenizer_config.json; do get $W $f $D/$f; done
-          for f in encoder_model_quantized.onnx decoder_model_merged_quantized.onnx; do get $W onnx/$f $D/onnx/$f; done
           P=rhasspy/piper-voices
           for v in es/es_AR/daniela/high/es_AR-daniela-high ca/ca_ES/upc_ona/medium/ca_ES-upc_ona-medium en/en_GB/jenny_dioco/medium/en_GB-jenny_dioco-medium; do
             n=$(basename $v); get $P $v.onnx models/piper/$n.onnx; get $P $v.onnx.json models/piper/$n.onnx.json
