@@ -292,7 +292,7 @@ input[type=text]{font:inherit; font-size:22px; padding:10px 14px; border-radius:
   html,body{height:auto; overflow:visible; background:#fff}
   #root,.toast,.modal{display:none!important}
   #printzone{display:block}
-  #printzone img{display:block; width:210mm; height:296mm; break-after:page; page-break-after:always}
+  #printzone img{display:block; width:100%; height:auto; max-height:100vh; object-fit:contain; margin:0 auto; break-after:page; page-break-after:always; break-inside:avoid}
 }
 .acct{justify-content:flex-start}
 .acct-box{width:min(480px,100%); text-align:left; align-items:stretch; box-sizing:border-box}
@@ -308,6 +308,39 @@ input[type=password]{font:inherit; font-size:22px; padding:10px 14px; border-rad
 .sig{flex:none; display:flex; flex-wrap:wrap; justify-content:center; column-gap:4px; font-size:13px; line-height:1.3; color:var(--ink-2); text-align:center; text-transform:none; padding:6px 8px 0; font-family:var(--f-body)} .sig b{color:var(--ink)} .sig a{color:var(--ink); font-weight:700}
 @media (max-width:640px){ .sig{font-size:11px} .sig-sep{display:none} .sig>span{width:100%} }
 .linkish{background:none; border:none; color:var(--ink-2); text-decoration:underline; font:inherit; padding:6px 8px; cursor:pointer}
+
+.dedic{display:flex; flex-direction:column; align-items:center; gap:2px; text-align:center; font-size:15px; line-height:1.35; color:var(--ink-2); text-transform:none; font-style:italic; margin:2px 0}
+.dedic span:first-child{font-weight:700}
+.buzon{width:100%; min-height:110px; font:inherit; font-size:18px; padding:10px 14px; border-radius:14px; border:3px solid var(--line); background:var(--card); color:var(--ink); -webkit-user-select:text; user-select:text; box-sizing:border-box; resize:vertical; text-transform:none; margin:8px 0}
+.btn.off{opacity:.45}
+.lvlnum{min-width:0; white-space:nowrap; font-size:14px}
+.brain{gap:14px}
+.b-legend{display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:10px 18px; padding:8px 14px; border-radius:20px; background:var(--card); border:3px solid var(--line); min-height:64px}
+.b-leg{display:flex; align-items:center; gap:4px} .b-arrow{font-size:22px; color:var(--ink-2)} .b-hidden{font-family:var(--f-display); font-size:40px; font-weight:800; color:var(--ink-2)}
+.b-num{font-family:var(--f-display); font-size:34px; font-weight:800; color:var(--ink); min-width:30px; text-align:center} .b-num.big{font-size:44px}
+.b-board{display:flex; flex-wrap:wrap; justify-content:center; gap:6px; max-width:min(640px,94vw)}
+.bdot{flex:none} .bdot.cur{filter:drop-shadow(0 0 6px rgba(255,179,0,.8))}
+.b-cols{display:flex; gap:clamp(10px,4vw,36px); justify-content:center} .b-col{display:flex; flex-direction:column; align-items:center; gap:2px} .b-flow{font-size:26px; color:var(--ink-2); font-weight:800}
+.b-opts{display:flex; flex-wrap:wrap; justify-content:center; gap:12px}
+.b-opt{width:88px; height:88px; border-radius:22px; border:3px solid var(--line); background:var(--card); color:var(--ink); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 0 var(--line); touch-action:manipulation}
+.b-opt:active{transform:translateY(3px); box-shadow:0 1px 0 var(--line)}
+.b-call{display:flex; gap:28px; font-family:var(--f-display); font-size:clamp(30px,6vw,48px); font-weight:800; min-height:64px; align-items:center}
+.b-hands{display:flex; gap:clamp(14px,5vw,60px); justify-content:center; width:100%}
+.b-hand{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+.b-hnum{width:clamp(64px,11vw,96px); height:clamp(64px,11vw,96px); border-radius:20px; border:none; color:#fff; font-family:var(--f-display); font-size:clamp(30px,5vw,44px); font-weight:800; box-shadow:0 5px 0 rgba(0,0,0,.25); touch-action:none; -webkit-user-select:none; user-select:none}
+.b-hnum.on{outline:6px solid var(--sun); transform:scale(1.06)}
+.b-stick{display:flex; align-items:center; padding:6px 10px; border-radius:40px; background:#E8C48A; box-shadow:0 4px 0 rgba(0,0,0,.15)} .b-wood{display:block; width:clamp(120px,30vw,220px); height:18px}
+.b-strips{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; width:min(720px,94vw)}
+.b-strip{display:flex; align-items:center; justify-content:center; gap:0; padding:10px; border-radius:20px; border:3px solid var(--line); background:var(--card); box-shadow:0 4px 0 var(--line)}
+.b-strip .b-line{display:block; width:110px; height:6px; background:var(--ink); border-radius:3px}
+.b-strip.ok{border-color:var(--leaf); background:var(--leaf-2, #D2F7DF)} .b-strip.bad{animation:shake .35s}
+.b-story{display:flex; flex-direction:column; gap:10px; max-width:min(860px,94vw); text-align:center}
+.b-story p{margin:0} .b-past{font-size:clamp(18px,3vw,24px); color:var(--ink-2)} .b-now{font-family:var(--f-display); font-size:clamp(30px,6vw,52px); font-weight:800; line-height:1.2; color:var(--ink)}
+.b-q{text-align:center; max-width:min(860px,94vw)}
+.b-txt{flex-direction:column; align-items:stretch; width:min(560px,94vw)}
+.b-ans{font:inherit; font-size:24px; font-weight:700; padding:16px; border-radius:20px; border:3px solid var(--line); background:var(--card); color:var(--ink); box-shadow:0 4px 0 var(--line)}
+.b-ans.ok{border-color:var(--leaf)} .b-ans.bad{animation:shake .35s}
+.b-title{display:flex; flex-direction:column; align-items:center; gap:6px; animation:pop .5s} .b-title .emoji{font-size:84px}
 </style>
 
 <div id="root"></div>
@@ -350,9 +383,9 @@ ca:{
   numbersIntro:w=>`Toca els números en ordre: un, dos, tres… fins al ${w}.`,
   WORDS:[['CA','SA','🏠'],['VA','CA','🐄'],['MO','NA','🐒'],['PE','RA','🍐'],['BO','TA','👢'],['PI','NYA','🍍'],['CO','CO','🥥'],['FO','CA','🦭'],['RO','SA','🌹'],
     ['MO','TO','🏍️'],['GO','TA','💧'],['TAS','SA','☕'],['CO','PA','🏆'],['PO','MA','🍎'],['SO','PA','🍲'],['NE','NA','👧'],['TO','RO','🐂'],['CE','BA','🧅'],
-    ['LLU','NA','🌙'],['NU','VOL','☁️'],['LLO','RO','🦜'],['ME','LÓ','🍈'],['CA','VALL','🐴'],['CO','NILL','🐰'],['PLÀ','TAN','🍌'],
+    ['LLU','NA','🌙'],['NÚ','VOL','☁️'],['LLO','RO','🦜'],['ME','LÓ','🍈'],['CA','VALL','🐴'],['CO','NILL','🐰'],['PLÀ','TAN','🍌'],
     ['PI','LO','TA','⚽'],['PA','TA','TA','🥔'],['CO','LO','MA','🕊️'],['SA','BA','TA','👞'],['MA','LE','TA','🧳'],['GA','LE','TA','🍪'],['GI','RA','FA','🦒'],
-    ['TO','MÀ','QUET','🍅'],['PA','LLAS','SO','🤡'],['MA','DUI','XA','🍓'],['CA','MI','SA','👕'],['PE','TA','TA','🦶'],['FI','NES','TRA','🪟']],
+    ['TO','MÀ','QUET','🍅'],['PA','LLAS','SO','🤡'],['MA','DUI','XA','🍓'],['CA','MI','SA','👕'],['GA','LI','NA','🐔'],['FI','NES','TRA','🪟']],
   BIG:[['GLO','BUS','🎈'],['PLAT','🍽️'],['FLOR','🌸'],['TREN','🚂'],['BRAÇ','💪'],['TI','GRE','🐯'],['ZE','BRA','🦓'],['LLI','BRE','📖'],['CA','BRA','🐐'],
     ['POP','🐙'],['AR','BRE','🌳'],['CA','MIÓ','🚚'],['A','VI','Ó','✈️'],['RA','TO','LÍ','🐭'],['DRAC','🐉'],['PLAN','TA','🪴'],['ES','TRE','LLA','⭐'],['CRANC','🦀'],
     ['PIN','GÜÍ','🐧'],['PA','PA','LLO','NA','🦋'],['E','LE','FANT','🐘'],['TOR','TU','GA','🐢'],['CAR','GOL','🐌'],
@@ -395,7 +428,7 @@ en:{
     ['SPI','DER','🕷️'],['CAN','DLE','🕯️'],['PEN','CIL','✏️'],['ROCK','ET','🚀'],['PEN','GUIN','🐧'],['CA','MEL','🐫'],['HO','TEL','🏨'],['MU','SIC','🎵'],['DO','NUT','🍩'],
     ['PA','PER','📄'],['BA','BY','👶'],['PO','NY','🐴'],['SO','FA','🛋️'],['CAC','TUS','🌵'],['WA','TER','💧'],['LI','ON','🦁'],['TUR','TLE','🐢'],
     ['TO','MA','TO','🍅'],['BA','NA','NA','🍌'],['PO','TA','TO','🥔'],['KO','A','LA','🐨'],['OC','TO','PUS','🐙'],['E','LE','PHANT','🐘'],['BI','CY','CLE','🚲'],
-    ['DI','NO','SAUR','🦕'],['BUT','TER','FLY','🦋'],['TE','LE','PHONE','☎️'],['CA','NA','RY','🐤'],['CO','CO','NUT','🥥'],['PA','RA','DE','🎉']],
+    ['DI','NO','SAUR','🦕'],['BUT','TER','FLY','🦋'],['TE','LE','PHONE','☎️'],['CA','NA','RY','🐤'],['CO','CO','NUT','🥥'],['KAN','GA','ROO','🦘']],
   BIG:[['BAL','LOON','🎈'],['PLATE','🍽️'],['FLOW','ER','🌸'],['TRAIN','🚂'],['CROWN','👑'],['SNAKE','🐍'],['BOOK','📖'],['GOAT','🐐'],['TREE','🌳'],['TRUCK','🚚'],
     ['PLANE','✈️'],['MOUSE','🐭'],['DRA','GON','🐉'],['PLANT','🪴'],['STAR','⭐'],['CRAB','🦀'],['STRAW','BER','RY','🍓'],['AP','PLE','🍎'],['SNAIL','🐌'],
     ['WA','TER','ME','LON','🍉'],['CAS','TLE','🏰'],['GHOST','👻'],['CHER','RY','🍒'],['CRO','CO','DILE','🐊'],['UM','BREL','LA','☂️'],['WHEAT','🌾'],['BROC','CO','LI','🥦'],
@@ -434,6 +467,8 @@ try{ document.documentElement.lang=LANG; }catch(e){}
 const ONLINE_I18N={"ca": {"Ejercicios diarios para chicos de 4 a 12 años.": "Exercicis diaris per a nens i nenes de 4 a 12 anys.", "Entrar": "Entra", "Crear cuenta": "Crea un compte", "Correo o usuario": "Correu o usuari", "Clave": "Contrasenya", "Repetí la clave": "Repeteix la contrasenya", "Entrar con Google": "Entra amb Google", "Podés usar tu correo o inventar un usuario (sin espacios). La cuenta es de un adulto: adentro agregás a cada chico con su propio progreso.": "Pots fer servir el teu correu o inventar-te un usuari (sense espais). El compte és d'un adult: a dins hi afegeixes cada nen amb el seu propi progrés.", "Con la misma cuenta entrás desde el iPad, la tablet o la compu, y el progreso se comparte.": "Amb el mateix compte entres des de l'iPad, la tauleta o l'ordinador, i el progrés es comparteix.", "Escribí tu correo o un usuario.": "Escriu el teu correu o un usuari.", "La clave tiene que tener al menos 6 caracteres.": "La contrasenya ha de tenir almenys 6 caràcters.", "Las claves no coinciden.": "Les contrasenyes no coincideixen.", "Ese usuario o correo ya tiene cuenta.": "Aquest usuari o correu ja té compte.", "El usuario va de 3 a 30 letras o números, sin espacios.": "L'usuari ha de tenir de 3 a 30 lletres o números, sense espais.", "Ese correo no es válido.": "Aquest correu no és vàlid.", "Usuario o clave incorrectos.": "Usuari o contrasenya incorrectes.", "Sin conexión. Probá de nuevo.": "Sense connexió. Torna-ho a provar.", "Llegaste al máximo de 12 chicos en esta cuenta.": "Has arribat al màxim de 12 nens en aquest compte.", "No se pudo. Probá de nuevo en un rato.": "No s'ha pogut fer. Torna-ho a provar d'aquí a una estona.", "Cargando…": "Carregant…", "¿Quién va a jugar?": "Qui jugarà?", "Nuevo": "Nou", "Sin configurar": "Sense configurar", "Agregar un chico": "Afegeix un nen", "Cuenta: {0}": "Compte: {0}", "Cerrar sesión": "Tanca la sessió", "Reintentar": "Torna-ho a provar", "Cuenta": "Compte", "Cambiar de chico": "Canvia de nen", "¿Seguro? Se borra {0} de la cuenta, con todo su progreso.": "Segur? S'esborra {0} del compte, amb tot el seu progrés.", "Quitar a {0} de la cuenta": "Treu {0} del compte", "Cada chico tiene su progreso. Con la misma cuenta entrás desde cualquier dispositivo.": "Cada nen té el seu progrés. Amb el mateix compte entres des de qualsevol dispositiu.", "y en tu cuenta de Lumi (se comparte entre dispositivos)": "i al teu compte de Lumi (es comparteix entre dispositius)", "Volver a la lista de chicos": "Torna a la llista de nens", "¿Seguro? Se borra la cuenta y todos sus chicos, para siempre.": "Segur? S'esborra el compte i tots els seus nens, per sempre.", "Borrar la cuenta": "Esborra el compte", "Privacidad": "Privacitat", "Creado por": "Creat per", "Contacto, sugerencias o donaciones:": "Contacte, suggeriments o donacions:"}, "en": {"Ejercicios diarios para chicos de 4 a 12 años.": "Daily exercises for kids aged 4 to 12.", "Entrar": "Sign in", "Crear cuenta": "Create account", "Correo o usuario": "Email or username", "Clave": "Password", "Repetí la clave": "Repeat the password", "Entrar con Google": "Sign in with Google", "Podés usar tu correo o inventar un usuario (sin espacios). La cuenta es de un adulto: adentro agregás a cada chico con su propio progreso.": "Use your email or make up a username (no spaces). The account belongs to an adult: inside, you add each child with their own progress.", "Con la misma cuenta entrás desde el iPad, la tablet o la compu, y el progreso se comparte.": "Use the same account on the iPad, tablet or computer, and progress is shared.", "Escribí tu correo o un usuario.": "Enter your email or a username.", "La clave tiene que tener al menos 6 caracteres.": "The password must have at least 6 characters.", "Las claves no coinciden.": "The passwords don't match.", "Ese usuario o correo ya tiene cuenta.": "That username or email already has an account.", "El usuario va de 3 a 30 letras o números, sin espacios.": "The username must be 3 to 30 letters or numbers, no spaces.", "Ese correo no es válido.": "That email is not valid.", "Usuario o clave incorrectos.": "Wrong username or password.", "Sin conexión. Probá de nuevo.": "No connection. Try again.", "Llegaste al máximo de 12 chicos en esta cuenta.": "You reached the maximum of 12 children on this account.", "No se pudo. Probá de nuevo en un rato.": "It didn't work. Try again in a while.", "Cargando…": "Loading…", "¿Quién va a jugar?": "Who's playing?", "Nuevo": "New", "Sin configurar": "Not set up", "Agregar un chico": "Add a child", "Cuenta: {0}": "Account: {0}", "Cerrar sesión": "Sign out", "Reintentar": "Retry", "Cuenta": "Account", "Cambiar de chico": "Switch child", "¿Seguro? Se borra {0} de la cuenta, con todo su progreso.": "Sure? {0} is removed from the account, with all their progress.", "Quitar a {0} de la cuenta": "Remove {0} from the account", "Cada chico tiene su progreso. Con la misma cuenta entrás desde cualquier dispositivo.": "Each child has their own progress. Use the same account on any device.", "y en tu cuenta de Lumi (se comparte entre dispositivos)": "and in your Lumi account (shared across devices)", "Volver a la lista de chicos": "Back to the list of children", "¿Seguro? Se borra la cuenta y todos sus chicos, para siempre.": "Sure? The account and all its children are deleted forever.", "Borrar la cuenta": "Delete the account", "Privacidad": "Privacy", "Creado por": "Created by", "Contacto, sugerencias o donaciones:": "Contact, suggestions or donations:"}};
 const DICT=(typeof I18N!=='undefined' && I18N[LANG])||null;
 if(DICT) Object.assign(DICT, ONLINE_I18N[LANG]||{});
+const P10_I18N={"ca": {"Activá el cerebro": "Activa el cervell", "Activación": "Activació", "¡Tu cerebro está despierto!": "El teu cervell està despert!", "Colores y símbolos": "Colors i símbols", "Colores y números": "Colors i números", "Colores y arcos": "Colors i arcs", "Palitos de colores": "Pals de colors", "Dos manos a la vez": "Dues mans alhora", "Escuchá y repetí": "Escolta i repeteix", "Activá el cerebro: {0}": "Activa el cervell: {0}", "Parte {0} de {1}": "Part {0} de {1}", "Mirá qué marca lleva cada color. Marcá cada punto, en orden.": "Mira quina marca porta cada color. Marca cada punt, en ordre.", "Cada color tiene su arco. Elegí el arco de cada punto, en orden.": "Cada color té el seu arc. Tria l'arc de cada punt, en ordre.", "Decí en voz alta el número de cada color y tocalo. Seguí las flechas.": "Digues en veu alta el número de cada color i toca'l. Segueix les fletxes.", "Ahora sin mirar la clave. ¿Te acordás?": "Ara sense mirar la clau. Te'n recordes?", "Ver la clave": "Mira la clau", "Cruzá los brazos: la mano derecha va a los rojos y la izquierda a los azules. Tocá los dos a la vez.": "Creua els braços: la mà dreta va als vermells i l'esquerra als blaus. Toca'ls tots dos alhora.", "Usá las dos manos: la izquierda en los rojos y la derecha en los azules. Tocá los dos números a la vez.": "Fes servir les dues mans: l'esquerra als vermells i la dreta als blaus. Toca els dos números alhora.", "Rojo {0}, azul {1}": "Vermell {0}, blau {1}", "¡Las dos manos a la vez!": "Les dues mans alhora!", "Escuchar otra vez": "Torna-ho a escoltar", "Escuchar": "Escolta", "Otro palito.": "Un altre pal.", "Buscá la tira que tiene los mismos colores que el palito. Puede estar dado vuelta.": "Busca la tira que té els mateixos colors que el pal. Pot estar girat.", "Leé cada frase en voz alta. Si querés, tocá Escuchar.": "Llegeix cada frase en veu alta. Si vols, toca Escolta.", "Escuchá a Lumi y repetí cada frase en voz alta.": "Escolta la Lumi i repeteix cada frase en veu alta.", "Lo leí": "Ja ho he llegit", "Lo repetí": "Ja ho he repetit", "Dibujá sobre cada punto la marca de su color": "Dibuixa sobre cada punt la marca del seu color", "Dibujá sobre cada punto el arco de su color": "Dibuixa sobre cada punt l'arc del seu color", "Mirá la clave un ratito y después tapala con una hoja. Fila por fila, sin saltearte ninguno.": "Mira la clau una estona i després tapa-la amb un full. Fila per fila, sense saltar-te'n cap.", "Mirá la clave. Fila por fila, de izquierda a derecha, sin saltearte ninguno.": "Mira la clau. Fila per fila, d'esquerra a dreta, sense saltar-te'n cap.", "🚫 = no marques nada": "🚫 = no marquis res", "Decí el número de cada color y escribilo al lado": "Digues el número de cada color i escriu-lo al costat", "Seguí las flechas, columna por columna. Decilo en voz alta antes de escribir.": "Segueix les fletxes, columna per columna. Digues-ho en veu alta abans d'escriure.", "Uní cada palito con la tira que tiene los mismos colores": "Uneix cada pal amb la tira que té els mateixos colors", "El palito puede estar dado vuelta: mirá bien las dos puntas.": "El pal pot estar girat: mira bé les dues puntes.", "Dos manos a la vez (con un adulto)": "Dues mans alhora (amb un adult)", "Con los brazos cruzados: la mano derecha va a la fila roja y la izquierda a la azul.": "Amb els braços creuats: la mà dreta va a la fila vermella i l'esquerra a la blava.", "Una mano en la fila roja y la otra en la azul. Las dos tocan a la vez.": "Una mà a la fila vermella i l'altra a la blava. Totes dues toquen alhora.", "Rojo": "Vermell", "Azul": "Blau", "Para el adulto: decí en voz alta": "Per a l'adult: digues en veu alta", "Esperá a que toque los dos números antes de decir el siguiente.": "Espera que toqui els dos números abans de dir el següent.", "Leé el cuento en voz alta": "Llegeix el conte en veu alta", "Un adulto lee cada frase y el chico la repite.": "Un adult llegeix cada frase i el nen la repeteix.", "Leé cada frase en voz alta. Después respondé las preguntas.": "Llegeix cada frase en veu alta. Després respon les preguntes.", "Rodeá la respuesta": "Encercla la resposta", "Ejercicios de {0} años · {1}": "Exercicis de {0} anys · {1}", "{0} años · {1}": "{0} anys · {1}", "No hace falta acertar: cada ejercicio se adapta solo. Si le va muy bien, pasa a lo que hace un chico más grande; si le cuesta, baja.": "No cal encertar-ho: cada exercici s'adapta sol. Si li va molt bé, passa al que fa un nen més gran; si li costa, baixa.", "Cada ejercicio se adapta solo: con 85 % de aciertos (o «Muy bien»/«Bien» en papel) pasa a lo que hace un chico más grande o con más dificultad, y por debajo del 50 % baja. Al lado de cada juego ves en qué edad y dificultad está (↑ subió, ↓ bajó desde que empezó). Lo que le cuesta vuelve a aparecer, y el plan del día da más lugar a lo que hace días que no juega. No es inteligencia artificial: son reglas que miran cada respuesta. Puntos = estrellas × 10 × nivel.": "Cada exercici s'adapta sol: amb un 85 % d'encerts (o «Molt bé»/«Bé» en paper) passa al que fa un nen més gran o amb més dificultat, i per sota del 50 % baixa. Al costat de cada joc veus en quina edat i dificultat està (↑ ha pujat, ↓ ha baixat des que va començar). El que li costa torna a aparèixer, i el pla del dia dona més lloc al que fa dies que no juga. No és intel·ligència artificial: són regles que miren cada resposta. Punts = estrelles × 10 × nivell.", "4 · unos 12 min": "4 · uns 12 min", "6 · unos 18 min": "6 · uns 18 min", "Buzón de sugerencias": "Bústia de suggeriments", "¿Una idea, un ejercicio que falta o algo que no anda? Escribilo acá y se abre tu correo para mandarlo.": "Una idea, un exercici que hi falta o alguna cosa que no funciona? Escriu-ho aquí i s'obrirà el teu correu per enviar-ho.", "Escribí tu sugerencia…": "Escriu el teu suggeriment…", "Sugerencia": "Suggeriment", "Enviar por correo": "Envia per correu", "Sugerencias": "Suggeriments", "¡Activemos los dos hemisferios del cerebro!": "Activem els dos hemisferis del cervell!"}, "en": {"Activá el cerebro": "Wake up your brain", "Activación": "Brain warm-up", "¡Tu cerebro está despierto!": "Your brain is wide awake!", "Colores y símbolos": "Colours and symbols", "Colores y números": "Colours and numbers", "Colores y arcos": "Colours and arcs", "Palitos de colores": "Coloured sticks", "Dos manos a la vez": "Both hands at once", "Escuchá y repetí": "Listen and repeat", "Activá el cerebro: {0}": "Wake up your brain: {0}", "Parte {0} de {1}": "Part {0} of {1}", "Mirá qué marca lleva cada color. Marcá cada punto, en orden.": "Look at the mark for each colour. Mark every dot, in order.", "Cada color tiene su arco. Elegí el arco de cada punto, en orden.": "Each colour has its own arc. Choose the arc for each dot, in order.", "Decí en voz alta el número de cada color y tocalo. Seguí las flechas.": "Say the number for each colour out loud and tap it. Follow the arrows.", "Ahora sin mirar la clave. ¿Te acordás?": "Now without looking at the key. Do you remember?", "Ver la clave": "Show the key", "Cruzá los brazos: la mano derecha va a los rojos y la izquierda a los azules. Tocá los dos a la vez.": "Cross your arms: your right hand goes to the red ones and your left hand to the blue ones. Tap both at once.", "Usá las dos manos: la izquierda en los rojos y la derecha en los azules. Tocá los dos números a la vez.": "Use both hands: left hand on the red ones and right hand on the blue ones. Tap both numbers at once.", "Rojo {0}, azul {1}": "Red {0}, blue {1}", "¡Las dos manos a la vez!": "Both hands at the same time!", "Escuchar otra vez": "Listen again", "Escuchar": "Listen", "Otro palito.": "Another stick.", "Buscá la tira que tiene los mismos colores que el palito. Puede estar dado vuelta.": "Find the strip with the same colours as the stick. It might be the other way round.", "Leé cada frase en voz alta. Si querés, tocá Escuchar.": "Read each sentence out loud. If you like, tap Listen.", "Escuchá a Lumi y repetí cada frase en voz alta.": "Listen to Lumi and repeat each sentence out loud.", "Lo leí": "I read it", "Lo repetí": "I said it", "Dibujá sobre cada punto la marca de su color": "Draw the mark for its colour on every dot", "Dibujá sobre cada punto el arco de su color": "Draw the arc for its colour on every dot", "Mirá la clave un ratito y después tapala con una hoja. Fila por fila, sin saltearte ninguno.": "Look at the key for a little while, then cover it with a sheet of paper. Row by row, without skipping any.", "Mirá la clave. Fila por fila, de izquierda a derecha, sin saltearte ninguno.": "Look at the key. Row by row, left to right, without skipping any.", "🚫 = no marques nada": "🚫 = don't mark anything", "Decí el número de cada color y escribilo al lado": "Say the number for each colour and write it next to it", "Seguí las flechas, columna por columna. Decilo en voz alta antes de escribir.": "Follow the arrows, column by column. Say it out loud before you write.", "Uní cada palito con la tira que tiene los mismos colores": "Join each stick to the strip with the same colours", "El palito puede estar dado vuelta: mirá bien las dos puntas.": "The stick may be the other way round: look carefully at both ends.", "Dos manos a la vez (con un adulto)": "Both hands at once (with an adult)", "Con los brazos cruzados: la mano derecha va a la fila roja y la izquierda a la azul.": "With arms crossed: the right hand goes to the red row and the left hand to the blue row.", "Una mano en la fila roja y la otra en la azul. Las dos tocan a la vez.": "One hand on the red row and the other on the blue row. Both touch at the same time.", "Rojo": "Red", "Azul": "Blue", "Para el adulto: decí en voz alta": "For the adult: say out loud", "Esperá a que toque los dos números antes de decir el siguiente.": "Wait until both numbers are touched before saying the next one.", "Leé el cuento en voz alta": "Read the story out loud", "Un adulto lee cada frase y el chico la repite.": "An adult reads each sentence and the child repeats it.", "Leé cada frase en voz alta. Después respondé las preguntas.": "Read each sentence out loud. Then answer the questions.", "Rodeá la respuesta": "Circle the answer", "Ejercicios de {0} años · {1}": "{0}-year-old exercises · {1}", "{0} años · {1}": "{0} years · {1}", "No hace falta acertar: cada ejercicio se adapta solo. Si le va muy bien, pasa a lo que hace un chico más grande; si le cuesta, baja.": "No need to get it exactly right: each exercise adapts by itself. If it goes very well, it moves on to what an older child does; if it is hard, it goes down.", "Cada ejercicio se adapta solo: con 85 % de aciertos (o «Muy bien»/«Bien» en papel) pasa a lo que hace un chico más grande o con más dificultad, y por debajo del 50 % baja. Al lado de cada juego ves en qué edad y dificultad está (↑ subió, ↓ bajó desde que empezó). Lo que le cuesta vuelve a aparecer, y el plan del día da más lugar a lo que hace días que no juega. No es inteligencia artificial: son reglas que miran cada respuesta. Puntos = estrellas × 10 × nivel.": "Each exercise adapts by itself: with 85 % correct (or «Very well»/«Well» on paper) it moves on to what an older child does or to a harder level, and below 50 % it goes down. Next to each game you can see which age and difficulty it is at (↑ went up, ↓ went down since the start). What they find hard comes back, and the daily plan gives more room to games not played for a few days. It is not artificial intelligence: these are rules that look at every answer. Points = stars × 10 × level.", "4 · unos 12 min": "4 · about 12 min", "6 · unos 18 min": "6 · about 18 min", "Buzón de sugerencias": "Suggestion box", "¿Una idea, un ejercicio que falta o algo que no anda? Escribilo acá y se abre tu correo para mandarlo.": "An idea, a missing exercise or something that isn't working? Write it here and your email opens to send it.", "Escribí tu sugerencia…": "Write your suggestion…", "Sugerencia": "Suggestion", "Enviar por correo": "Send by email", "Sugerencias": "Suggestions", "¡Activemos los dos hemisferios del cerebro!": "Let's wake up both sides of the brain!"}};
+if(DICT) Object.assign(DICT, P10_I18N[LANG]||{});
 const PACK=(typeof LANGPACK!=='undefined' && LANGPACK[LANG])||null;
 const LP=(k,d)=>(PACK && PACK[k]!==undefined)? PACK[k] : d;
 let LOWD=null;
@@ -620,6 +655,7 @@ function makeSeries(level,r=Math.random,pools=SERIES_POOL){ if(level>=6) return 
 const MEMO_POOL=['🍎','🐶','🚗','⭐','🎈','🐟','🌻','🍦','⚽','🐱','🌙','🚲','🎁','🐻','🍌','🦆'];
 
 const GAMES={
+  brain:{name:'Activá el cerebro',icon:'⚡',col:'#FFB300',area:'Activación',praise:'¡Tu cerebro está despierto!'},
   trace:{name:'Escribir palabras',icon:'✏️',col:'#FF8A00',area:'Escritura',praise:'¡Qué bien escribiste!'},
   compr:{name:'Escuchá y tocá',icon:'👂',col:'#00A3E0',area:'Comprensión',praise:'¡Escuchaste muy bien!'},
   gonogo:{name:'Caza vaquitas',icon:'🐞',col:'#E53935',area:'Concentración',praise:'¡Estuviste muy atento!'},
@@ -636,7 +672,7 @@ const GAMES={
   find:{name:'¿Dónde están?',icon:'🔎',col:'#FF5A4E',area:'Atención',praise:'¡Tenés ojos de águila!'},
 };
 loc(GAMES);
-const PAPER_NAME={trace:'Escribir sílabas y palabras',compr:'Escuchar y rodear',gonogo:'Buscar vaquitas',search:'Encontrar el distinto',numbers:'Unir los puntos',memory:'Mirar y acordarse',series:'¿Qué sigue?',wait:'Laberinto',breathe:'Pintar despacio',syll:'Leer y unir',math:'Sumas y restas',logic:'¿Qué falta?',maze:'Laberintos',find:'¿Dónde están?'};
+const PAPER_NAME={brain:'Activá el cerebro',trace:'Escribir sílabas y palabras',compr:'Escuchar y rodear',gonogo:'Buscar vaquitas',search:'Encontrar el distinto',numbers:'Unir los puntos',memory:'Mirar y acordarse',series:'¿Qué sigue?',wait:'Laberinto',breathe:'Pintar despacio',syll:'Leer y unir',math:'Sumas y restas',logic:'¿Qué falta?',maze:'Laberintos',find:'¿Dónde están?'};
 loc(PAPER_NAME);
 function dailySlots(t,size,round=0){ const d=dayNum(t)+round; const Lg=['logic','maze','find','series'][d%4], X=['compr','memory','wait','gonogo','breathe'][d%5];
   return size===3? ['syll','trace','math'] : ['syll','trace','math',Lg,X]; }
@@ -651,6 +687,7 @@ function allPhrases(name){ const s=new Set(); const add=t=>t&&s.add(normText(tr(
   WORDS.forEach(w=>add(spoken(w))); W2.forEach(w=>add(syllStart(w))); WRITE_SYL.forEach(x=>add(x.toLowerCase()));
   SPELL.forEach(w=>add(spoken(w))); UI_SAY.forEach(t=>add(cleanSay(t)));
   Object.keys(GAMES).forEach(g=>[1,6,9,10,11].forEach(lv=>add(cleanSay(gname(g,lv)))));
+  BRAIN_SAY.forEach(t=>add(cleanSay(t))); Object.values(BRAIN_TITLE).forEach(t=>add(cleanSay(F('Activá el cerebro: {0}', tr(t))))); STORIES.forEach(st=>{ st.s.forEach(add); st.q.forEach(q=>{ add(q[0]); }); });
   return [...s]; }
 window.__lumi={allPhrases, audioKey, missing:()=>[...Voice.missing]};
 
@@ -672,7 +709,7 @@ function slotStates(slots, d){ const done=(d&&d.done)||[], paper=(d&&d.paper)||{
 /* ---------- guardado: dispositivo + servidor de casa + cuenta (db del artifact) ---------- */
 let KEY='lumi-francesco-v1';
 function defaultSave(){ return { v:4, stars:0, points:0, days:{}, letters:{}, stats:{}, miss:{},
-  levels:{trace:1,compr:1,gonogo:1,search:1,numbers:1,memory:1,series:1,wait:1,breathe:1,syll:1,math:1,logic:1,maze:1,find:1},
+  levels:{brain:1,trace:1,compr:1,gonogo:1,search:1,numbers:1,memory:1,series:1,wait:1,breathe:1,syll:1,math:1,logic:1,maze:1,find:1},
   settings:{name:'', age:null, diff:'medio', onboarded:false, printMode:'bw', size:5, rate:.95, sound:true, pin:''}, updatedAt:0 }; }
 function normalize(s){ const d=defaultSave(); if(!s||typeof s!=='object') return d;
   const n={...d, ...s, v:4, levels:{...d.levels,...(s.levels||{})}, settings:{...d.settings,...(s.settings||{})}, days:s.days||{}, letters:s.letters||{}, stats:s.stats||{}, miss:s.miss||{}};
@@ -680,6 +717,7 @@ function normalize(s){ const d=defaultSave(); if(!s||typeof s!=='object') return
   if((s.v||2)<3){ ['compr','gonogo','search','numbers','memory','series','wait','breathe'].forEach(g=>{ n.levels[g]=Math.max(n.levels[g]||1,3); }); n.levels.math=Math.max(n.levels.math||1,2); }
   if(n.settings.onboarded && !n.settings.lang) n.settings.lang='es';
   if((s.v||2)<4 && s.settings && s.settings.name){ n.settings.lang=n.settings.lang||'es'; n.settings.onboarded=true; n.settings.age=n.settings.age||5; n.settings.diff=n.settings.diff||'medio'; }
+  if(!(s.levels&&s.levels.brain) && n.settings.age) n.levels.brain=levelsFor(n.settings.age, n.settings.diff||'medio').brain;
   Object.keys(n.levels).forEach(g=>{ n.levels[g]=Math.max(1,Math.min(maxLv(g),n.levels[g]||1)); });
   return n; }
 function loadLocal(){ try{ const raw=localStorage.getItem(KEY); if(raw) return normalize(JSON.parse(raw)); }catch(e){} return defaultSave(); }
@@ -759,7 +797,7 @@ function AuthScreen({onIn}){
   const key=e=>{ if(e.key==='Enter') go(); };
   return html`<div className="screen adult setup"><div className="setup-body acct">
     <${Lumi} size=${Math.round(Math.min(window.innerHeight*.16, 120))} glow=${2}/>
-    <h1>Lumi</h1><p className="lead">Ejercicios diarios para chicos de 4 a 12 años.</p>
+    <h1>Lumi</h1><p className="lead">Ejercicios diarios para chicos de 4 a 12 años.</p><${Dedic}/>
     <${LangSeg}/>
     <div className="panel acct-box">
       <div className="seg" style=${{justifyContent:'center'}}><button className=${!isNew?'on':''} onClick=${()=>{ setMode('in'); setErr(''); }}>Entrar</button><button className=${isNew?'on':''} onClick=${()=>{ setMode('new'); setErr(''); }}>Crear cuenta</button></div>
@@ -773,12 +811,13 @@ function AuthScreen({onIn}){
     </div>
   </div></div>`;
 }
+function Dedic(){ return html`<div className="dedic" data-noread><span data-notr>💛 Para mi hijo Fran, y sobrina Gio, con mucho cariño.</span><span>¡Activemos los dos hemisferios del cerebro!</span></div>`; }
 function KidsScreen({list, err, onOpen, onAdd, onSignOut, onRetry, onDeleteAccount}){
   const [busy,setBusy]=useState(false); const [msg,setMsg]=useState(''); const [del,setDel]=useState(false);
   async function add(){ setBusy(true); setMsg(''); try{ await onAdd(); }catch(e){ setMsg(acctErr(e)); } setBusy(false); }
   return html`<div className="screen adult setup"><div className="setup-body acct">
     <${Lumi} size=${Math.round(Math.min(window.innerHeight*.16, 120))} glow=${3}/>
-    <h2>¿Quién va a jugar?</h2>
+    <h2>¿Quién va a jugar?</h2><${Dedic}/>
     ${err? html`<p className="acct-err">Sin conexión. Probá de nuevo.</p><button className="btn soft small" onClick=${onRetry}>Reintentar</button>` : html`
     <div className="kid-grid">${list.map(k=>{ const s=k.settings||{}; return html`<button key=${k.id} className="kid" onClick=${()=>onOpen(k.id)}>
         <span className="emoji">${s.onboarded? '🧒' : '✨'}</span><b data-notr>${s.name || k.name || ''}</b>${!(s.name||k.name) && html`<b>Nuevo</b>`}
@@ -787,7 +826,7 @@ function KidsScreen({list, err, onOpen, onAdd, onSignOut, onRetry, onDeleteAccou
     ${msg && html`<p className="acct-err">${msg}</p>`}
     <div className="row" style=${{justifyContent:'center'}}><span className="small muted">${F('Cuenta: {0}', Acct.label())}</span><button className="btn soft small" onClick=${onSignOut}>Cerrar sesión</button></div>
     ${del? html`<div className="row" style=${{justifyContent:'center'}}><span className="small">¿Seguro? Se borra la cuenta y todos sus chicos, para siempre.</span><button className="btn danger small" disabled=${busy} onClick=${async()=>{ setBusy(true); try{ await onDeleteAccount(); }catch(e){ setMsg(acctErr(e)); setBusy(false); } }}>Sí, borrar</button><button className="btn soft small" onClick=${()=>setDel(false)}>No</button></div>`
-      : html`<div className="row" style=${{justifyContent:'center'}}><button className="linkish small" onClick=${()=>setDel(true)}>Borrar la cuenta</button><a className="linkish small" href="privacidad.html">Privacidad</a></div>`}
+      : html`<div className="row" style=${{justifyContent:'center'}}><button className="linkish small" onClick=${()=>setDel(true)}>Borrar la cuenta</button><a className="linkish small" href=${'mailto:'+CONTACT+'?subject='+encodeURIComponent('Lumi · '+tr('Sugerencia'))}>Sugerencias</a><a className="linkish small" href="privacidad.html">Privacidad</a></div>`}
   </div></div>`;
 }
 function Root(){
@@ -1313,9 +1352,9 @@ function FindGame({api}){
   </div>`;
 }
 /* ===== 15. Edades y niveles (4 a 12 años) ===== */
-const MAXLV={syll:12,trace:12,math:12,logic:12,maze:12,find:12,series:12,memory:12,numbers:12,compr:5,gonogo:5,search:5,wait:5,breathe:5};
+const MAXLV={brain:12,syll:12,trace:12,math:12,logic:12,maze:12,find:12,series:12,memory:12,numbers:12,compr:5,gonogo:5,search:5,wait:5,breathe:5};
 const maxLv=g=>MAXLV[g]||5;
-const CORE12=['syll','trace','math','logic','maze','find','series'];
+const CORE12=['brain','syll','trace','math','logic','maze','find','series'];
 const AGES=[4,5,6,7,8,9,10,11,12];
 const AGE_MAIN={4:[1,1,2],5:[1,2,3],6:[3,4,5],7:[5,6,7],8:[6,7,8],9:[7,8,9],10:[8,9,10],11:[9,10,11],12:[10,11,12]};
 const AGE_CLASSIC={4:[1,2,2],5:[2,3,3],6:[3,4,5]};
@@ -1323,13 +1362,15 @@ const DIFFS=loc([['facil','Fácil','Para empezar tranquilo.'],['medio','Medio','
 const diffIdx=d=>Math.max(0,DIFFS.findIndex(x=>x[0]===d));
 function levelsFor(age,diff){ const k=diffIdx(diff); const m=(AGE_MAIN[age]||AGE_MAIN[5])[k]; const c=(AGE_CLASSIC[age]||[4,5,5])[k]; const lv={};
   Object.keys(MAXLV).forEach(g=>{ lv[g]= CORE12.includes(g)? m : c; }); lv.memory=Math.max(1,m-1); lv.numbers=m; return lv; }
+function lvAge(lv){ for(const k of [1,2,0]) for(const a of AGES) if(AGE_MAIN[a][k]===lv) return [a,k]; return [12,2]; }
+function lvLabel(lv){ const [a,k]=lvAge(lv); return F('{0} años · {1}', a, DIFFS[k][1].toLowerCase()); }
 const readsAlone=age=>(age||5)>=7;      /* desde los 7 tiene que leer solo */
 const tapToRead=age=>(age||5)<=6;       /* hasta los 6: tocar un texto y la voz lo lee */
 function agePools(age){ age=age||5;
   if(age<=6) return {lg:['logic','maze','find','series'], x:['compr','memory','wait','gonogo','breathe']};
   if(age===7) return {lg:['logic','maze','find','series'], x:['memory','numbers','search','gonogo']};
   return {lg:['logic','series','maze','find'], x:['memory','numbers','search']}; }
-function ageGames(age){ const p=agePools(age); return ['syll','trace','math',...p.lg,...p.x]; }
+function ageGames(age){ const p=agePools(age); return ['brain','syll','trace','math',...p.lg,...p.x]; }
 /* Elige los juegos del día: rota, pero da más lugar a lo que le cuesta y a lo que hace días que no juega */
 function pickWeighted(pool, save, key, r){ const today=dayNum(key);
   const w=pool.map(g=>{ const st=save.stats&&save.stats[g]; const acc= st&&st.t? st.c/st.t : .7; let last=-99;
@@ -1338,7 +1379,7 @@ function pickWeighted(pool, save, key, r){ const today=dayNum(key);
   let t=r()*w.reduce((a,b)=>a+b,0); for(let j=0;j<pool.length;j++){ t-=w[j]; if(t<=0) return pool[j]; } return pool[pool.length-1]; }
 function planSlots(save, key, round){ const age=save.settings.age||5; const p=agePools(age); const r=mulberry(dayNum(key)*31+round*977+7);
   const lg=pickWeighted(p.lg, save, key, r); const x=pickWeighted(p.x, save, key, r);
-  return save.settings.size===3? ['syll','trace','math'] : ['syll','trace','math',lg,x]; }
+  return save.settings.size===3? ['brain','syll','trace','math'] : ['brain','syll','trace','math',lg,x]; }
 /* repaso: lo que le costó vuelve a aparecer */
 function reviewKeys(save, g, n=2){ const m=(save.miss&&save.miss[g])||{}; return Object.keys(m).sort((a,b)=>m[b]-m[a]).slice(0,n); }
 
@@ -1580,11 +1621,11 @@ function Setup({initial, start=0, onDone, onCancel, onLang}){
         <p className="small muted">Con la edad se eligen los ejercicios. Hasta los 6 años, la voz lee lo que toca en la pantalla; desde los 7, lee solo.</p>`}
       ${step===2 && html`<h2>¿Qué dificultad?</h2>
         <div className="diff-grid">${DIFFS.map(([k,l,d])=>html`<button key=${k} className=${'diff'+(diff===k?' on':'')} onClick=${()=>{ setDiff(k); go(3); }}>
-          <span className="emoji">${k==='facil'?'🌱':k==='medio'?'🌳':'🚀'}</span><b>${l}</b><span>${d}</span><small>Empieza en el nivel ${levelsFor(age,k).syll} de 12</small></button>`)}</div>
-        <p className="small muted">No hace falta acertar: la app sube o baja el nivel sola según cómo le vaya.</p>`}
+          <span className="emoji">${k==='facil'?'🌱':k==='medio'?'🌳':'🚀'}</span><b>${l}</b><span>${d}</span><small>${F('Ejercicios de {0} años · {1}', age, l.toLowerCase())}</small></button>`)}</div>
+        <p className="small muted">No hace falta acertar: cada ejercicio se adapta solo. Si le va muy bien, pasa a lo que hace un chico más grande; si le cuesta, baja.</p>`}
       ${step===3 && html`<h2>¡Todo listo, ${nm}!</h2>
         <div className="panel summary">
-          <div><b>${F('{0} años',age)}</b> · ${DIFFS[diffIdx(diff)][1]} · ${F('arranca en el nivel {0} de 12',lv)}</div>
+          <div><b>${F('{0} años',age)}</b> · ${DIFFS[diffIdx(diff)][1]}</div>
           <div className="small">${F('Cada día: {0} y dos juegos de lógica, memoria o atención.', ageGames(age).slice(0,3).map(g=>tr(gname(g,lv))).join(', '))}</div>
           <div className="small">${tapToRead(age)? 'Si no sabe leer, que toque cualquier texto y Lumi se lo lee.' : 'Las consignas están escritas para que las lea solo; Lumi también las dice.'}</div>
           <div className="small">Va aprendiendo de cada respuesta: lo que le cuesta vuelve a aparecer y el nivel sube cuando acierta.</div>
@@ -1604,7 +1645,182 @@ function PrintAsk({last, onPick, onCancel}){
   </div></div>`;
 }
 
-const GAME_COMP={trace:TraceAny,compr:ComprGame,gonogo:GoNoGo,search:SearchGame,numbers:NumbersGame,memory:MemoryGame,series:SeriesGame,wait:WaitGame,breathe:BreatheGame,syll:SyllAny,math:MathGame,logic:LogicGame,maze:MazeGame,find:FindGame};
+/* ===== 16. Activación cerebral: colores, símbolos, números, dos manos, palitos, arcos y cuentos ===== */
+const BCOL=[{k:'r',c:'#E53935'},{k:'y',c:'#FDD835'},{k:'g',c:'#43A047'},{k:'b',c:'#1E88E5'}];
+const BVIO='#8E24AA';
+const bcol=k=> k==='v'? BVIO : (BCOL.find(c=>c.k===k)||BCOL[0]).c;
+const BPATH={tri:'M50 10 L90 82 L10 82 Z', x:'M18 18 L82 82 M82 18 L18 82', circ:'M86 50 A36 36 0 1 1 14 50 A36 36 0 1 1 86 50', line:'M4 50 L96 50',
+  n:'M16 60 A34 34 0 1 1 84 60', u:'M16 40 A34 34 0 1 0 84 40', c:'M60 16 A34 34 0 1 0 60 84', d:'M40 16 A34 34 0 1 1 40 84'};
+const BSYMS=['tri','x','circ','line'], BARCS=['n','c','u','d'];
+const BDEF={sym:{y:'tri',r:'x',g:'circ',b:'line'}, arcs:{r:'n',y:'c',g:'u',b:'d'}, num:{r:1,y:2,g:3,b:4}};
+const BMODES=['sym','num','arcs','sticks','hands','story'];
+function brainModes(key){ const d=dayNum(key); return [['sym','num','arcs','sticks'][d%4], ['hands','story'][d%2]]; }
+function brainPaperMode(key){ return BMODES[(dayNum(key)*5+3)%6]; }
+/* reglas por nivel (1 a 12): más puntos, más colores, clave que cambia, clave escondida, color "no marcar" */
+function codeCfg(mode, lv, r){ const ncol= lv<=2?2 : lv<=4?3 : 4; const cols= ncol===4? BCOL.map(c=>c.k) : shuffle(BCOL.map(c=>c.k),r).slice(0,ncol);
+  const opts= mode==='sym'? BSYMS : mode==='arcs'? BARCS : [1,2,3,4]; let map={};
+  if(lv>=6){ const p=shuffle(opts,r); BCOL.forEach((c,j)=>map[c.k]=p[j]); } else map={...BDEF[mode]};
+  if(mode==='num' && ncol<4){ cols.forEach((k,j)=>map[k]=j+1); }
+  const n=[0,6,8,8,10,10,12,12,14,14,16,16,18][lv]||10; const inhibit= mode!=='num' && lv>=10; const items=[];
+  while(items.length<n){ const k= inhibit && r()<.2? 'v' : pickR(cols,r); if(items.length>=2 && items[items.length-1]===k && items[items.length-2]===k) continue; items.push(k); }
+  return {cols, map, items, hide: lv>=8, inhibit, opts: mode==='num'? opts.slice(0,ncol).concat(lv>=6&&ncol<4? [] : []) : opts}; }
+function BMark({s, sw=7, col='var(--ink)'}){ return html`<path d=${BPATH[s]} fill="none" stroke=${col} stroke-width=${sw} stroke-linecap="round" stroke-linejoin="round"/>`; }
+function BDot({k, mark, cur, size=64, num}){ return html`<svg className=${'bdot'+(cur?' cur':'')} viewBox="0 0 100 100" width=${size} height=${size} aria-hidden="true">
+    ${cur && html`<circle cx="50" cy="50" r="47" fill="none" stroke="var(--sun)" stroke-width="6"/>`}
+    <circle cx="50" cy="50" r="25" fill=${bcol(k)}/>${mark && BPATH[mark] && html`<${BMark} s=${mark}/>`}
+    ${num!=null && html`<text x="50" y="52" text-anchor="middle" dominant-baseline="middle" font-size="30" font-weight="800" fill=${k==='y'?'#1B2B5A':'#fff'}>${num}</text>`}</svg>`; }
+function BLegend({cfg, mode, hidden, onPeek}){
+  if(hidden) return html`<div className="b-legend"><span className="b-hidden">?</span><button className="btn soft small" onClick=${onPeek}>👀 Ver la clave</button></div>`;
+  return html`<div className="b-legend">${cfg.cols.map(k=>html`<span key=${k} className="b-leg"><${BDot} k=${k} size=${46}/><span className="b-arrow">→</span>${mode==='num'? html`<b className="b-num">${cfg.map[k]}</b>` : html`<svg viewBox="0 0 100 100" width="46" height="46" aria-hidden="true"><${BMark} s=${cfg.map[k]}/></svg>`}</span>`)}
+    ${cfg.inhibit && html`<span className="b-leg"><${BDot} k="v" size=${46}/><span className="b-arrow">→</span><b className="b-num">🚫</b></span>`}</div>`; }
+/* colores → símbolos / arcos / números: se marca un punto por vez, en orden */
+function CodeTask({mode, lv, api, onEnd}){
+  const cfg=useMemo(()=>codeCfg(mode, lv, Math.random),[]); const [i,setI]=useState(0); const [marks,setMarks]=useState({}); const [bad,setBad]=useState(false);
+  const [hidden,setHidden]=useState(false); const miss=useRef(false), score=useRef(0);
+  const cols= mode==='num'? (lv<=3?2: lv<=6?3:4) : 0; const per= mode==='num'? Math.ceil(cfg.items.length/cols) : 0;
+  const order=useMemo(()=>{ if(mode!=='num') return cfg.items.map((_,j)=>j); const o=[]; for(let c=0;c<cols;c++){ const col=[]; for(let rr=0;rr<per;rr++){ const j=c*per+rr; if(j<cfg.items.length) col.push(j); } o.push(...(lv>=5 && c%2? col.reverse() : col)); } return o; },[]);
+  useEffect(()=>{ api.say(mode==='sym'? 'Mirá qué marca lleva cada color. Marcá cada punto, en orden.' : mode==='arcs'? 'Cada color tiene su arco. Elegí el arco de cada punto, en orden.' : 'Decí en voz alta el número de cada color y tocalo. Seguí las flechas.');
+    if(cfg.hide){ const t=setTimeout(()=>{ setHidden(true); api.say('Ahora sin mirar la clave. ¿Te acordás?'); }, 7000); return ()=>clearTimeout(t); } },[]);
+  const cur=order[i];
+  function tap(o){ if(i>=order.length) return; const k=cfg.items[cur]; const want= k==='v'? 'none' : cfg.map[k];
+    if(o===want){ api.sfx('ok'); setMarks(m=>({...m,[cur]: o==='none'? '' : o})); if(!miss.current) score.current++; miss.current=false; api.setProg((i+1)/order.length);
+      if(i+1>=order.length){ setTimeout(()=>onEnd(score.current, order.length), 500); } setI(i+1); }
+    else { miss.current=true; api.sfx('no'); setBad(true); setTimeout(()=>setBad(false),400); } }
+  const optBtn=o=> mode==='num'? html`<b className="b-num big">${o}</b>` : html`<svg viewBox="0 0 100 100" width="58" height="58" aria-hidden="true"><${BMark} s=${o} sw=${8}/></svg>`;
+  const opts= mode==='num'? cfg.cols.map(k=>cfg.map[k]).sort((a,b)=>a-b) : cfg.opts;
+  return html`<div className="stage brain">
+    <${BLegend} cfg=${cfg} mode=${mode} hidden=${hidden} onPeek=${()=>{ setHidden(false); setTimeout(()=>setHidden(true),2500); }}/>
+    ${mode==='num'? html`<div className="b-cols">${Array.from({length:cols},(_,c)=>{ const up= lv>=5 && c%2; return html`<div key=${c} className="b-col"><span className="b-flow">${up?'↑':'↓'}</span>
+        ${cfg.items.slice(c*per,(c+1)*per).map((k,rr)=>{ const j=c*per+rr; return html`<${BDot} key=${j} k=${k} cur=${j===cur} size=${58} num=${marks[j]!=null? marks[j] : null}/>`; })}</div>`; })}</div>`
+      : html`<div className=${'b-board'+(bad?' shake':'')}>${cfg.items.map((k,j)=>html`<${BDot} key=${j} k=${k} cur=${j===cur} mark=${marks[j]} size=${64}/>`)}</div>`}
+    <div className=${'b-opts'+(bad&&mode==='num'?' shake':'')}>${opts.map(o=>html`<button key=${o} className="b-opt" onClick=${()=>tap(o)} aria-label=${String(o)}>${optBtn(o)}</button>`)}
+      ${cfg.inhibit && html`<button className="b-opt" onClick=${()=>tap('none')} aria-label="Nada"><b className="b-num big">🚫</b></button>`}</div>
+  </div>`;
+}
+/* dos manos a la vez: un número rojo y uno azul (los dos lados del cerebro) */
+function handsCfg(lv, r){ const max= lv<=2? 4 : 9; const rounds= lv<=3? 5 : 6; const out=[];
+  for(let j=0;j<rounds;j++){ const a=1+Math.floor(r()*max), b=1+Math.floor(r()*max); const ex=n=>{ if(lv<8) return String(n); if(n>1 && r()<.5){ const d=1+Math.floor(r()*Math.min(3,n-1)); return `${n-d} + ${d}`; } if(n<9){ const d=1+Math.floor(r()*Math.min(3,9-n)); return `${n+d} − ${d}`; } return String(n); };
+    out.push({a,b,ta:ex(a),tb:ex(b)}); }
+  return {max, rounds:out, voice: lv>=6, cross: lv>=10}; }
+function HandsTask({lv, api, onEnd}){
+  const cfg=useMemo(()=>handsCfg(lv, Math.random),[]); const [i,setI]=useState(0); const [hit,setHit]=useState({}); const [showT,setShowT]=useState(true); const [bad,setBad]=useState('');
+  const miss=useRef(false), score=useRef(0), last=useRef({}); const R=cfg.rounds[i];
+  useEffect(()=>{ api.say(cfg.cross? 'Cruzá los brazos: la mano derecha va a los rojos y la izquierda a los azules. Tocá los dos a la vez.' : 'Usá las dos manos: la izquierda en los rojos y la derecha en los azules. Tocá los dos números a la vez.'); },[]);
+  useEffect(()=>{ if(!R) return; setHit({}); last.current={}; miss.current=false; setShowT(true); const t0=setTimeout(()=>api.say(F('Rojo {0}, azul {1}', R.ta, R.tb)), i? 300 : 5200);
+    let t1; if(cfg.voice) t1=setTimeout(()=>setShowT(false), i? 3000 : 8000); return ()=>{ clearTimeout(t0); clearTimeout(t1); }; },[i]);
+  function down(side, n){ if(!R) return; const want= side==='r'? R.a : R.b; const now=Date.now();
+    if(n!==want){ miss.current=true; api.sfx('no'); setBad(side+n); setTimeout(()=>setBad(''),400); return; }
+    last.current[side]=now; setHit(h=>({...h,[side]:true})); const o= side==='r'? 'b' : 'r';
+    if(last.current[o] && now-last.current[o]<1600){ api.sfx('ok'); if(!miss.current) score.current++; api.setProg((i+1)/cfg.rounds.length);
+      setTimeout(()=>{ if(i+1<cfg.rounds.length) setI(i+1); else onEnd(score.current, cfg.rounds.length); }, 700); }
+    else setTimeout(()=>{ if(last.current[side]===now && !(last.current[o] && Math.abs(last.current[o]-now)<1600)){ setHit(h=>({...h,[side]:false})); api.say('¡Las dos manos a la vez!'); } }, 1700); }
+  const panel=(side)=>html`<div className=${'b-hand '+side}>${Array.from({length:cfg.max},(_,j)=>j+1).map(n=>{ const on= hit[side] && n===(side==='r'?R.a:R.b);
+      return html`<button key=${n} className=${'b-hnum'+(on?' on':'')+(bad===side+n?' shake':'')} style=${{background: side==='r'? '#E53935' : '#1E88E5'}} onPointerDown=${e=>{ e.preventDefault(); down(side,n); }} aria-label=${(side==='r'?'Rojo ':'Azul ')+n}>${n}</button>`; })}</div>`;
+  return html`<div className="stage brain">
+    <div className="b-call">${showT && R? html`<span><b style=${{color:'#E53935'}}>●</b> ${R.ta}</span><span><b style=${{color:'#1E88E5'}}>●</b> ${R.tb}</span>` : html`<button className="btn soft small" onClick=${()=>R&&api.say(F('Rojo {0}, azul {1}', R.ta, R.tb))}>🔊 Escuchar otra vez</button>`}</div>
+    <div className="b-hands">${cfg.cross? [panel('b'),panel('r')] : [panel('r'),panel('b')]}</div>
+  </div>`;
+}
+/* palitos: buscar la tira con los mismos colores en las puntas */
+function sticksCfg(lv, r){ const n= lv<=2?3 : lv<=5?4 : lv<=8?5 : 6; const ks=BCOL.map(c=>c.k); const pairs=[];
+  const all=[]; ks.forEach(a=>ks.forEach(b=>{ if(a<=b) all.push([a,b]); }));
+  const rounds=[]; for(let j=0;j<5;j++){ let strips=shuffle(all,r).slice(0,n); if(lv>=6){ const t=strips[0]; const near=all.filter(p=>p!==t && (p.includes(t[0])||p.includes(t[1]))); strips=shuffle([t,...shuffle(near,r).slice(0,n-1)],r); }
+    strips=strips.map(p=> r()<.5? [p[1],p[0]] : p); const ti=Math.floor(r()*strips.length); const t=strips[ti]; const stick= lv>=4 && r()<.5? [t[1],t[0]] : t.slice(); rounds.push({strips, ti, stick}); }
+  return {rounds}; }
+function SticksTask({lv, api, onEnd}){
+  const cfg=useMemo(()=>sticksCfg(lv, Math.random),[]); const [i,setI]=useState(0); const [mark,setMark]=useState({}); const miss=useRef(false), score=useRef(0); const R=cfg.rounds[i];
+  useEffect(()=>{ setMark({}); miss.current=false; api.say(i? 'Otro palito.' : 'Buscá la tira que tiene los mismos colores que el palito. Puede estar dado vuelta.'); },[i]);
+  function tap(j){ if(mark[j]==='ok') return; if(j===R.ti){ api.sfx('ok'); setMark({[j]:'ok'}); if(!miss.current) score.current++; api.setProg((i+1)/cfg.rounds.length);
+      setTimeout(()=>{ if(i+1<cfg.rounds.length) setI(i+1); else onEnd(score.current, cfg.rounds.length); }, 800); }
+    else { miss.current=true; api.sfx('no'); setMark({[j]:'bad'}); setTimeout(()=>setMark({}),450); } }
+  return html`<div className="stage brain">
+    <div className="b-stick"><${BDot} k=${R.stick[0]} size=${54}/><span className="b-wood"></span><${BDot} k=${R.stick[1]} size=${54}/></div>
+    <div className="b-strips">${R.strips.map((p,j)=>html`<button key=${i+'-'+j} className=${'b-strip'+(mark[j]?' '+mark[j]:'')} onClick=${()=>tap(j)} aria-label=${'Tira '+(j+1)}><${BDot} k=${p[0]} size=${44}/><span className="b-line"></span><${BDot} k=${p[1]} size=${44}/></button>`)}</div>
+  </div>`;
+}
+/* cuentos cortos con letras grandes: Lumi lee una frase y el chico la repite */
+const STORIES_ES=[
+  {lv:1, s:['Tito es un gato gris.','Tito toma leche.','Después duerme en la cama.'], q:[['¿Qué toma Tito?',['🥛','🍕','🍎']]]},
+  {lv:1, s:['Ana tiene una pelota roja.','La pelota salta muy alto.','Ana se ríe mucho.'], q:[['¿Qué tiene Ana?',['⚽','🚲','🧸']]]},
+  {lv:1, s:['Un pájaro canta en el árbol.','El sol sale despacio.','Es un día lindo.'], q:[['¿Dónde canta el pájaro?',['🌳','🚗','🏠']]]},
+  {lv:2, s:['La abuela hace una sopa.','Pone papa, zanahoria y fideos.','Leo ayuda a mezclar.','La sopa queda riquísima.'], q:[['¿Quién ayuda a la abuela?',['Leo','Mamá','El perro']],['¿Qué tiene la sopa?',['Fideos','Chocolate','Arena']]]},
+  {lv:2, s:['Hoy hay mucho viento.','Sofía sube su barrilete azul.','El barrilete vuela sobre el parque.','Su hermano aplaude contento.'], q:[['¿Por qué vuela el barrilete?',['Porque hay viento','Porque llueve','Porque es de noche']],['¿De qué color es el barrilete?',['Azul','Rojo','Verde']]]},
+  {lv:2, s:['Juan planta una semilla.','Todos los días la riega.','Una mañana ve una hoja verde.','¡La planta empezó a crecer!'], q:[['¿Qué hace Juan todos los días?',['La riega','La pinta','La esconde']],['¿Qué ve una mañana?',['Una hoja verde','Un pez','Una nube']]]},
+  {lv:3, s:['En la playa hay un faro muy alto.','De noche, su luz gira y gira.','Los barcos miran la luz para no chocar con las rocas.','Un día se apagó la luz del faro.','El farero subió con una linterna y ayudó a un barquito.'], q:[['¿Para qué sirve la luz del faro?',['Para que los barcos no choquen','Para leer de noche','Para calentar el agua']],['¿Qué usó el farero cuando se apagó la luz?',['Una linterna','Una vela','Un espejo']]]},
+  {lv:3, s:['Mía y Tomás hicieron una carrera hasta el árbol.','Tomás salió muy rápido, pero se cansó a mitad de camino.','Mía corrió tranquila, sin parar.','Al final, Mía llegó primero.','Tomás la felicitó y se dieron un abrazo.'], q:[['¿Por qué Tomás no ganó?',['Porque se cansó','Porque se cayó','Porque se perdió']],['¿Qué hicieron al final?',['Se dieron un abrazo','Se pelearon','Se fueron a dormir']]]},
+  {lv:3, s:['En una montaña vivía un dragón muy tímido.','Cuando alguien lo saludaba, se ponía colorado y echaba humo.','Una nena le llevó un dibujo de regalo.','El dragón sonrió y, por primera vez, dijo hola.','Desde ese día son grandes amigos.'], q:[['¿Qué le pasaba al dragón cuando lo saludaban?',['Se ponía colorado','Se dormía','Bailaba']],['¿Qué le regaló la nena?',['Un dibujo','Una pelota','Un helado']]]},
+];
+const STORIES_CA=[
+  {lv:1, s:['En Tito és un gat gris.','En Tito beu llet.','Després dorm al llit.'], q:[["Què beu en Tito?",['🥛','🍕','🍎']]]},
+  {lv:1, s:["L'Anna té una pilota vermella.",'La pilota salta molt amunt.',"L'Anna riu molt."], q:[["Què té l'Anna?",['⚽','🚲','🧸']]]},
+  {lv:1, s:["Un ocell canta a l'arbre.",'El sol surt a poc a poc.','És un dia preciós.'], q:[["On canta l'ocell?",['🌳','🚗','🏠']]]},
+  {lv:2, s:["L'àvia fa una sopa.",'Hi posa patata, pastanaga i fideus.','En Leo ajuda a remenar.','La sopa queda boníssima.'], q:[["Qui ajuda l'àvia?",['En Leo','La mare','El gos']],['Què porta la sopa?',['Fideus','Xocolata','Sorra']]]},
+  {lv:2, s:['Avui fa molt de vent.','La Sofia enlaira el seu estel blau.',"L'estel vola sobre el parc.",'El seu germà aplaudeix content.'], q:[["Per què vola l'estel?",['Perquè fa vent','Perquè plou','Perquè és de nit']],["De quin color és l'estel?",['Blau','Vermell','Verd']]]},
+  {lv:2, s:['En Joan planta una llavor.','Cada dia la rega.','Un matí veu una fulla verda.','La planta ha començat a créixer!'], q:[['Què fa en Joan cada dia?',['La rega','La pinta',"L'amaga"]],['Què veu un matí?',['Una fulla verda','Un peix','Un núvol']]]},
+  {lv:3, s:['A la platja hi ha un far molt alt.','De nit, la seva llum gira i gira.','Els vaixells miren la llum per no xocar amb les roques.','Un dia es va apagar la llum del far.','El faroner va pujar amb una llanterna i va ajudar un vaixellet.'], q:[['Per a què serveix la llum del far?',['Perquè els vaixells no xoquin','Per llegir de nit',"Per escalfar l'aigua"]],['Què va fer servir el faroner quan es va apagar la llum?',['Una llanterna','Una espelma','Un mirall']]]},
+  {lv:3, s:["La Mia i en Tomàs van fer una cursa fins a l'arbre.",'En Tomàs va sortir molt ràpid, però es va cansar a mig camí.','La Mia va córrer tranquil·la, sense parar.','Al final, la Mia va arribar primera.',"En Tomàs la va felicitar i es van fer una abraçada."], q:[['Per què no va guanyar en Tomàs?',['Perquè es va cansar','Perquè va caure','Perquè es va perdre']],['Què van fer al final?',['Es van fer una abraçada','Es van barallar','Se’n van anar a dormir']]]},
+  {lv:3, s:['En una muntanya vivia un drac molt tímid.','Quan algú el saludava, es posava vermell i treia fum.','Una nena li va portar un dibuix de regal.','El drac va somriure i, per primera vegada, va dir hola.',"Des d'aquell dia són grans amics."], q:[['Què li passava al drac quan el saludaven?',['Es posava vermell','Es dormia','Ballava']],['Què li va regalar la nena?',['Un dibuix','Una pilota','Un gelat']]]},
+];
+const STORIES_EN=[
+  {lv:1, s:['Tito is a grey cat.','Tito drinks milk.','Then he sleeps on the bed.'], q:[['What does Tito drink?',['🥛','🍕','🍎']]]},
+  {lv:1, s:['Anna has a red ball.','The ball bounces very high.','Anna laughs a lot.'], q:[['What does Anna have?',['⚽','🚲','🧸']]]},
+  {lv:1, s:['A bird sings in the tree.','The sun comes up slowly.','It is a lovely day.'], q:[['Where does the bird sing?',['🌳','🚗','🏠']]]},
+  {lv:2, s:['Grandma makes some soup.','She puts in potato, carrot and noodles.','Leo helps her stir.','The soup is delicious.'], q:[['Who helps Grandma?',['Leo','Mum','The dog']],['What is in the soup?',['Noodles','Chocolate','Sand']]]},
+  {lv:2, s:['It is very windy today.','Sofia flies her blue kite.','The kite flies over the park.','Her brother claps happily.'], q:[['Why does the kite fly?',['Because it is windy','Because it is raining','Because it is night']],['What colour is the kite?',['Blue','Red','Green']]]},
+  {lv:2, s:['John plants a seed.','He waters it every day.','One morning he sees a green leaf.','The plant has started to grow!'], q:[['What does John do every day?',['He waters it','He paints it','He hides it']],['What does he see one morning?',['A green leaf','A fish','A cloud']]]},
+  {lv:3, s:['On the beach there is a very tall lighthouse.','At night, its light turns round and round.','Boats look at the light so they do not hit the rocks.','One day the lighthouse light went out.','The keeper climbed up with a torch and helped a little boat.'], q:[['What is the lighthouse light for?',['So boats do not crash','For reading at night','For warming the water']],['What did the keeper use when the light went out?',['A torch','A candle','A mirror']]]},
+  {lv:3, s:['Mia and Tom had a race to the tree.','Tom started very fast, but he got tired halfway.','Mia ran calmly, without stopping.','In the end, Mia got there first.','Tom congratulated her and they gave each other a hug.'], q:[["Why didn't Tom win?",['Because he got tired','Because he fell over','Because he got lost']],['What did they do at the end?',['They hugged','They argued','They went to sleep']]]},
+  {lv:3, s:['A very shy dragon lived on a mountain.','When someone said hello, he went red and puffed out smoke.','A girl brought him a drawing as a present.','The dragon smiled and, for the first time, said hello.','Since that day they have been great friends.'], q:[['What happened to the dragon when people said hello?',['He went red','He fell asleep','He danced']],['What did the girl give him?',['A drawing','A ball','An ice cream']]]},
+];
+const STORIES=({es:STORIES_ES,ca:STORIES_CA,en:STORIES_EN})[LANG]||STORIES_ES;
+function storyFor(lv, r){ const band= lv<=4?1 : lv<=8?2 : 3; return pickR(STORIES.filter(s=>s.lv===band), r); }
+function StoryTask({lv, api, onEnd}){
+  const st=useMemo(()=>storyFor(lv, Math.random),[]); const alone= lv>=7; const [j,setJ]=useState(0); const [phase,setPhase]=useState('read'); const [qi,setQi]=useState(0); const [mark,setMark]=useState({});
+  const score=useRef(0), miss=useRef(false); const qs=st.q; const opts=useMemo(()=>qs.map(q=>shuffle(q[1].map((o,k)=>({o,k})))),[]);
+  const steps=st.s.length+qs.length;
+  useEffect(()=>{ if(phase!=='read') return; const intro= j===0? (alone? 'Leé cada frase en voz alta. Si querés, tocá Escuchar.' : 'Escuchá a Lumi y repetí cada frase en voz alta.') : null;
+    api.setProg(j/steps); if(alone){ if(intro) api.say(intro); } else api.say(intro? [intro, st.s[j]] : st.s[j]); },[j,phase]);
+  useEffect(()=>{ if(phase==='quiz'){ setMark({}); miss.current=false; api.setProg((st.s.length+qi)/steps); api.say(qs[qi][0]); } },[phase,qi]);
+  function next(){ api.sfx('tap'); if(j+1<st.s.length) setJ(j+1); else setPhase('quiz'); }
+  function answer(k){ if(k===0){ api.sfx('ok'); setMark({[k]:'ok'}); if(!miss.current) score.current++; setTimeout(()=>{ if(qi+1<qs.length) setQi(qi+1); else onEnd(score.current, qs.length); }, 900); }
+    else { miss.current=true; api.sfx('no'); setMark({[k]:'bad'}); setTimeout(()=>setMark({}),450); api.say(pick(TRY)); } }
+  if(phase==='read') return html`<div className="stage brain">
+    <div className="b-story">${st.s.slice(0,j).map((t,k)=>html`<p key=${k} className="b-past">${t}</p>`)}<p className="b-now">${st.s[j]}</p></div>
+    <div className="row" style=${{justifyContent:'center'}}><button className="btn soft small" onClick=${()=>api.say(st.s[j])}>🔊 Escuchar</button>
+      <button className="btn" onClick=${next}>${alone? '✅ Lo leí' : '✅ Lo repetí'}</button></div></div>`;
+  const q=qs[qi]; const emo=q[1].every(o=>/\p{Extended_Pictographic}/u.test(o));
+  return html`<div className="stage brain"><h2 className="b-q">${q[0]}</h2>
+    <div className=${'choices'+(emo?'':' b-txt')}>${opts[qi].map(({o,k})=> emo? html`<${Choice} key=${qi+'-'+k} o=${o} state=${mark[k]} onTap=${()=>answer(k)}/>` : html`<button key=${qi+'-'+k} className=${'b-ans'+(mark[k]?' '+mark[k]:'')} onClick=${()=>answer(k)}>${o}</button>`)}</div></div>`;
+}
+const BRAIN_TITLE={sym:'Colores y símbolos', num:'Colores y números', arcs:'Colores y arcos', sticks:'Palitos de colores', hands:'Dos manos a la vez', story:'Escuchá y repetí'};
+function BrainGame({api}){
+  const modes=useMemo(()=>brainModes(dayKey()),[]); const [m,setM]=useState(0); const [intro,setIntro]=useState(true); const tot=useRef({c:0,t:0});
+  const mode=modes[m]; const sub={...api, setProg:p=>api.setProg((m+p)/modes.length)};
+  useEffect(()=>{ setIntro(true); api.say(F('Activá el cerebro: {0}', tr(BRAIN_TITLE[mode]))); const t=setTimeout(()=>setIntro(false), 1600); return ()=>clearTimeout(t); },[m]);
+  function end(c,t){ tot.current.c+=c; tot.current.t+=t; if(m+1<modes.length) setM(m+1); else api.done(tot.current.c, tot.current.t); }
+  if(intro) return html`<div className="stage brain"><div className="b-title"><span className="emoji">⚡</span><h2>${BRAIN_TITLE[mode]}</h2><p className="muted">${F('Parte {0} de {1}', m+1, modes.length)}</p></div></div>`;
+  const P={key:m, lv:api.level, api:sub, onEnd:end};
+  if(mode==='hands') return html`<${HandsTask} ...${P}/>`;
+  if(mode==='sticks') return html`<${SticksTask} ...${P}/>`;
+  if(mode==='story') return html`<${StoryTask} ...${P}/>`;
+  return html`<${CodeTask} ...${P} mode=${mode}/>`;
+}
+/* ficha en papel: cambia de tipo cada día */
+function brainSheetPlan(lv, key, round, mode0){ const r=mulberry(dayNum(key)*131+round*17+3); const M=mode0||BMODES[(dayNum(key)*5+3+round)%6]; const out={mode:M, lv};
+  if(M==='sym'||M==='arcs'||M==='num'){ const cfg=codeCfg(M,lv,r); out.cfg=cfg;
+    if(M==='num'){ out.cols= lv<=3?4 : lv<=6?5 : 6; out.rows= lv<=3?7 : 9; out.zig= lv>=5; }
+    else { const g= lv<=3? [7,6] : lv<=7? [8,8] : [9,9]; out.cols=g[0]; out.rows=g[1]; }
+    const n=out.cols*out.rows, items=[]; while(items.length<n){ const k= cfg.inhibit && r()<.15? 'v' : pickR(cfg.cols,r); if(items.length>=2 && items[items.length-1]===k && items[items.length-2]===k) continue; items.push(k); } cfg.items=items; out.items=items; }
+  else if(M==='sticks'){ const ks=BCOL.map(c=>c.k), all=[]; ks.forEach(a=>ks.forEach(b=>{ if(a<b || (lv<=3 && a===b)) all.push([a,b]); })); const pick6=shuffle(all,r).slice(0,6);
+    const strips=shuffle(pick6,r); out.strips=strips; out.sticks=pick6.map(p=> lv>=3 && r()<.5? [p[1],p[0]] : p); out.sol=pick6.map(p=>'ABCDEF'[strips.indexOf(p)]); }
+  else if(M==='hands'){ const h=handsCfg(Math.max(lv,3), r); const more=handsCfg(Math.max(lv,3), r); out.calls=h.rounds.concat(more.rounds).slice(0,12); out.cross=h.cross; }
+  else { out.story=storyFor(lv,r); out.order=out.story.q.map(q=>shuffle(q[1].map((_,j)=>j),r)); }
+  return out; }
+const BRAIN_SAY=['Mirá qué marca lleva cada color. Marcá cada punto, en orden.','Cada color tiene su arco. Elegí el arco de cada punto, en orden.','Decí en voz alta el número de cada color y tocalo. Seguí las flechas.',
+  'Ahora sin mirar la clave. ¿Te acordás?','Cruzá los brazos: la mano derecha va a los rojos y la izquierda a los azules. Tocá los dos a la vez.','Usá las dos manos: la izquierda en los rojos y la derecha en los azules. Tocá los dos números a la vez.',
+  '¡Las dos manos a la vez!','Otro palito.','Buscá la tira que tiene los mismos colores que el palito. Puede estar dado vuelta.','Leé cada frase en voz alta. Si querés, tocá Escuchar.','Escuchá a Lumi y repetí cada frase en voz alta.','¡Tu cerebro está despierto!'];
+
+const GAME_COMP={brain:BrainGame,trace:TraceAny,compr:ComprGame,gonogo:GoNoGo,search:SearchGame,numbers:NumbersGame,memory:MemoryGame,series:SeriesGame,wait:WaitGame,breathe:BreatheGame,syll:SyllAny,math:MathGame,logic:LogicGame,maze:MazeGame,find:FindGame};
 
 /* ---------- fichas A4: una hoja por ejercicio ---------- */
 function trSheet(t){ if(!DICT||typeof t!=='string') return t; const v=tr(t); if(v!==t) return v;
@@ -1631,44 +1847,47 @@ function makeSheetPlan(save, key, round=0, mode){
   const sl0=lv.syll||1, tl0=lv.trace||1; const read= sl0>=6? readItems(sl0, r, [], sl0===6?6: sl0===8?8:6) : null; const spell= tl0>=6? spellItems(tl0, r, [], tl0<=8?6: tl0===10?5: tl0===12?6:8) : null;
   const wl=lv.trace||1; const write={syl:shuffle(WRITE_SYL,r).slice(0,4), words:shuffle(wl>=4? WRITE_WORDS : WRITE_WORDS.filter(w=>w.s.length===2), r).slice(0,3)};
   return {key, letter:frontierLetter(save.letters), cells, targets, finds, series, comp, maze:makeMaze(9,11,r), dots:Math.max(5,Math.min(20,NUMBERS_N[lv.numbers])), seen, test, name:save.settings.name, syll, math, latin, mazes, find, write,
-    mode, caps:!readsAlone(save.settings.age), read, readLv:sl0, spell, spellLv:tl0, mathLv:ml0, lv};
+    brain:brainSheetPlan(lv.brain||1, key, round), mode, caps:!readsAlone(save.settings.age), read, readLv:sl0, spell, spellLv:tl0, mathLv:ml0, lv};
 }
 const PW=1240, PH=1754, EMO='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 function drawSheet(game, plan){
   const C= plan.mode==='color'? {ink:'#1B2B5A',ink2:'#4A5C85',sun:'#FFB300',sun2:'#FFF1B8',leaf:'#1DB954',leaf2:'#D2F7DF',coral:'#FF4D4D',berry:'#7B5CFF',line:'#9FC3E0',guide:'#C9DDF0',card:'#fff'}
     : {ink:'#000',ink2:'#444',sun:'#555',sun2:'#eee',leaf:'#222',leaf2:'#ddd',coral:'#000',berry:'#333',line:'#8a8a8a',guide:'#bbb',card:'#fff'}; const cv=document.createElement('canvas'); cv.width=PW; cv.height=PH; const x=cv.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,PW,PH); x.textBaseline='middle';
   const font=(w,s,f='Andika')=>{ x.font=`${w} ${s}px ${f==='Andika'?'Andika, sans-serif':'"Baloo 2", sans-serif'}`; };
-  const text=(t0,px,py,col=C.ink,align='left',keep=false)=>{ const t=trSheet(t0); x.fillStyle=col; x.textAlign=align; x.fillText(keep||!plan.caps? t : String(t).toUpperCase(),px,py); x.textAlign='left'; };
+  const text=(t0,px,py,col=C.ink,align='left',keep=false,maxW=0)=>{ const t=trSheet(t0); const u= keep||!plan.caps? String(t) : String(t).toUpperCase(); x.fillStyle=col; x.textAlign=align;
+    const lim= maxW || (align==='center'? 2*Math.min(px,PW-px)-60 : align==='right'? px-40 : PW-50-px); const w=x.measureText(u).width; const f0=x.font;
+    if(w>lim && lim>40){ const m=f0.match(/(\d+(?:\.\d+)?)px/); if(m) x.font=f0.replace(m[0], Math.max(10,Math.floor(parseFloat(m[1])*lim/w))+'px'); }
+    x.fillText(u,px,py); x.font=f0; x.textAlign='left'; };
   const emo=(e,cx,cy,size)=>{ x.font=size+'px '+EMO; x.textAlign='center'; x.fillStyle='#000'; x.fillText(e,cx,cy+size*.05); x.textAlign='left'; };
   // cabecera
   const glv=(plan.lv&&plan.lv[game])||1; if(plan.mode==='color'){ x.fillStyle=gcol(game)+'26'; x.fillRect(0,0,PW,190); x.fillStyle=gcol(game); x.fillRect(0,0,PW,14); }
-  font(800,44,'Baloo'); text(`${GAMES[game].icon}  ${pname(game,glv)}`, 80, 92);
-  font(400,26); text(F('Ficha de {0} · {1}', plan.name, cap(longDate(plan.key))), 80, 142, C.ink2, 'left', true);
-  x.strokeStyle=C.ink2; x.lineWidth=3; x.strokeRect(PW-330,58,250,92); font(700,22); text('OK de papá o mamá', PW-318, 80, C.ink2);
+  font(800,44,'Baloo'); text(`${GAMES[game].icon}  ${pname(game,glv)}`, 80, 92, C.ink, 'left', false, PW-80-370);
+  font(400,26); text(F('Ficha de {0} · {1}', plan.name, cap(longDate(plan.key))), 80, 142, C.ink2, 'left', true, PW-80-370);
+  x.strokeStyle=C.ink2; x.lineWidth=3; x.strokeRect(PW-330,58,250,92); font(700,22); text('OK de papá o mamá', PW-318, 80, C.ink2, 'left', false, 226);
   x.strokeStyle=C.line; x.beginPath(); x.moveTo(80,178); x.lineTo(PW-80,178); x.stroke();
   const sub=(t,y)=>{ font(700,32); text(t,80,y); };
   const note=(t,y)=>{ font(400,22); text(t,80,y,C.ink2,'left',true); };
-  const foot=t=>{ font(400,20); text(t,80,PH-56,C.ink2,'left',true); };
+  const foot=t=>{ font(400,20); const ls=wrap(trSheet(t),PW-170); ls.forEach((l,j)=>text(l,80,PH-56-(ls.length-1-j)*26,C.ink2,'left',true)); };
   const letterBox=(ch,bx,by,s,mode)=>{ x.strokeStyle=C.line; x.lineWidth=2; [12,88].forEach(v=>{ x.beginPath(); x.moveTo(bx,by+v*s/100); x.lineTo(bx+s,by+v*s/100); x.stroke(); });
     x.setLineDash([6,6]); x.beginPath(); x.moveTo(bx,by+s/2); x.lineTo(bx+s,by+s/2); x.stroke(); x.setLineDash([]);
     const strokes=L[ch].s; x.lineCap='round'; x.lineJoin='round';
     if(mode==='dots'||mode==='solid'){ x.strokeStyle= mode==='solid'? C.ink : (plan.mode==='color'? '#7FA8C9' : '#8a8a8a'); x.lineWidth= mode==='solid'? s*.07 : s*.045; if(mode==='dots') x.setLineDash([s*.012, s*.06]);
       strokes.forEach(p=>{ x.beginPath(); p.forEach((q,i)=> i? x.lineTo(bx+q[0]*s/100, by+q[1]*s/100) : x.moveTo(bx+q[0]*s/100, by+q[1]*s/100)); x.stroke(); }); x.setLineDash([]); }
-    if(mode!=='solid'){ const used=[]; strokes.forEach((p,i)=>{ let q=p[0]; if(used.some(u=>Math.hypot(u[0]-q[0],u[1]-q[1])<4)){ const n=p[1]; q=[q[0]+(n[0]-q[0])*.16, q[1]+(n[1]-q[1])*.16]; } used.push(p[0]);
+    if(mode!=='solid'){ const used=[]; strokes.forEach((p,i)=>{ let q=p[0]; if(used.some(u=>Math.hypot(u[0]-q[0],u[1]-q[1])<14)){ const n=p[1]; const d=Math.hypot(n[0]-q[0],n[1]-q[1])||1; const k=Math.min(.6,16/d); q=[q[0]+(n[0]-q[0])*k, q[1]+(n[1]-q[1])*k]; } used.push(p[0]);
       const px=bx+q[0]*s/100, py=by+q[1]*s/100, rr=Math.max(9,s*.055); x.fillStyle=C.leaf; x.beginPath(); x.arc(px,py,rr,0,Math.PI*2); x.fill();
       if(strokes.length>1){ font(700,Math.round(rr*1.25)); text(String(i+1), px, py+1, '#fff', 'center'); } }); } };
-  const wrap=(t,maxW)=>{ const out=[]; let line=''; String(t).split(' ').forEach(w=>{ const tr=line? line+' '+w : w; if(x.measureText(plan.caps? tr.toUpperCase() : tr).width>maxW && line){ out.push(line); line=w; } else line=tr; }); if(line) out.push(line); return out; };
+  function wrap(t,maxW){ const out=[]; let line=''; String(t).split(' ').forEach(w=>{ const tr=line? line+' '+w : w; if(x.measureText(plan.caps? tr.toUpperCase() : tr).width>maxW && line){ out.push(line); line=w; } else line=tr; }); if(line) out.push(line); return out; }
   const para=(t,px,py,maxW,lh)=>{ const ls=wrap(t,maxW); ls.forEach((l,j)=>text(l,px,py+j*lh)); return py+ls.length*lh; };
   const show=s=>plan.caps? s : s.toLowerCase();
   const sol=a=>foot('Soluciones: '+a);
   if(game==='syll' && plan.read){ const R=plan.read, lv=plan.readLv;
     if(lv===6){ sub('Leé cada frase y uníla con su dibujo',250); note('Trazá una línea desde la frase hasta el dibujo.',290);
       const pics=shuffle(R.map(it=>it.ans), mulberry(7)); font(700,34);
-      R.slice(0,6).forEach((it,k)=>{ const y=400+k*190; font(700,34); text(it.text,100,y); x.fillStyle=C.ink; x.beginPath(); x.arc(860,y,10,0,Math.PI*2); x.fill(); });
+      R.slice(0,6).forEach((it,k)=>{ const y=400+k*190; font(700,34); text(it.text,100,y,C.ink,'left',false,730); x.fillStyle=C.ink; x.beginPath(); x.arc(860,y,10,0,Math.PI*2); x.fill(); });
       pics.slice(0,6).forEach((e,k)=>{ const y=400+k*190; x.fillStyle=C.ink; x.beginPath(); x.arc(980,y,10,0,Math.PI*2); x.fill(); emo(e,1090,y,90); });
       sol(R.slice(0,6).map((it,k)=>`${k+1}) ${it.ans}`).join('  ')); }
     else if(lv===7){ sub('Completá cada frase con la palabra que va',250); note('Escribí la palabra en la raya. Abajo tenés las opciones.',290);
-      R.forEach((it,k)=>{ const y=400+k*200; font(700,36); text(`${k+1}. `+it.text.replace('___','__________'),100,y); font(400,28); text('( '+it.opts.join(' · ')+' )',150,y+60,C.ink2); });
+      R.forEach((it,k)=>{ const y=400+k*200; font(700,36); text(`${k+1}. `+it.text.replace('___','__________'),100,y,C.ink,'left',false,PW-190); font(400,28); text('( '+it.opts.join(' · ')+' )',150,y+60,C.ink2); });
       sol(R.map((it,k)=>`${k+1}) ${it.ans}`).join('  ')); }
     else if(lv===8){ sub('¿Verdadero o falso? Escribí V o F',250); note('Leé cada frase. Si es cierta, escribí V; si no, escribí F.',290);
       R.forEach((it,k)=>{ const y=400+k*150; x.strokeStyle=C.sun; x.lineWidth=4; x.strokeRect(100,y-35,70,70); font(700,36); text(it.text,200,y); });
@@ -1686,7 +1905,7 @@ function drawSheet(game, plan){
         else { x.strokeStyle=C.ink2; x.lineWidth=3; x.beginPath(); x.moveTo(ox+40,oy+290); x.lineTo(ox+480,oy+290); x.stroke(); } });
       sol(S.map((it,k)=>`${k+1}) ${show(it.w.w)}`).join('  ')); }
     else if(lv===9||lv===11){ sub('Rodeá la palabra bien escrita',250); note('Fijate en cada letra y en los acentos.',290);
-      S.forEach((it,k)=>{ const y=410+k*160; emo(it.e,150,y,80); font(700,40); it.opts.forEach((o,j)=>text(show(o),280+j*300,y)); });
+      S.forEach((it,k)=>{ const y=410+k*160; emo(it.e,150,y,80); font(700,40); it.opts.forEach((o,j)=>text(show(o),280+j*300,y,C.ink,'left',false,270)); });
       sol(S.map((it,k)=>`${k+1}) ${show(it.ans)}`).join('  ')); }
     else if(lv===10){ sub('Ordená las palabras y escribí la oración',250); note('Empezá con la palabra que tiene mayúscula y terminá con un punto.',290);
       S.forEach((it,k)=>{ const y=420+k*230; emo(it.e,140,y+20,70); font(700,34); text(it.tiles.join('  /  '),230,y); x.strokeStyle=C.ink2; x.lineWidth=3; x.beginPath(); x.moveTo(230,y+90); x.lineTo(PW-100,y+90); x.stroke(); });
@@ -1718,7 +1937,7 @@ function drawSheet(game, plan){
       w.w.split('').forEach((c,j)=>letterBox(c,260+j*(cs+8),oy,cs,'dots')); w.w.split('').forEach((c,j)=>letterBox(c,260+j*(cs+8),oy+cs+18,cs,'start')); });
   }
   if(game==='compr'){ sub('Escuchá y rodeá el dibujo',250); note('Lo lee un adulto, despacio. Él rodea su respuesta.',290);
-    plan.comp.forEach((c,k)=>{ const y=380+k*330; font(700,30); text(`${k+1}. ${(c.st?c.st+' ':'')}${c.q.replace(/^Tocá/,'Rodeá')}`,100,y);
+    plan.comp.forEach((c,k)=>{ const y=380+k*330; font(700,30); text(`${k+1}. ${(c.st?c.st+' ':'')}${c.q.replace(/^Tocá/,'Rodeá').replace(/^Tap/,'Circle').replace(/^Toca/,'Encercla')}`,100,y);
       c.order.forEach((j,pos)=>emo(c.o[j],230+pos*280,y+150,150)); });
     foot('Soluciones: '+plan.comp.map((c,k)=>`${k+1}) ${c.o[0]}`).join('   ')); }
   if(game==='gonogo'){ sub('Rodeá todas las vaquitas 🐞',250); note('Fila por fila, de izquierda a derecha, sin saltearte ninguna.',290);
@@ -1762,12 +1981,12 @@ function drawSheet(game, plan){
       if(c.s && j!==last){ x.moveTo(cx,cy+cs); x.lineTo(cx+cs,cy+cs); } if(c.e){ x.moveTo(cx+cs,cy); x.lineTo(cx+cs,cy+cs); } x.stroke(); });
     emo('✨',mx+cs/2,my-cs*.45,Math.max(36,cs*.55)); emo('🌼',mx+(m.W-.5)*cs,my+m.H*cs+cs*.5,Math.max(40,cs*.6)); };
   if(game==='syll'){ const sp=plan.syll; sub('Leé y uní cada palabra con su dibujo',250); note('Trazá una línea desde la palabra hasta su dibujo.',290);
-    font(800,64,'Baloo'); sp.words.forEach((w,k)=>{ const y=400+k*150; text(sp.sep? w.s.join(' · ') : w.w, 110, y); x.fillStyle=C.ink; x.beginPath(); x.arc(600,y,10,0,Math.PI*2); x.fill(); font(800,64,'Baloo'); });
+    font(800,64,'Baloo'); sp.words.forEach((w,k)=>{ const y=400+k*150; text(sp.sep? w.s.join(' · ') : w.w, 110, y, C.ink, 'left', false, 460); x.fillStyle=C.ink; x.beginPath(); x.arc(600,y,10,0,Math.PI*2); x.fill(); font(800,64,'Baloo'); });
     sp.pics.forEach((w,k)=>{ const y=400+k*150; x.fillStyle=C.ink; x.beginPath(); x.arc(800,y,10,0,Math.PI*2); x.fill(); emo(w.e,960,y,100); });
     sub('¿Qué sílaba falta? Escribila en la raya',1190);
     sp.miss.forEach((it,k)=>{ const ox=100+(k%2)*540, oy=1300+Math.floor(k/2)*200; emo(it.t.e,ox+50,oy,90); let px=ox+120; font(800,52,'Baloo');
       it.t.s.forEach((s,j)=>{ if(j===it.k){ x.strokeStyle=C.sun; x.lineWidth=5; x.beginPath(); x.moveTo(px,oy+30); x.lineTo(px+110,oy+30); x.stroke(); px+=125; } else { text(s,px,oy); px+=x.measureText(s).width+12; } });
-      font(400,24); text('('+it.opts.join(' · ')+')',ox+120,oy+70,C.ink2); });
+      font(400,24); text('('+it.opts.join(' · ')+')',ox+120,oy+70,C.ink2,'left',false,400); });
     foot('Soluciones: '+sp.words.map(w=>w.w+' '+w.e).join('  ')+'   ·   '+sp.miss.map(it=>it.ans).join(', ')); }
   if(game==='math'){ const items=plan.math; const cnt=items.every(it=>it.op==='count');
     sub(cnt? 'Contá y escribí cuántos hay' : 'Contá o resolvé, y escribí el resultado',250); note('Contá con el dedo. Si querés, usá la recta de números de abajo.',290);
@@ -1777,7 +1996,7 @@ function drawSheet(game, plan){
         return startX+Math.min(5,n)*40; };
       if(it.pics){ if(it.op==='count') row(it.a,ox+40,oy+50); else if(it.op==='+'){ const ex=row(it.a,ox+40,oy+50); font(800,40,'Baloo'); text('+',ex+6,oy+60); row(it.b,ex+50,oy+50); } else row(it.a,ox+40,oy+50,it.b); }
       font(800,60,'Baloo'); const eq= it.op==='count'? 'Hay' : `${it.a} ${it.op==='+'?'+':'−'} ${it.b} =`; text(eq,ox+40,oy+(it.pics?190:120));
-      const bx=ox+40+x.measureText(eq).width+24; x.strokeStyle=C.sun; x.lineWidth=5; x.strokeRect(bx,oy+(it.pics?150:80),90,80); });
+      const eqT=trSheet(eq); const bx=ox+40+x.measureText(plan.caps? eqT.toUpperCase() : eqT).width+24; x.strokeStyle=C.sun; x.lineWidth=5; x.strokeRect(bx,oy+(it.pics?150:80),90,80); });
     const ly=1560; x.strokeStyle=C.ink; x.lineWidth=4; x.beginPath(); x.moveTo(110,ly); x.lineTo(PW-110,ly); x.stroke(); font(700,32);
     for(let v=0; v<=10; v++){ const px=130+v*(PW-260)/10; x.beginPath(); x.moveTo(px,ly-16); x.lineTo(px,ly+16); x.stroke(); text(String(v),px,ly+44,C.ink,'center'); }
     foot('Soluciones: '+items.map((it,k)=>`${k+1}) ${it.ans}`).join('   ')); }
@@ -1793,6 +2012,53 @@ function drawSheet(game, plan){
   if(game==='find'){ const F=plan.find; sub(tr('Rodeá todos los {0}').replace('{0}',F.target),250); note('Mirá toda la hoja, despacio, de arriba abajo. Después contalos.',290);
     F.items.forEach(it=>emo(it.e,110+it.x*(PW-220),360+it.y*1120,72));
     font(400,30); text('¿Cuántos encontraste? ______',100,1560,C.ink2); foot(`Solución: ${F.k}.`); }
+  if(game==='brain' && plan.brain){ const B=plan.brain, M=B.mode, bw=plan.mode!=='color';
+    const dotS=(k,cx,cy,rad)=>{ x.save(); x.beginPath(); x.arc(cx,cy,rad,0,Math.PI*2);
+      if(!bw){ x.fillStyle=bcol(k); x.fill(); x.lineWidth=2; x.strokeStyle='rgba(0,0,0,.25)'; x.stroke(); x.restore(); return; }
+      const P={r:'#1a1a1a', g:'#9a9a9a'}; if(P[k]){ x.fillStyle=P[k]; x.fill(); }
+      else { x.fillStyle='#fff'; x.fill(); x.save(); x.clip(); x.strokeStyle='#000';
+        if(k==='b'){ x.lineWidth=Math.max(2,rad*.14); for(let d=-2*rad; d<=2*rad; d+=rad*.42){ x.beginPath(); x.moveTo(cx+d-rad,cy+rad); x.lineTo(cx+d+rad,cy-rad); x.stroke(); } }
+        if(k==='v'){ x.fillStyle='#000'; for(let a=-rad; a<=rad; a+=rad*.5) for(let c=-rad; c<=rad; c+=rad*.5){ x.beginPath(); x.arc(cx+a,cy+c,rad*.09,0,Math.PI*2); x.fill(); } }
+        x.restore(); }
+      x.lineWidth=Math.max(3,rad*.12); x.strokeStyle='#000'; x.beginPath(); x.arc(cx,cy,rad,0,Math.PI*2); x.stroke(); x.restore(); };
+    const markS=(s,cx,cy,size,lw=8)=>{ x.save(); x.translate(cx-size/2,cy-size/2); x.scale(size/100,size/100); x.strokeStyle=C.ink; x.lineWidth=lw; x.lineCap='round'; x.lineJoin='round'; x.stroke(new Path2D(BPATH[s])); x.restore(); };
+    const legend=(y)=>{ const ks=B.cfg.cols.concat(B.cfg.inhibit?['v']:[]); const w=(PW-200)/ks.length; x.strokeStyle=C.line; x.lineWidth=3; x.strokeRect(90,y-60,PW-180,120);
+      ks.forEach((k,j)=>{ const cx=100+w*(j+.5); dotS(k,cx-70,y,30); font(700,40); text('→',cx-14,y,C.ink2,'center',true);
+        if(k==='v'){ x.save(); x.strokeStyle=C.ink; x.lineWidth=6; x.beginPath(); x.arc(cx+55,y,26,0,Math.PI*2); x.moveTo(cx+37,y-18); x.lineTo(cx+73,y+18); x.stroke(); x.restore(); }
+        else if(M==='num'){ font(800,50,'Baloo'); text(String(B.cfg.map[k]),cx+55,y,C.ink,'center',true); }
+        else markS(B.cfg.map[k],cx+55,y,64); }); };
+    if(M==='sym'||M==='arcs'){ sub(M==='sym'? 'Dibujá sobre cada punto la marca de su color' : 'Dibujá sobre cada punto el arco de su color',250);
+      note(B.cfg.hide? 'Mirá la clave un ratito y después tapala con una hoja. Fila por fila, sin saltearte ninguno.' : 'Mirá la clave. Fila por fila, de izquierda a derecha, sin saltearte ninguno.',290);
+      legend(400); if(B.cfg.inhibit){ font(400,22); text('🚫 = no marques nada',PW-100,480,C.ink2,'right',true); }
+      const cell=Math.min((PW-200)/B.cols, 1080/B.rows), ox=(PW-cell*B.cols)/2, oy=530;
+      B.items.forEach((k,j)=>dotS(k, ox+cell*((j%B.cols)+.5), oy+cell*(Math.floor(j/B.cols)+.5), cell*.3)); }
+    else if(M==='num'){ sub('Decí el número de cada color y escribilo al lado',250); note('Seguí las flechas, columna por columna. Decilo en voz alta antes de escribir.',290);
+      legend(400); const cw=(PW-200)/B.cols, rh=1060/B.rows;
+      for(let c=0;c<B.cols;c++){ const cx=100+cw*c+cw*.32, up=B.zig && c%2; font(800,46,'Baloo'); text(up?'↑':'↓',cx,520,C.ink2,'center',true);
+        for(let rr=0;rr<B.rows;rr++){ const cy=580+rh*(rr+.5); dotS(B.items[c*B.rows+rr],cx,cy,Math.min(30,rh*.32)); x.strokeStyle=C.line; x.lineWidth=3; x.beginPath(); x.moveTo(cx+44,cy+18); x.lineTo(cx+cw*.6,cy+18); x.stroke(); } } }
+    else if(M==='sticks'){ sub('Uní cada palito con la tira que tiene los mismos colores',250); note('El palito puede estar dado vuelta: mirá bien las dos puntas.',290);
+      B.sticks.forEach((p,k)=>{ const y=420+k*200; font(700,34); text(String(k+1),100,y,C.ink,'left',true);
+        x.fillStyle= bw? '#e6e6e6' : '#E8C48A'; x.strokeStyle=C.ink2; x.lineWidth=3; x.beginPath(); x.roundRect? x.roundRect(160,y-22,320,44,22) : x.rect(160,y-22,320,44); x.fill(); x.stroke();
+        dotS(p[0],182,y,26); dotS(p[1],458,y,26); x.fillStyle=C.ink; x.beginPath(); x.arc(540,y,10,0,Math.PI*2); x.fill(); });
+      B.strips.forEach((p,k)=>{ const y=420+k*200; x.fillStyle=C.ink; x.beginPath(); x.arc(700,y,10,0,Math.PI*2); x.fill();
+        x.strokeStyle=C.ink; x.lineWidth=6; x.beginPath(); x.moveTo(790,y); x.lineTo(1050,y); x.stroke(); dotS(p[0],780,y,30); dotS(p[1],1060,y,30); font(700,34); text('ABCDEF'[k],1120,y,C.ink,'left',true); });
+      foot('Soluciones: '+B.sol.map((l,k)=>`${k+1}) ${l}`).join('   ')); }
+    else if(M==='hands'){ sub('Dos manos a la vez (con un adulto)',250); note(B.cross? 'Con los brazos cruzados: la mano derecha va a la fila roja y la izquierda a la azul.' : 'Una mano en la fila roja y la otra en la azul. Las dos tocan a la vez.',290);
+      const sq=104, gx=(PW-9*sq)/2; [['r','Rojo',400],['b','Azul',640]].forEach(([k,l,y])=>{ dotS(k,gx+18,y,18); font(700,32); text(l,gx+48,y,C.ink,'left');
+        for(let n=1;n<=9;n++){ const bx=gx+(n-1)*sq; x.lineWidth=4; x.strokeStyle=C.ink;
+          if(bw){ x.fillStyle= k==='r'? '#1a1a1a' : '#fff'; x.fillRect(bx+4,y+40,sq-8,sq-8); x.strokeRect(bx+4,y+40,sq-8,sq-8); }
+          else { x.fillStyle=bcol(k); x.fillRect(bx+4,y+40,sq-8,sq-8); }
+          font(800,58,'Baloo'); text(String(n),bx+sq/2,y+40+(sq-8)/2,(bw&&k!=='r')?'#000':'#fff','center',true); } });
+      sub('Para el adulto: decí en voz alta',930); note('Esperá a que toque los dos números antes de decir el siguiente.',970);
+      B.calls.forEach((c,k)=>{ const ox=100+(k%2)*540, oy=1050+Math.floor(k/2)*80; font(700,32); text(`${k+1}. `+F('Rojo {0}, azul {1}',c.ta,c.tb),ox,oy,C.ink,'left',false,500); }); }
+    else if(M==='story'){ const S=B.story; sub('Leé el cuento en voz alta',250); note(plan.caps? 'Un adulto lee cada frase y el chico la repite.' : 'Leé cada frase en voz alta. Después respondé las preguntas.',290);
+      let y=380; font(700,plan.caps?44:42); S.s.forEach(t=>{ y=para(t,100,y,PW-200,60)+14; }); y+=30;
+      sub('Rodeá la respuesta',y); y+=70;
+      S.q.forEach((q,qi)=>{ font(700,32); y=para(`${qi+1}. `+q[0],100,y,PW-200,44)+12; const emoOpt=q[1].every(o=>/\p{Extended_Pictographic}/u.test(o)); const ord=B.order[qi];
+        if(emoOpt){ ord.forEach((j,pos)=>emo(q[1][j],230+pos*280,y+60,110)); y+=170; }
+        else { font(400,30); ord.forEach(j=>{ x.strokeStyle=C.ink2; x.lineWidth=3; x.beginPath(); x.arc(130,y,13,0,Math.PI*2); x.stroke(); y=para(q[1][j],160,y,PW-260,40)+4; }); y+=24; } });
+      foot('Soluciones: '+S.q.map((q,k)=>`${k+1}) ${q[1][0]}`).join('   ')); }
+  }
   return cv;
 }
 async function buildSheets(games, plan){ try{ await Promise.all([document.fonts.load('700 30px Andika'), document.fonts.load('800 30px "Baloo 2"')]); }catch(e){} return games.map(g=>drawSheet(g,plan)); }
@@ -1871,7 +2137,7 @@ function HomeScreen({save, today, plan, round, streak, onStart, onNextRound, onP
           : html`<button className="btn" onClick=${onStart}>${done? '¡Seguir!' : '¡A jugar!'} <span className="emoji">▶</span></button>`}
         ${all && !pending && html`<button className="btn soft small" onClick=${onStart}>Jugar libre</button>`}
         ${!all && html`<button className="btn soft small" onClick=${()=>onPaper(null)}><span className="emoji">✅</span> Lo hizo en papel</button>`}
-        <p className="muted small">${cap(longDate(today))}</p>
+        <p className="muted small">${cap(longDate(today))}</p><${Dedic}/>
         ${tapToRead(save.settings.age) && html`<span className="tapnote">👆 Tocá un texto y Lumi te lo lee</span>`}
       </div>
       <div className="plan" aria-label="Plan de hoy">
@@ -1972,7 +2238,7 @@ function Calendar({save, streak, onBack}){
   </div>`;
 }
 function Parents({save, setSave, update, sync, streak, onBack, onCalendar, toast, onPrintDay, onPaper, onSkip, onSetup, slots, onLang, acct}){
-  const [confirm,setConfirm]=useState(false); const [delK,setDelK]=useState(false); const [pages,setPages]=useState(null); const [busy,setBusy]=useState(false); const [newPin,setNewPin]=useState(false);
+  const [confirm,setConfirm]=useState(false); const [sug,setSug]=useState(''); const [delK,setDelK]=useState(false); const [pages,setPages]=useState(null); const [busy,setBusy]=useState(false); const [newPin,setNewPin]=useState(false);
   const st=save.settings; const today=dayKey(); const round=(save.days[today]&&save.days[today].round)||0; const [pmode,setPmode]=useState(st.printMode||'bw');
   const setSetting=(k,v)=>update(n=>{ n.settings[k]=v; return n; });
   async function preview(m){ setBusy(true); const pg=await buildSheets(slots, makeSheetPlan(save,today,round,m||pmode)); setPages(pg.map(c=>c.toDataURL('image/jpeg',.6))); setBusy(false); }
@@ -1980,7 +2246,7 @@ function Parents({save, setSave, update, sync, streak, onBack, onCalendar, toast
       toast(r==='saved'? 'PDF listo. Abrilo y tocá Compartir → Imprimir.' : r==='declined'? 'Descarga cancelada.' : 'Acá no se puede descargar.'); }catch(e){ toast('No se pudo crear el PDF.'); } setBusy(false); }
   const misses=Object.entries(save.miss||{}).flatMap(([g,m])=>Object.entries(m).map(([k,v])=>({g,k,v}))).sort((a,b)=>b.v-a.v).slice(0,14);
   const missLabel=x=> x.g==='syll'? (TEXTOS.find(t=>x.k.startsWith(t.id+'-'))? 'texto «'+TEXTOS.find(t=>x.k.startsWith(t.id+'-')).t.slice(0,24)+'…»' : (FRASES.concat(COMPLETA,VF).find(f=>f.id===x.k)||{t:x.k}).t) : x.g==='trace'? ((FIX.find(f=>f.id===x.k)||{}).good || (FRASES.find(f=>f.id===x.k)||{}).t || x.k) : x.k;
-  const skills=ageGames(st.age).map(g=>{ const s=save.stats[g]; return {g, lv:save.levels[g], acc: s&&s.t? Math.round(s.c/s.t*100):null, plays:s?s.plays:0}; });
+  const skills=ageGames(st.age).map(g=>{ const s=save.stats[g]; return {g, lv:save.levels[g], start:(st.age? levelsFor(st.age, st.diff||'medio')[g] : save.levels[g]), acc: s&&s.t? Math.round(s.c/s.t*100):null, plays:s?s.plays:0}; });
   return html`<div className="screen adult">
     <div className="row"><button className="icon-btn" onClick=${onBack} aria-label="Volver">←</button><h2>Zona de padres</h2></div>
     <div className="scroll"><div style=${{display:'flex',flexDirection:'column',gap:'14px',maxWidth:'860px',margin:'0 auto'}}>
@@ -1993,11 +2259,14 @@ function Parents({save, setSave, update, sync, streak, onBack, onCalendar, toast
         <p className="note">${FRAMED? 'Desde acá se descarga un PDF: abrilo y tocá Compartir → Imprimir para elegir la impresora.' : 'Al imprimir se abre el diálogo del sistema: en el iPad elegí la impresora AirPrint de casa; en la compu, tu impresora.'}</p>
         ${pages && html`<div className="sheet-prev">${pages.map((p,j)=>html`<img key=${j} src=${p} alt=${'Hoja '+(j+1)}/>`)}</div>`}
       </div>
+      <div className="panel"><h3>✉️ Buzón de sugerencias</h3><p className="small muted">¿Una idea, un ejercicio que falta o algo que no anda? Escribilo acá y se abre tu correo para mandarlo.</p>
+        <textarea className="buzon" value=${sug} maxLength="1500" placeholder=${tr('Escribí tu sugerencia…')} onChange=${e=>setSug(e.target.value)}></textarea>
+        <a className=${'btn small'+(sug.trim()?'':' off')} href=${'mailto:'+CONTACT+'?subject='+encodeURIComponent('Lumi · '+tr('Sugerencia'))+'&body='+encodeURIComponent(sug+'\n\n— Lumi · '+LANG+' · '+F('{0} años',st.age||''))} onClick=${e=>{ if(!sug.trim()) e.preventDefault(); }}>✉️ Enviar por correo</a></div>
       <div className="panel">
         <div className="row"><h3>Progreso</h3><span className="spacer"></span><button className="btn soft small" onClick=${onCalendar}>📅 Calendario e historial</button></div>
         <div className="tiles"><div className="tile"><b>🔥 ${streak.cur}</b><span>racha actual</span></div><div className="tile"><b>${streak.best}</b><span>mejor racha</span></div><div className="tile"><b>${streak.worked}</b><span>días completos</span></div><div className="tile"><b>${save.points}</b><span>puntos</span></div><div className="tile"><b>${avgLevel(save).toFixed(1)}</b><span>nivel medio</span></div></div>
-        <p className="small muted">Puntos = estrellas × 10 × nivel. El nivel sube con 85 % de aciertos (o «Muy bien»/«Bien» en papel) y baja por debajo del 50 %. Lectura, escritura, cuentas y lógica tienen 12 niveles; los juegos de atención, 5. El plan del día da más lugar a lo que le cuesta y a lo que hace días que no juega.</p>
-        ${skills.map(s=>html`<div key=${s.g} className="skill"><span className="emoji">${GAMES[s.g].icon}</span><span>${gname(s.g,s.lv)} <span className="muted small">· ${GAMES[s.g].area}${s.acc!==null?` · ${s.acc} % aciertos · ${s.plays} veces`:''}</span></span><span className="lvlnum">${s.lv} / ${maxLv(s.g)}</span></div>`)}
+        <p className="small muted">Cada ejercicio se adapta solo: con 85 % de aciertos (o «Muy bien»/«Bien» en papel) pasa a lo que hace un chico más grande o con más dificultad, y por debajo del 50 % baja. Al lado de cada juego ves en qué edad y dificultad está (↑ subió, ↓ bajó desde que empezó). Lo que le cuesta vuelve a aparecer, y el plan del día da más lugar a lo que hace días que no juega. No es inteligencia artificial: son reglas que miran cada respuesta. Puntos = estrellas × 10 × nivel.</p>
+        ${skills.map(s=>html`<div key=${s.g} className="skill"><span className="emoji">${GAMES[s.g].icon}</span><span>${gname(s.g,s.lv)} <span className="muted small">· ${GAMES[s.g].area}${s.acc!==null?` · ${s.acc} % aciertos · ${s.plays} veces`:''}</span></span><span className="lvlnum">${maxLv(s.g)===12? html`${lvLabel(s.lv)}${s.lv>s.start? ' ↑' : s.lv<s.start? ' ↓' : ''}` : `${s.lv} / ${maxLv(s.g)}`}</span></div>`)}
         <h3>Lo que está repasando</h3>
         ${misses.length? html`<div className="misses">${misses.map(x=>html`<span key=${x.g+x.k}>${GAMES[x.g].icon} ${missLabel(x)}</span>`)}</div><p className="small muted">Lo que le cuesta vuelve a aparecer en los próximos ejercicios hasta que lo acierta.</p>` : html`<p className="small muted">Todavía nada: cuando se equivoque en algo, aparece acá y se repasa.</p>`}
         <h3>Letras</h3>
@@ -2012,7 +2281,7 @@ function Parents({save, setSave, update, sync, streak, onBack, onCalendar, toast
         <div className="seg" data-notr>${LANGS.map(([k,l])=>html`<button key=${k} className=${LANG===k?'on':''} onClick=${()=>{ if(k!==LANG) onLang(k); }}>${l}</button>`)}</div>
         <p className="small muted">El idioma cambia los textos, los ejercicios y la voz. El progreso se mantiene.</p>
         <span className="small">Actividades por día</span>
-        <div className="seg">${[[3,'3 · unos 10 min'],[5,'5 · unos 15 min']].map(([v,l])=>html`<button key=${v} className=${st.size===v?'on':''} onClick=${()=>setSetting('size',v)}>${l}</button>`)}</div>
+        <div className="seg">${[[3,'4 · unos 12 min'],[5,'6 · unos 18 min']].map(([v,l])=>html`<button key=${v} className=${st.size===v?'on':''} onClick=${()=>setSetting('size',v)}>${l}</button>`)}</div>
         <div className="seg"><button className=${st.sound?'on':''} onClick=${()=>setSetting('sound',!st.sound)}>Sonidos: ${st.sound?'sí':'no'}</button><button onClick=${()=>{ Sfx.unlock(); Voice.prime(); Voice.say(NT(st.name).test); }}>Probar voz</button><button onClick=${()=>setNewPin(true)}>Cambiar código</button></div>
         <p className="small muted">Voz: ${Voice.files? (LANG==='es'? 'voz humana argentina ('+Voice.human+')' : tr('voz humana argentina')) : Voice.ok? 'voz del sistema'+(Voice.name?': '+Voice.name:'')+'. La voz humana está en la versión de casa.' : 'este navegador no tiene voz'}. Si no se oye, sacá el modo silencio del iPad.</p>
         <p className="small muted">Guardado: en este dispositivo${sync==='home'?' y en la compu de casa (tablet y compu comparten el progreso)':sync==='cloud'?' y en tu cuenta de Claude':sync==='acct'?' y en tu cuenta de Lumi (se comparte entre dispositivos)':''}.</p>
@@ -2061,9 +2330,9 @@ function App({acct}={}){
   const update=fn=>setSave(cur=>{ const n=fn(clone(cur)); n.updatedAt=Date.now(); return n; });
   const toast=t=>{ setMsg(t); setTimeout(()=>setMsg(m=>m===t?'':m),4500); };
   const today=dayKey(); const dayRec=save.days[today]; const round=(dayRec&&dayRec.round)||0;
-  const frozen= dayRec && dayRec.slots && dayRec.slotsRound===round && dayRec.slotsSize===save.settings.size && dayRec.slotsAge===save.settings.age;
+  const frozen= dayRec && dayRec.slots && dayRec.slotsRound===round && dayRec.slotsSize===save.settings.size && dayRec.slotsAge===save.settings.age && (dayRec.slotsV===2 || dayRec.complete);
   const slots= frozen? dayRec.slots : planSlots(save, today, round);
-  useEffect(()=>{ if(!frozen && save.settings.onboarded) update(n=>{ const d=n.days[today]||newDay(); d.slots=slots; d.slotsRound=round; d.slotsSize=n.settings.size; d.slotsAge=n.settings.age; n.days[today]=d; return n; }); },[frozen, today, round, save.settings.onboarded]);
+  useEffect(()=>{ if(!frozen && save.settings.onboarded) update(n=>{ const d=n.days[today]||newDay(); d.slots=slots; d.slotsRound=round; d.slotsSize=n.settings.size; d.slotsAge=n.settings.age; d.slotsV=2; n.days[today]=d; return n; }); },[frozen, today, round, save.settings.onboarded]);
   useEffect(()=>{ if(!tapToRead(save.settings.age) || !save.settings.onboarded) return;
     let timer=null, long=false, el0=null, sx=0, sy=0;
     const sayEl=el=>{ const t=cleanSay(el.getAttribute('data-say')||el.textContent); if(!t) return; Sfx.unlock(); el.classList.add('saying'); setTimeout(()=>el.classList.remove('saying'),900); setHint(t); Voice.say(t); };
