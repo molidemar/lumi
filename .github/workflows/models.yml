@@ -1,0 +1,34 @@
+name: Modelos de voz (Vosk)
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/models.yml']
+permissions:
+  contents: write
+jobs:
+  get:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Descargar modelos pequeños (Apache 2.0, alphacephei)
+        run: |
+          set -e
+          mkdir -p models && cd models
+          get(){ # $1 nombre final  $2 zip de alphacephei
+            if [ -f "$1.tar.gz" ]; then echo "ya está $1"; return; fi
+            curl -fsSL -o m.zip "https://alphacephei.com/vosk/models/$2.zip"
+            rm -rf x && mkdir x && unzip -q m.zip -d x && rm m.zip
+            d=$(ls x); mv "x/$d" "x/model"
+            tar -czf "$1.tar.gz" -C x model && rm -rf x
+            ls -la "$1.tar.gz"
+          }
+          get es vosk-model-small-es-0.42
+          get ca vosk-model-small-ca-0.4
+          get en vosk-model-small-en-us-0.15
+      - name: Guardar en el repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add models
+          git diff --cached --quiet || git commit -m "Modelos de voz Vosk (es, ca, en) para reconocer la lectura en el dispositivo"
+          git push
