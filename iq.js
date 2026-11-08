@@ -337,7 +337,7 @@ function genWord(bank, sub, lv, used){ let best=null;
   for(let d=0; d<8 && !best; d++){ const c=bank.map((x,i)=>i).filter(i=>!used.has(sub+i) && Math.abs(bank[i][0]-lv)===d); if(c.length) best=pick(c); }
   if(best===null){ best=rnd(bank.length); } used.add(sub+best); const row=bank[best]; const p=row[1+LI()].split('|');
   if(sub==='voc'){ const opts=shuffle([0,1,2,3]); return {kind:'choice', sub, lv:row[0], word:p[0], opts:opts.map(i=>p[1+i]), answer:opts.indexOf(0), c:.25}; }
-  const opts=shuffle([0,1,2,3]); return {kind:'choice', sub, lv:row[0], a:p[0], b:p[1], cc:p[2], opts:opts.map(i=>p[3+i]), answer:opts.indexOf(0), c:.25}; }
+  const opts=shuffle([0,1,2,3]); return {kind:'choice', sub, lv:row[0], w1:p[0], w2:p[1], w3:p[2], opts:opts.map(i=>p[3+i]), answer:opts.indexOf(0), c:.25}; }
 
 /* ---------- configuración de las pruebas de potencia (dificultad por nivel en theta) ---------- */
 const PW={
@@ -406,7 +406,7 @@ function PowerSub({sub, mode, mu, practice, train, onDone}){
       <div className="iq-ropts">${it.opts.map((o,i)=>h`<button key=${i} className=${optCls(i)} aria-label=${String(i+1)} onClick=${()=>answer(i)}><${PolySvg} cs=${o.cs} ang=${o.ang} size=${'100%'}/></button>`)}</div></div>`;
   else if(sub==='voc') body=h`<p className="iq-q">${t('vocQ')}</p><p className="iq-word">${it.word}</p>
       <div className="iq-wopts">${it.opts.map((o,i)=>h`<button key=${i} className=${optCls(i)} onClick=${()=>answer(i)}>${o}</button>`)}</div>`;
-  else if(sub==='ana') body=h`<p className="iq-q">${t('anaQ', it.a, it.b, it.cc)}</p>
+  else if(sub==='ana') body=h`<p className="iq-q">${t('anaQ', it.w1, it.w2, it.w3)}</p>
       <div className="iq-wopts">${it.opts.map((o,i)=>h`<button key=${i} className=${optCls(i)} onClick=${()=>answer(i)}>${o}</button>`)}</div>`;
   else if(sub==='ser') body=h`<p className="iq-seq">${it.seq.join(' · ')} · <b>?</b></p><${Keypad} val=${val} setVal=${setVal} onOk=${()=>answer(val)}/>`;
   else body=h`<p className=${it.word? 'iq-q' : 'iq-seq'}>${it.q}${it.word? '' : ' = ?'}</p><${Keypad} val=${val} setVal=${setVal} onOk=${()=>answer(val)}/>`;
@@ -420,7 +420,7 @@ S.anaQ=['{0} es a {1} como {2} es a…','{0} és a {1} com {2} és a…','{0} is
 
 /* ---------- memoria: dígitos y cuadrados (escalera adaptativa) ---------- */
 const SPAN_REF={dfw:6.6, dbw:4.9, cor:5.5}; /* largo que un adulto joven medio acierta la mitad de las veces (aprox.) */
-const CORSI=[[14,12],[58,8],[82,26],[30,38],[66,44],[10,66],[46,70],[84,72],[28,90]];
+const CORSI=[[16,16],[58,13],[84,30],[32,42],[66,48],[12,70],[48,72],[86,74],[30,88]];
 function SpanSub({sub, mode, practice, train, onDone}){
   const total= practice? 1 : train? 6 : MODES[mode].span[sub]; const s=useRef({resp:[], L: practice? 3 : sub==='dfw'? 4 : 3, n:0});
   const [ph,setPh]=useState('wait'); const [seq,setSeq]=useState([]); const [lit,setLit]=useState(-1); const [val,setVal]=useState(''); const [taps,setTaps]=useState([]); const [fb,setFb]=useState(null);
@@ -661,7 +661,7 @@ const CSS=`
 .iq-fb{font-family:var(--f-display);font-weight:800;font-size:24px;margin:0} .iq-fb.good{color:var(--leaf-dark,#128A3D)} .iq-fb.bad{color:var(--coral-dark,#C62828)}
 .iq-digit{font-family:var(--f-display);font-weight:800;font-size:min(34vmin,200px);line-height:1;margin:0;min-height:1em}
 .iq-corsi{position:relative;width:min(70vmin,460px);height:min(56vmin,370px);background:#fff;border-radius:20px;border:3px solid #222}
-.iq-blk{position:absolute;width:13%;aspect-ratio:1;transform:translate(-50%,-50%);border:none;border-radius:10px;background:#5C6BC0;box-shadow:0 3px 0 #303F9F;margin-left:6%;margin-top:4%}
+.iq-blk{position:absolute;width:13%;aspect-ratio:1;transform:translate(-50%,-50%);border:none;border-radius:10px;background:#5C6BC0;box-shadow:0 3px 0 #303F9F}
 .iq-blk.on{background:var(--sun,#FFC21A);box-shadow:0 0 0 6px #FFE58A} .iq-blk:disabled{opacity:1}
 .iq-sym{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center}
 .iq-symt,.iq-symc{width:min(13vmin,84px);height:min(13vmin,84px);background:#fff;border:2px solid #444;border-radius:12px;padding:4px} .iq-symt{border:4px solid var(--berry,#7B5CFF)}
