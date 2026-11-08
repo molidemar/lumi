@@ -1976,23 +1976,25 @@ function ReadCheck({text, onDone:onDone0, api, canSkip, noListen, long, model}){
       let k=cum.findIndex(c=>c>pr*1.02); if(k<0) k=words.length-1; setKar(x=>Math.max(x,k)); },90);
     try{ await Voice.say(text); }catch(e){} clearInterval(tick); Voice.speed=sp0; if(!alive.current) return; setKar(words.length); setPhase('me'); api.sfx('pad'); }
   function start(){ if(live){ const A=att.current; if(A) A.stopNow(); return; } if(!SR){ setNo(true); return; } Voice.stop(); setPhase('me'); setKar(-1);
-    let best=[], done=false, r=null; const timers=[]; let silence=null;
+    // iPad/Safari corta la escucha sola (pausas, cambio de audio): se vuelve a abrir sola hasta que el chico termina o se acaba el tiempo
+    let best=[], done=false, stopping=false, r=null, acc='', sess='', restarts=0; const timers=[]; let silence=null; const t0=Date.now(), cap=6000+need*1400;
     const finish=()=>{ if(done) return; done=true; timers.forEach(clearTimeout); clearTimeout(silence); try{ r&&r.abort(); }catch(e){} if(!alive.current) return; setLive(false); setTries(t=>t+1);
       const got=best.filter(Boolean).length;
       if(need && got/need>=.8){ setOk(best); api.sfx('ok'); Voice.say(pick(PRAISE)); setTimeout(()=>onDone(true),1300); }
       else { api.sfx('no'); const miss=words.filter((w,k)=>normW(w) && !(best[k])); Voice.say(miss.length && miss.length<=4? [F('Te faltó: {0}.', miss.join(', ')), 'Probá otra vez.'] : ['Probá otra vez, despacio y fuerte.']); } };
-    const stopNow=()=>{ try{ r&&r.stop(); }catch(e){} timers.push(setTimeout(finish,1200)); };
-    att.current={stopNow, clear:()=>{ done=true; timers.forEach(clearTimeout); clearTimeout(silence); }};
-    try{ r=new SR(); rec.current=r; r.lang=SR_LANG[LANG]||'es-ES'; r.interimResults=true; r.continuous=true; r.maxAlternatives=3;
-      r.onresult=e=>{ const alts=[]; for(let i=0;i<e.results.length;i++){ const res=e.results[i]; for(let a=0;a<res.length;a++){ alts[a]=(alts[a]||'')+' '+res[a].transcript; } }
-        let top=null; alts.forEach(t=>{ const m=matchWords(words,(t||'').split(/\s+/)); if(!top || m.filter(Boolean).length>top.filter(Boolean).length) top=m; });
-        if(top && top.filter(Boolean).length>=best.filter(Boolean).length){ best=top; setOk(top); }
-        if(best.filter((x,k)=>x && normW(words[k])).length>=need){ stopNow(); return; }
-        clearTimeout(silence); silence=setTimeout(stopNow, 2200); };
-      r.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'){ done=true; timers.forEach(clearTimeout); setLive(false); setNo(true); return; } finish(); };
-      r.onend=()=>finish();
-      timers.push(setTimeout(stopNow, 5000+need*1300)); timers.push(setTimeout(()=>{ if(!best.length) stopNow(); }, 7000));
-      setOk(null); setLive(true); r.start(); }catch(e){ done=true; setLive(false); setNo(true); } }
+    const stopNow=()=>{ if(stopping) return; stopping=true; try{ r&&r.stop(); }catch(e){} timers.push(setTimeout(finish,1200)); };
+    att.current={stopNow, clear:()=>{ done=true; timers.forEach(clearTimeout); clearTimeout(silence); try{ r&&r.abort(); }catch(e){} }};
+    const judge=alts=>{ let top=null; alts.forEach(t=>{ const m=matchWords(words,((acc+' '+(t||'')).trim()).split(/\s+/)); if(!top || m.filter(Boolean).length>top.filter(Boolean).length) top=m; });
+      if(top && top.filter(Boolean).length>=best.filter(Boolean).length){ best=top; setOk(top); }
+      if(best.filter((x,k)=>x && normW(words[k])).length>=need){ stopNow(); return; } clearTimeout(silence); silence=setTimeout(stopNow, 2500); };
+    const open=()=>{ if(done||stopping) return; try{ r=new SR(); rec.current=r; r.lang=SR_LANG[LANG]||'es-ES'; r.interimResults=true; r.continuous=false; r.maxAlternatives=3; sess='';
+        r.onresult=e=>{ const alts=[]; for(let i=0;i<e.results.length;i++){ const res=e.results[i]; for(let a=0;a<res.length;a++){ alts[a]=(alts[a]||'')+' '+res[a].transcript; } } sess=alts[0]||''; judge(alts); };
+        r.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'){ if(!best.length && restarts===0){ done=true; timers.forEach(clearTimeout); setLive(false); setNo(true); } else finish(); } };
+        r.onend=()=>{ acc=(acc+' '+sess).trim(); if(done) return; if(stopping){ finish(); return; }
+          if(Date.now()-t0<cap && restarts<12){ restarts++; timers.push(setTimeout(open, 150)); } else finish(); };
+        r.start(); }catch(e){ if(restarts<3){ restarts++; timers.push(setTimeout(open,300)); } else finish(); } };
+    timers.push(setTimeout(stopNow, cap+800));
+    setOk(null); setLive(true); timers.push(setTimeout(open, 250)); }
   const cls=k=>{ if(ok && ok[k]) return 'w-ok'; if(phase==='model' && kar>=k) return 'w-read'; if(ok && !live && tries>0) return 'w-miss'; return ''; };
   return html`<div className="readcheck">
     <p className=${"b-now"+(long?" long":"")} data-noread>${words.map((w,k)=>html`<span key=${k} className=${cls(k)}>${w} </span>`)}</p>
