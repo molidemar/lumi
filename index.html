@@ -1967,8 +1967,20 @@ function matchWords(target, heard){ const H=heard.map(normW).filter(Boolean); le
    El micrófono nunca se queda colgado: corta solo al terminar, tras un silencio o al llegar al tope de tiempo; tocar el botón también corta. */
 function micOn(){ Sfx.rec=true; try{ if(navigator.audioSession) navigator.audioSession.type='play-and-record'; }catch(e){} try{ if(Sfx.ctx && Sfx.ctx.state==='running') Sfx.ctx.suspend(); }catch(e){} try{ Voice.el && Voice.el.pause(); }catch(e){} }
 function micOff(){ if(!Sfx.rec) return; Sfx.rec=false; try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){} try{ if(Sfx.ctx && Sfx.ctx.state==='suspended') Sfx.ctx.resume(); }catch(e){} }
+const SR_OFF=()=>{ try{ return localStorage.getItem('lumi-sr-off')==='1'; }catch(e){ return false; } };
+const setSrOff=v=>{ try{ localStorage.setItem('lumi-sr-off', v?'1':'0'); }catch(e){} };
+function listenVoice({n, onWord, onEnd}){ let stream=null, ctx=null, iv=null, done=false; const t0=Date.now(); let floor=0, fl=0, voiced=0, lastVoice=0, heard=false, k=0; const per=260, cap=5000+n*1300;
+  const stop=(why)=>{ if(done) return; done=true; clearInterval(iv); try{ stream&&stream.getTracks().forEach(t=>t.stop()); }catch(e){} try{ ctx&&ctx.close(); }catch(e){} onEnd({words:k, heard, why}); };
+  (async()=>{ try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true}}); if(done){ stream.getTracks().forEach(t=>t.stop()); return; }
+      const C=window.AudioContext||window.webkitAudioContext; ctx=new C(); if(ctx.state==='suspended') await ctx.resume(); const src=ctx.createMediaStreamSource(stream); const an=ctx.createAnalyser(); an.fftSize=1024; src.connect(an); const buf=new Float32Array(an.fftSize);
+      iv=setInterval(()=>{ an.getFloatTimeDomainData(buf); let e=0; for(let i=0;i<buf.length;i++) e+=buf[i]*buf[i]; const rms=Math.sqrt(e/buf.length); const now=Date.now();
+        if(now-t0<350){ floor+=rms; fl++; return; } const base=fl? floor/fl : .005; const on= rms>Math.max(.012, base*3);
+        if(on){ voiced+=50; lastVoice=now; heard=true; const nk=Math.min(n, Math.floor(voiced/per)); if(nk>k){ k=nk; onWord(k); } }
+        if(heard && now-lastVoice>1700) stop('silence'); else if(now-t0>cap) stop('cap'); },50);
+    }catch(e){ stop('error:'+(e&&e.name||'')); } })();
+  return {stop:()=>stop('tap')}; }
 function ReadCheck({text, onDone:onDone0, api, canSkip, noListen, long, model}){ const fired=useRef(false); const onDone=g=>{ if(fired.current) return; fired.current=true; onDone0(g); };
-  const words=text.split(/\s+/); const [ok,setOk]=useState(null); const [live,setLive]=useState(false); const [tries,setTries]=useState(0); const [no,setNo]=useState(!SR); const rec=useRef(null);
+  const words=text.split(/\s+/); const [ok,setOk]=useState(null); const [live,setLive]=useState(false); const [tries,setTries]=useState(0); const [no,setNo]=useState(!SR && !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)); const rec=useRef(null);
   const [phase,setPhase]=useState(model? 'model' : 'me'); const [deaf,setDeaf]=useState(0); const [err,setErr]=useState(''); const [kar,setKar]=useState(-1); const alive=useRef(true); const att=useRef(null);
   const need=words.filter(w=>normW(w)).length;
   useEffect(()=>{ alive.current=true; if(model){ const t=setTimeout(modelRead, 700); return ()=>{ clearTimeout(t); alive.current=false; stopAll(); }; } return ()=>{ alive.current=false; stopAll(); }; },[]);
@@ -1979,11 +1991,12 @@ function ReadCheck({text, onDone:onDone0, api, canSkip, noListen, long, model}){
     const tick=setInterval(()=>{ const el=Voice.el; let pr; if(el && !el.paused && isFinite(el.duration) && el.duration>0) pr=el.currentTime/el.duration; else pr=(Date.now()-t0)/est;
       let k=cum.findIndex(c=>c>pr*1.02); if(k<0) k=words.length-1; setKar(x=>Math.max(x,k)); },90);
     try{ await Voice.say(text); }catch(e){} clearInterval(tick); Voice.speed=sp0; if(!alive.current) return; setKar(words.length); setPhase('me'); api.sfx('pad'); }
-  function start(){ if(live){ const A=att.current; if(A) A.stopNow(); return; } if(!SR){ setNo(true); return; } Voice.stop(); setPhase('me'); setKar(-1); micOn();
+  function start(){ if(live){ const A=att.current; if(A) A.stopNow(); return; } Voice.stop(); setPhase('me'); setKar(-1); micOn();
+    if(!SR || SR_OFF()){ startVoice(); return; }
     // iPad/Safari corta la escucha sola (pausas, cambio de audio): se vuelve a abrir sola hasta que el chico termina o se acaba el tiempo
-    let best=[], done=false, stopping=false, r=null, acc='', sess='', restarts=0, empty=0; const timers=[]; let silence=null; const t0=Date.now(), cap=6000+need*1400;
+    let best=[], done=false, stopping=false, r=null, acc='', sess='', restarts=0, empty=0, gotAny=false; const timers=[]; let silence=null; const t0=Date.now(), cap=6000+need*1400;
     const finish=()=>{ if(done) return; done=true; timers.forEach(clearTimeout); clearTimeout(silence); try{ r&&r.abort(); }catch(e){} micOff(); if(!alive.current) return; setLive(false); setTries(t=>t+1);
-      const got=best.filter(Boolean).length; if(!got && !acc && !sess) setDeaf(d=>d+1);
+      const got=best.filter(Boolean).length; if(!got && !acc && !sess && !gotAny){ setSrOff(true); setLive(false); setTimeout(()=>{ if(alive.current) startVoice(); },300); return; }
       if(need && got/need>=.8){ setOk(best); api.sfx('ok'); Voice.say(pick(PRAISE)); setTimeout(()=>onDone(true),1300); }
       else { api.sfx('no'); const miss=words.filter((w,k)=>normW(w) && !(best[k])); Voice.say(miss.length && miss.length<=4? [F('Te faltó: {0}.', miss.join(', ')), 'Probá otra vez.'] : ['Probá otra vez, despacio y fuerte.']); } };
     const stopNow=()=>{ if(stopping) return; stopping=true; try{ r&&r.stop(); }catch(e){} timers.push(setTimeout(finish,1200)); };
@@ -1992,13 +2005,21 @@ function ReadCheck({text, onDone:onDone0, api, canSkip, noListen, long, model}){
       if(top && top.filter(Boolean).length>=best.filter(Boolean).length){ best=top; setOk(top); }
       if(best.filter((x,k)=>x && normW(words[k])).length>=need){ stopNow(); return; } clearTimeout(silence); silence=setTimeout(stopNow, 2500); };
     const open=()=>{ if(done||stopping) return; try{ r=new SR(); rec.current=r; r.lang=SR_LANG[LANG]||'es-ES'; r.interimResults=true; r.continuous=false; r.maxAlternatives=3; sess='';
-        r.onresult=e=>{ const alts=[]; for(let i=0;i<e.results.length;i++){ const res=e.results[i]; for(let a=0;a<res.length;a++){ alts[a]=(alts[a]||'')+' '+res[a].transcript; } } sess=alts[0]||''; empty=0; judge(alts); };
+        r.onresult=e=>{ const alts=[]; for(let i=0;i<e.results.length;i++){ const res=e.results[i]; for(let a=0;a<res.length;a++){ alts[a]=(alts[a]||'')+' '+res[a].transcript; } } sess=alts[0]||''; empty=0; gotAny=true; judge(alts); };
         r.onerror=e=>{ setErr(String(e.error||'')); if(e.error==='not-allowed'||e.error==='service-not-allowed'){ if(!best.length && restarts===0){ done=true; timers.forEach(clearTimeout); setLive(false); setNo(true); } else finish(); } };
         r.onend=()=>{ acc=(acc+' '+sess).trim(); if(done) return; if(stopping){ finish(); return; }
           if(!sess.trim()) empty++; if(empty>=4 && !acc){ finish(); return; } if(Date.now()-t0<cap && restarts<12){ restarts++; timers.push(setTimeout(open, 150)); } else finish(); };
         r.start(); }catch(e){ if(restarts<3){ restarts++; timers.push(setTimeout(open,300)); } else finish(); } };
     timers.push(setTimeout(stopNow, cap+800));
     setOk(null); setLive(true); timers.push(setTimeout(open, 450)); }
+  function startVoice(){ if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){ setNo(true); return; } micOn(); setOk(null); setLive(true);
+    const idx=words.map((w,k)=>k).filter(k=>normW(words[k])); const L=listenVoice({n:idx.length,
+      onWord:c=>{ if(!alive.current) return; const m=words.map(()=>false); for(let j=0;j<c;j++) m[idx[j]]=true; words.forEach((w,k)=>{ if(!normW(w)) m[k]=c>0; }); setOk(m); },
+      onEnd:({words:c, heard, why})=>{ micOff(); if(!alive.current) return; setLive(false); setTries(t=>t+1); setErr(why);
+        if(!heard){ setDeaf(d=>d+1); api.sfx('no'); Voice.say(['Probá otra vez, despacio y fuerte.']); return; }
+        if(c>=Math.ceil(idx.length*.7)){ setOk(words.map(()=>true)); api.sfx('ok'); Voice.say(pick(PRAISE)); setTimeout(()=>onDone(true),1300); }
+        else { api.sfx('no'); Voice.say(['Seguí hasta el final de la frase.','Probá otra vez.']); } } });
+    att.current={stopNow:()=>L.stop(), clear:()=>{ L.stop(); micOff(); }}; }
   const cls=k=>{ if(ok && ok[k]) return 'w-ok'; if(phase==='model' && kar>=k) return 'w-read'; if(ok && !live && tries>0) return 'w-miss'; return ''; };
   return html`<div className="readcheck">
     <p className=${"b-now"+(long?" long":"")} data-noread>${words.map((w,k)=>html`<span key=${k} className=${cls(k)}>${w} </span>`)}</p>
