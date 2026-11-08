@@ -2017,12 +2017,109 @@ const STORIES_EN=[
 const STORIES=({es:STORIES_ES,ca:STORIES_CA,en:STORIES_EN})[LANG]||STORIES_ES;
 function storyFor(lv, r){ const band= lv<=4?1 : lv<=8?2 : 3; return pickR(STORIES.filter(s=>s.lv===band), r); }
 /* comprobar la lectura con el micrófono: pinta de verde lo que dijo y de rojo lo que faltó */
+/* ===== Oído y voz de Lumi en el dispositivo (lib/oido/): Whisper para entender la lectura y Piper (Daniela) para decir cualquier frase ===== */
+const OIDO={ws:{}, id:0, cb:{}, prog:{asr:-1, tts:-1}, dev:'', subs:new Set(), asrP:null, asrOk:false, asrFail:0, last:null,
+  emit(){ this.subs.forEach(f=>{ try{ f(); }catch(e){} }); },
+  can(){ try{ return !!(window.Worker && window.WebAssembly && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && localStorage.getItem('lumi-oido-off')!=='1'; }catch(e){ return false; } },
+  // dos workers: uno para entender (Whisper) y otro para hablar (Piper), así uno no frena al otro
+  worker(k){ if(this.ws[k]) return this.ws[k]; const w=new Worker('lib/oido/oido-worker.js',{type:'module'}); this.ws[k]=w; w.mine=new Set();
+    w.onmessage=e=>{ const m=e.data||{}; if(m.cmd==='prog'){ this.prog[m.what]=Math.max(this.prog[m.what],m.p); this.emit(); return; } const c=this.cb[m.id]; if(c){ delete this.cb[m.id]; w.mine.delete(m.id); m.ok? c[0](m.res) : c[1](new Error(m.err)); } };
+    w.onerror=()=>{ const ids=[...w.mine]; ids.forEach(id=>{ const c=this.cb[id]; delete this.cb[id]; c&&c[1](new Error('worker')); }); this.ws[k]=null;
+      if(k==='asr'){ this.asrP=null; this.asrOk=false; this.asrFail++; this.prog.asr=-2; } else { PIPER.p=null; PIPER.ok=false; PIPER.fails++; } this.emit(); };
+    return w; },
+  call(cmd, args, tr){ return new Promise((res,rej)=>{ let w; try{ w=this.worker(/^tts/.test(cmd)? 'tts' : 'asr'); }catch(e){ return rej(e); } const id=++this.id; this.cb[id]=[res,rej]; w.mine.add(id); w.postMessage({id, cmd, ...(args||{})}, tr||[]); }); },
+  loadAsr(){ if(this.asrOk) return Promise.resolve(); if(!this.asrP){ this.prog.asr=Math.max(0,this.prog.asr); this.emit();
+      this.asrP=this.call('asrLoad').then(r=>{ this.asrOk=true; this.dev=r&&r.dev||''; this.prog.asr=1; this.emit(); });
+      this.asrP.catch(()=>{ this.asrP=null; this.asrFail++; this.prog.asr=-2; this.emit(); }); }
+    return this.asrP; },
+  usable(){ return this.can() && this.asrFail<2; },
+  hear(audio, words, prompt){ const a=new Float32Array(audio); return this.call('asr', {audio:a, lang:LANG, words, prompt}, [a.buffer]).then(r=>{ this.last=r; return r; }); } };
+/* la frase que hay que leer, en minúsculas normales, ayuda a Whisper con la ortografía (no inventa lo que no se dijo) */
+const asrPrompt=t=>{ const s=String(t).toLowerCase().replace(/\s+/g,' ').trim(); return s.charAt(0).toUpperCase()+s.slice(1); };
+/* números en palabras para comparar lo que oye (Whisper escribe "3") con lo que hay que leer */
+function numWords(n){ n=+n; if(!(n>=0 && n<1e6)) return String(n);
+  const E={es:{u:['cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte','veintiuno','veintidós','veintitrés','veinticuatro','veinticinco','veintiséis','veintisiete','veintiocho','veintinueve'], d:['','','','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'], y:' y ', c:['','ciento','doscientos','trescientos','cuatrocientos','quinientos','seiscientos','setecientos','ochocientos','novecientos'], cien:'cien', mil:'mil'},
+    ca:{u:['zero','un','dos','tres','quatre','cinc','sis','set','vuit','nou','deu','onze','dotze','tretze','catorze','quinze','setze','disset','divuit','dinou','vint','vint-i-un','vint-i-dos','vint-i-tres','vint-i-quatre','vint-i-cinc','vint-i-sis','vint-i-set','vint-i-vuit','vint-i-nou'], d:['','','','trenta','quaranta','cinquanta','seixanta','setanta','vuitanta','noranta'], y:'-', c:['','cent','dos-cents','tres-cents','quatre-cents','cinc-cents','sis-cents','set-cents','vuit-cents','nou-cents'], cien:'cent', mil:'mil'},
+    en:{u:['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty','twenty-one','twenty-two','twenty-three','twenty-four','twenty-five','twenty-six','twenty-seven','twenty-eight','twenty-nine'], d:['','','','thirty','forty','fifty','sixty','seventy','eighty','ninety'], y:'-', c:['','one hundred','two hundred','three hundred','four hundred','five hundred','six hundred','seven hundred','eight hundred','nine hundred'], cien:'one hundred', mil:'thousand'}}[LANG]||null;
+  if(!E) return String(n);
+  const lt100=x=> x<30? E.u[x] : E.d[Math.floor(x/10)]+(x%10? E.y+E.u[x%10] : '');
+  const lt1000=x=> x<100? lt100(x) : x===100? E.cien : E.c[Math.floor(x/100)]+(x%100? (LANG==='en'?' and ':' ')+lt100(x%100) : '');
+  if(n<1000) return lt1000(n); const k=Math.floor(n/1000), r=n%1000; return (k===1&&LANG!=='en'? E.mil : lt1000(k)+' '+E.mil)+(r? ' '+lt1000(r) : ''); }
+const heardWords=t=> String(t).replace(/(\d)[.,](?=\d{3}\b)/g,'$1').split(/[\s\-–—]+/).flatMap(w=>{ const m=w.match(/^\D*(\d+)\D*$/); return m? numWords(m[1]).split(/[\s\-]+/) : [w]; }).map(normW).filter(Boolean);
+const targetWords=words=> words.map(w=>{ const m=String(w).match(/^\D*(\d+)\D*$/); return m? normW(numWords(m[1]).replace(/[\s\-]+/g,'')) : normW(w); });
+/* compara palabra por palabra (tolera errores chicos y palabras de más), también números escritos con cifras */
+function matchHeard(words, text){ const T=targetWords(words); const H0=heardWords(text); const H=[]; H0.forEach(w=>H.push(w));
+  // los números de varias palabras ("veinte y tres") se juntan para comparar con "veintitrés"/"23"
+  const join=(k,n)=>H.slice(k,k+n).join('');
+  let h=0; return T.map(t=>{ if(!t) return true;
+    for(let k=h;k<Math.min(H.length,h+5);k++){ for(let n=1;n<=3 && k+n<=H.length;n++){ const c=join(k,n); const d=levD(t,c); const tol= t.length<=3? 0 : t.length<=6? 1 : 2;
+        if(d<=tol || (t.length>=5 && c.length>=4 && (t.startsWith(c)||c.startsWith(t)) && Math.abs(t.length-c.length)<=2)){ h=k+n; return true; } } }
+    return false; }); }
+/* espera a que Lumi termine de hablar antes de abrir el micrófono (si no, se escucha a sí misma) */
+function voiceBusy(){ if(Voice.talk>0) return true; try{ const el=Voice.el; if(el && el.src && !el.paused && !el.ended) return true; }catch(e){} try{ if(window.speechSynthesis && speechSynthesis.speaking) return true; }catch(e){} return false; }
+function whenQuiet(alive, max=9000){ return new Promise(res=>{ const t0=Date.now(); let calm=0; const iv=setInterval(()=>{ if(!alive()){ clearInterval(iv); res(false); return; } calm= voiceBusy()? 0 : calm+1; if(calm>=3 || Date.now()-t0>max){ clearInterval(iv); res(true); } },110); }); }
+/* micrófono con detector de voz: corta solo al callar, avisa en cada pausa para ir pintando lo leído */
+function micListen({onLevel, onPause, onEnd, endSil, cap=20000, noSpeech=7000}){ let stream=null, ctx=null, node=null, src=null, done=false, iv=null; const chunks=[]; let sr=48000;
+  let floor=0, fl=0, speech=false, firstV=-1, lastV=0, voicedMs=0, pauseSent=0; const t0=Date.now();
+  const audio16=()=>{ const n=chunks.reduce((a,b)=>a+b.length,0); const all=new Float32Array(n); let o=0; chunks.forEach(c=>{ all.set(c,o); o+=c.length; });
+    const from=Math.max(0, Math.floor(((firstV<0?0:firstV)-350)/1000*sr)); const x=all.subarray(from); const r=sr/16000; const m=Math.floor(x.length/r); const out=new Float32Array(m);
+    for(let i=0;i<m;i++){ const p=i*r, a=Math.floor(p); let s=0, c=0; for(let j=Math.max(0,a-1); j<=Math.min(x.length-1,a+1); j++){ s+=x[j]; c++; } out[i]=s/c; }
+    let pk=0; for(let i=0;i<m;i++){ const v=Math.abs(out[i]); if(v>pk) pk=v; } if(pk>0 && pk<.5){ const g=Math.min(8,.7/pk); for(let i=0;i<m;i++) out[i]*=g; } return out; };
+  const stop=why=>{ if(done) return; done=true; clearInterval(iv); const a= speech? audio16() : null; const fresh= lastV>pauseSent;
+    try{ node&&node.disconnect(); src&&src.disconnect(); }catch(e){} try{ stream&&stream.getTracks().forEach(t=>t.stop()); }catch(e){} try{ ctx&&ctx.close(); }catch(e){} onEnd({audio:a, heard:speech, why, fresh}); };
+  (async()=>{ try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true, channelCount:1}}); if(done){ stream.getTracks().forEach(t=>t.stop()); return; }
+      const C=window.AudioContext||window.webkitAudioContext; ctx=new C(); if(ctx.state==='suspended') await ctx.resume(); sr=ctx.sampleRate;
+      src=ctx.createMediaStreamSource(stream); node=ctx.createScriptProcessor(2048,1,1); let lvl=0;
+      node.onaudioprocess=ev=>{ if(done) return; const d=ev.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d)); let e=0; for(let i=0;i<d.length;i+=2) e+=d[i]*d[i]; lvl=Math.sqrt(e/(d.length/2)); };
+      src.connect(node); node.connect(ctx.destination);
+      iv=setInterval(()=>{ const now=Date.now(), el=now-t0; if(el<300){ floor+=lvl; fl++; return; } let base=fl? floor/fl : .004; if(!speech && lvl<base*1.5){ floor=floor*.97+lvl*fl*.03; }
+        const on= lvl>Math.max(.009, base*3.2); onLevel && onLevel(Math.min(1, lvl/Math.max(.02, base*12)), on);
+        if(on){ voicedMs+=60; lastV=now; if(!speech && voicedMs>=180){ speech=true; firstV=el-voicedMs; } }
+        else if(voicedMs && !speech && now-lastV>400) voicedMs=0;
+        if(speech){ const sil=now-lastV; if(sil>=550 && lastV>pauseSent){ pauseSent=lastV; onPause && onPause(audio16()); }
+          if(sil>=(typeof endSil==='function'? endSil() : endSil||1400)) stop('silence'); }
+        else if(el>noSpeech) stop('nospeech');
+        if(el>cap) stop('cap'); },60);
+    }catch(e){ stop('error:'+(e&&e.name||e)); } })();
+  return {stop:()=>stop('tap')}; }
+
+/* Voz Daniela/Ona/Jenny para las frases que no tienen mp3 grabado (números, sumas, nombres): Piper en el dispositivo */
+const PIPER={p:null, ok:false, fails:0, cache:new Map(),
+  usable(){ return !Voice.dev && OIDO.can() && this.fails<2; },
+  load(){ if(this.ok) return Promise.resolve(); if(!this.p){ this.p=OIDO.call('ttsLoad',{lang:LANG}).then(()=>{ this.ok=true; }); this.p.catch(()=>{ this.p=null; this.fails++; }); } return this.p; },
+  wav(pcm, sr){ const n=pcm.length, b=new ArrayBuffer(44+n*2), v=new DataView(b); const w=(o,s)=>{ for(let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i)); };
+    w(0,'RIFF'); v.setUint32(4,36+n*2,true); w(8,'WAVEfmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,sr,true); v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true); w(36,'data'); v.setUint32(40,n*2,true);
+    for(let i=0;i<n;i++){ const s=Math.max(-1,Math.min(1,pcm[i])); v.setInt16(44+i*2, s<0? s*32768 : s*32767, true); } return new Blob([b],{type:'audio/wav'}); },
+  // frases largas: se dicen de a partes (la primera suena enseguida mientras se prepara la siguiente)
+  parts(t){ const out=[]; String(t).split(/(?<=[.!?…:;])\s+(?=\S)/).forEach(p=>{ if(p.length>90){ p.split(/(?<=,)\s+/).forEach(q=>out.push(q)); } else out.push(p); }); return out.filter(x=>x.trim()); },
+  // lo que Piper tiene que decir: signos de cuentas en palabras y sin MAYÚSCULAS (si no, a veces deletrea)
+  clean(t){ const W={es:['más','menos','es igual a','por','dividido'], ca:['més','menys','és igual a','per','dividit per'], en:['plus','minus','equals','times','divided by']}[LANG]||['más','menos','es igual a','por','dividido'];
+    let s=String(t).replace(/(\d)\s*\+\s*(?=\d|\?|_)/g,'$1 '+W[0]+' ').replace(/(\d)\s*[−–-]\s*(?=\d|\?|_)/g,'$1 '+W[1]+' ').replace(/\s*=\s*/g,' '+W[2]+' ').replace(/(\d)\s*[×x]\s*(?=\d)/g,'$1 '+W[3]+' ').replace(/(\d)\s*[÷:]\s*(?=\d)/g,'$1 '+W[4]+' ').replace(/_{2,}|\?{1}(?=\s*$)/g, m=> m==='?'? '?' : ' … ');
+    const up=(s.match(/\p{Lu}/gu)||[]).length, lo=(s.match(/\p{Ll}/gu)||[]).length; if(up>lo){ s=s.toLowerCase().replace(/(^|[.!?¡¿]\s*)(\p{Ll})/gu,(m,a,b)=>a+b.toUpperCase()); }
+    return s.replace(/\s+/g,' ').trim(); },
+  get(t){ const k=Voice.speed+'|'+t; if(this.cache.has(k)) return this.cache.get(k);
+    const pr=this.load().then(()=>OIDO.call('tts',{text:this.clean(t), lang:LANG, speed:Voice.speed})).then(r=>URL.createObjectURL(this.wav(r.pcm, r.sr)));
+    this.cache.set(k,pr); pr.catch(()=>this.cache.delete(k));
+    if(this.cache.size>120){ const [k0,p0]=this.cache.entries().next().value; this.cache.delete(k0); p0.then(u=>URL.revokeObjectURL(u)).catch(()=>{}); } return pr; },
+  async play(t,my){ const ps=this.parts(t); ps.forEach(p=>this.get(p).catch(()=>{})); for(const p of ps){ if(my!==Voice.seq) return; await this.play1(p,my); } },
+  play1(t,my){ return this.get(t).then(url=>new Promise((res,rej)=>{ if(my!==Voice.seq) return res(); if(!Voice.el) Voice.el=new Audio(); const a=Voice.el; a.onended=null; a.onerror=null; a.src=url;
+      try{ a.defaultPlaybackRate=1; a.playbackRate=1; }catch(e){} let done=false; const fin=()=>{ if(!done){ done=true; res(); } };
+      Voice.cur={stop:()=>{ try{ a.pause(); }catch(e){} fin(); }}; a.onended=fin; a.onerror=()=>{ if(!done){ done=true; rej(new Error('audio')); } }; const p=a.play(); if(p&&p.catch) p.catch(e=>{ if(!done){ done=true; rej(e); } }); })); } };
+{ const one0=Voice.one;
+  Voice.one=function(t,my){ if(!this.has(t) && PIPER.usable()){ if(PIPER.ok) return PIPER.play(t,my).catch(()=>one0.call(this,t,my)); PIPER.load().catch(()=>{}); } return one0.call(this,t,my); };
+  // para que la frase siguiente ya esté lista cuando haga falta (p. ej. el próximo problema)
+  Voice.prep=function(parts){ if(!PIPER.usable()) return; (Array.isArray(parts)?parts:[parts]).filter(Boolean).map(t=>normText(tr(t))).forEach(t=>{ if(!this.has(t)) PIPER.parts(t).forEach(p=>PIPER.get(p).catch(()=>{})); }); };
+  // cuántas frases está diciendo Lumi ahora (para no abrir el micrófono mientras habla, aunque la voz tarde en arrancar)
+  const say0=Voice.say; Voice.talk=0; Voice.say=async function(p){ this.talk++; try{ return await say0.call(this,p); } finally{ this.talk=Math.max(0,this.talk-1); } }; }
+/* se bajan solos un rato después de abrir la app (una sola vez; quedan guardados en el iPad) */
+setTimeout(()=>{ if(OIDO.can()){ OIDO.loadAsr().catch(()=>{}); if(PIPER.usable()) setTimeout(()=>PIPER.load().catch(()=>{}), 1500); } }, 5000);
+
+/* comprobar la lectura con el micrófono: pinta de verde lo que dijo y de rojo lo que faltó */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition||null;
 const SR_LANG={es:'es-ES',ca:'ca-ES',en:'en-GB'};
-const normW=w=>String(w).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9ñç]/g,'');
+const normW=w=>String(w).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9ñç]/g,'');
 function levD(a,b){ const m=a.length,n=b.length; if(!m) return n; if(!n) return m; let p=Array.from({length:n+1},(_,j)=>j); for(let i=1;i<=m;i++){ const c=[i]; for(let j=1;j<=n;j++) c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1)); p=c; } return p[n]; }
-function matchWords(target, heard){ const H=heard.map(normW).filter(Boolean); let h=0; return target.map(w=>{ const t=normW(w); if(!t) return true;
-    for(let k=h;k<Math.min(H.length,h+4);k++){ const d=levD(t,H[k]); if(d===0 || (t.length>=4 && d<=1) || (t.length>=7 && d<=2)){ h=k+1; return true; } } return false; }); }
+function matchWords(target, heard){ return matchHeard(target, heard.join(' ')); }
 /* Lectura guiada: (1) Lumi lee la frase despacio y la va pintando de rojo; (2) el chico toca "¡Ahora yo!" y cada palabra que dice se pinta de verde.
    El micrófono nunca se queda colgado: corta solo al terminar, tras un silencio o al llegar al tope de tiempo; tocar el botón también corta. */
 function micOn(){ Sfx.rec=true; try{ if(navigator.audioSession) navigator.audioSession.type='play-and-record'; }catch(e){} try{ if(Sfx.ctx && Sfx.ctx.state==='running') Sfx.ctx.suspend(); }catch(e){} try{ Voice.el && Voice.el.pause(); }catch(e){} }
@@ -2072,24 +2169,39 @@ function listenVosk({model, words, onHeard, onEnd}){ let stream=null, ctx=null, 
         if(heard && now-lastVoice>1800) end('silence'); else if(now-t0>cap) end('cap'); },100);
     }catch(e){ end('error:'+(e&&e.name||e)); } })();
   return {stop:()=>end('tap')}; }
-function ReadCheck({text, onDone:onDone0, api, canSkip, noListen, long, model}){ const fired=useRef(false); const onDone=g=>{ if(fired.current) return; fired.current=true; onDone0(g); };
+const OIDO_TX={ca:{'Lo leímos juntos. ¡Seguimos!':'Ho hem llegit junts. Seguim!','Te escucho…':'T’escolto…','Pensando…':'Pensant…','Leé en voz alta, Lumi te escucha.':'Llegeix en veu alta, la Lumi t’escolta.','Lumi entiende con su oído nuevo':'La Lumi entén amb la seva oïda nova'},
+  en:{'Lo leímos juntos. ¡Seguimos!':"We read it together. Let's go on!",'Te escucho…':"I'm listening…",'Pensando…':'Thinking…','Leé en voz alta, Lumi te escucha.':'Read it out loud, Lumi is listening.','Lumi entiende con su oído nuevo':'Lumi understands with her new ears'}};
+const otx=t=> (OIDO_TX[LANG]&&OIDO_TX[LANG][t]) || tr(t);
+/* Lectura guiada, sin tocar botones: Lumi lee (si hace falta), el micrófono se abre solo, el chico lee, Lumi entiende (Whisper en el iPad)
+   y pinta de verde lo leído. Si falta algo lo dice y vuelve a escuchar sola; a la tercera lo leen juntos y siguen. Tocar el micrófono corta o vuelve a abrir. */
+function ReadCheck({text, onDone:onDone0, api, canSkip, noListen, long, model}){ const fired=useRef(false); const onDone=g=>{ if(fired.current) return; fired.current=true; stopAll(); onDone0(g); };
   const words=text.split(/\s+/); const [ok,setOk]=useState(null); const [live,setLive]=useState(false); const [tries,setTries]=useState(0); const [no,setNo]=useState(!SR && !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)); const rec=useRef(null);
   const [phase,setPhase]=useState(model? 'model' : 'me'); const [deaf,setDeaf]=useState(0); const [err,setErr]=useState(''); const [vp,setVp]=useState(VOSK.model? 1 : -1); const [kar,setKar]=useState(-1); const alive=useRef(true); const att=useRef(null);
+  const [lvl,setLvl]=useState(0); const [think,setThink]=useState(false); const [, bump]=useState(0); const eng=useRef(OIDO.usable()? 'oido' : 'old'); const tryN=useRef(0), deafN=useRef(0);
   const need=words.filter(w=>normW(w)).length;
-  useEffect(()=>{ if(!useVosk()) return; const f=p=>setVp(p); VOSK.subs.add(f); setVp(v=>v<0? 0 : v); VOSK.load().then(()=>setVp(1)).catch(()=>setVp(-2)); return ()=>VOSK.subs.delete(f); },[]);
-  useEffect(()=>{ alive.current=true; if(model){ const t=setTimeout(modelRead, 700); return ()=>{ clearTimeout(t); alive.current=false; stopAll(); }; } return ()=>{ alive.current=false; stopAll(); }; },[]);
-  function stopAll(){ const A=att.current; if(A){ A.clear(); } try{ rec.current&&rec.current.abort(); }catch(e){} }
-  async function modelRead(){ if(!alive.current) return; setPhase('model'); setOk(null); setKar(0);
+  const cnt=m=> m? m.filter((x,k)=>x && normW(words[k])).length : 0;
+  useEffect(()=>{ const f=()=>{ if(eng.current==='oido' && OIDO.asrFail>=2 && !OIDO.asrOk) eng.current='old'; bump(x=>x+1); }; OIDO.subs.add(f); return ()=>OIDO.subs.delete(f); },[]);
+  useEffect(()=>{ if(eng.current==='oido' || !useVosk()) return; const f=p=>setVp(p); VOSK.subs.add(f); setVp(v=>v<0? 0 : v); VOSK.load().then(()=>setVp(1)).catch(()=>setVp(-2)); return ()=>VOSK.subs.delete(f); },[]);
+  useEffect(()=>{ alive.current=true; let t; if(model) t=setTimeout(modelRead, 700); else if(!no) t=setTimeout(autoListen, 500); return ()=>{ clearTimeout(t); alive.current=false; stopAll(); }; },[]);
+  function stopAll(){ const A=att.current; att.current=null; if(A){ A.clear(); } try{ rec.current&&rec.current.abort(); }catch(e){} }
+  async function modelRead(){ if(!alive.current) return; stopAll(); setLive(false); setPhase('model'); setOk(null); setKar(0);
     const w8=words.map(w=>Math.max(1,normW(w).length)+2), tot=w8.reduce((x,y)=>x+y,0); const cum=[]; w8.reduce((x,y,k)=>(cum[k]=(x+y)/tot, x+y),0);
     const sp0=Voice.speed; Voice.speed=Math.min(sp0,.7); const t0=Date.now(), est=(900+text.length*95)/Voice.speed;
     const tick=setInterval(()=>{ const el=Voice.el; let pr; if(el && !el.paused && isFinite(el.duration) && el.duration>0) pr=el.currentTime/el.duration; else pr=(Date.now()-t0)/est;
       let k=cum.findIndex(c=>c>pr*1.02); if(k<0) k=words.length-1; setKar(x=>Math.max(x,k)); },90);
-    try{ await Voice.say(text); }catch(e){} clearInterval(tick); Voice.speed=sp0; if(!alive.current) return; setKar(words.length); setPhase('me'); api.sfx('pad'); }
-  function start(){ if(live){ const A=att.current; if(A) A.stopNow(); return; } Voice.stop(); setPhase('me'); setKar(-1); micOn();
+    try{ await Voice.say(text); }catch(e){} clearInterval(tick); Voice.speed=sp0; if(!alive.current) return; setKar(words.length); setPhase('me'); api.sfx('pad'); setTimeout(autoListen, 450); }
+  /* abre el micrófono solo cuando Lumi terminó de hablar */
+  async function autoListen(){ if(!alive.current || fired.current || att.current) return;
+    if(eng.current==='oido'){ if(!OIDO.asrOk){ try{ await OIDO.loadAsr(); }catch(e){ eng.current='old'; } if(!alive.current) return; } }
+    if(!(await whenQuiet(()=>alive.current)) || fired.current || att.current) return;
+    start(); }
+  function start(){ if(live || att.current){ const A=att.current; if(A) A.stopNow(); return; } Voice.stop(); setPhase('me'); setKar(-1);
+    if(eng.current==='oido'){ if(OIDO.asrOk){ startOido(); return; } OIDO.loadAsr().then(()=>{ if(alive.current && !att.current) startOido(); }).catch(()=>{ eng.current='old'; if(alive.current) start(); }); return; }
+    micOn();
     if(useVosk()){ if(VOSK.model){ startVosk(); return; } micOff(); setVp(v=>v<0? 0 : v); VOSK.load().then(()=>{ if(alive.current) startVosk(); }).catch(()=>{ if(alive.current) startVoice(); }); return; }
     // iPad/Safari corta la escucha sola (pausas, cambio de audio): se vuelve a abrir sola hasta que el chico termina o se acaba el tiempo
     let best=[], done=false, stopping=false, r=null, acc='', sess='', restarts=0, empty=0, gotAny=false; const timers=[]; let silence=null; const t0=Date.now(), cap=6000+need*1400;
-    const finish=()=>{ if(done) return; done=true; timers.forEach(clearTimeout); clearTimeout(silence); try{ r&&r.abort(); }catch(e){} micOff(); if(!alive.current) return; setLive(false); setTries(t=>t+1);
+    const finish=()=>{ if(done) return; done=true; timers.forEach(clearTimeout); clearTimeout(silence); try{ r&&r.abort(); }catch(e){} micOff(); att.current=null; if(!alive.current) return; setLive(false); setTries(t=>t+1);
       const got=best.filter(Boolean).length; if(!got && !acc && !sess && !gotAny){ setSrOff(true); setLive(false); setTimeout(()=>{ if(alive.current) startVoice(); },300); return; }
       if(need && got/need>=.8){ setOk(best); api.sfx('ok'); Voice.say(pick(PRAISE)); setTimeout(()=>onDone(true),1300); }
       else { api.sfx('no'); const miss=words.filter((w,k)=>normW(w) && !(best[k])); Voice.say(miss.length && miss.length<=4? [F('Te faltó: {0}.', miss.join(', ')), 'Probá otra vez.'] : ['Probá otra vez, despacio y fuerte.']); } };
@@ -2100,41 +2212,70 @@ function ReadCheck({text, onDone:onDone0, api, canSkip, noListen, long, model}){
       if(best.filter((x,k)=>x && normW(words[k])).length>=need){ stopNow(); return; } clearTimeout(silence); silence=setTimeout(stopNow, 2500); };
     const open=()=>{ if(done||stopping) return; try{ r=new SR(); rec.current=r; r.lang=SR_LANG[LANG]||'es-ES'; r.interimResults=true; r.continuous=false; r.maxAlternatives=3; sess='';
         r.onresult=e=>{ const alts=[]; for(let i=0;i<e.results.length;i++){ const res=e.results[i]; for(let a=0;a<res.length;a++){ alts[a]=(alts[a]||'')+' '+res[a].transcript; } } sess=alts[0]||''; empty=0; gotAny=true; judge(alts); };
-        r.onerror=e=>{ setErr(String(e.error||'')); if(e.error==='not-allowed'||e.error==='service-not-allowed'){ if(!best.length && restarts===0){ done=true; timers.forEach(clearTimeout); setLive(false); setNo(true); } else finish(); } };
+        r.onerror=e=>{ setErr(String(e.error||'')); if(e.error==='not-allowed'||e.error==='service-not-allowed'){ if(!best.length && restarts===0){ done=true; timers.forEach(clearTimeout); att.current=null; setLive(false); setNo(true); } else finish(); } };
         r.onend=()=>{ acc=(acc+' '+sess).trim(); if(done) return; if(stopping){ finish(); return; }
           if(!sess.trim()) empty++; if(empty>=4 && !acc){ finish(); return; } if(Date.now()-t0<cap && restarts<12){ restarts++; timers.push(setTimeout(open, 150)); } else finish(); };
         r.start(); }catch(e){ if(restarts<3){ restarts++; timers.push(setTimeout(open,300)); } else finish(); } };
     timers.push(setTimeout(stopNow, cap+800));
     setOk(null); setLive(true); timers.push(setTimeout(open, 450)); }
+  /* el oído nuevo: escucha, entiende en cada pausa y corta solo al callar */
+  function startOido(){ micOn(); setOk(null); setLive(true); setThink(false); setErr(''); let best=[], inFlight=false, pend=null, ended=false, closed=false, heardOnce=false;
+    const judge=t=>{ const m=matchHeard(words, t); if(cnt(m)>=cnt(best)){ best=m; if(alive.current) setOk(m); } };
+    const run=(audio, final)=>{ if(closed) return; if(inFlight){ pend={audio, final: final || (pend&&pend.final)}; return; } inFlight=true;
+      OIDO.hear(audio, need, asrPrompt(text)).then(r=>{ heardOnce=true; if(!closed) judge(r.text); }).catch(e=>{ setErr(String(e&&e.message||e)); }).then(()=>{ inFlight=false; if(closed) return;
+        if(cnt(best)>=need && need){ L.stop(); if(ended) result(); return; }
+        if(pend){ const p=pend; pend=null; if(p.audio) run(p.audio, p.final); else if(p.final) result(); } else if(final) result(); }); };
+    const result=()=>{ if(closed) return; closed=true; att.current=null; setThink(false); if(!alive.current || fired.current) return; judgeEnd(best); };
+    const L=micListen({ endSil:()=> cnt(best)>=need? 400 : cnt(best)>0? 2200 : 1700, cap:7000+need*1500, noSpeech:7000,
+      onLevel:(v)=>{ if(alive.current) setLvl(v); },
+      onPause:a=>{ if(a.length>8000) run(a,false); },
+      onEnd:({audio, heard, why, fresh})=>{ ended=true; micOff(); if(alive.current){ setLive(false); setLvl(0); } if(!alive.current || closed) return; setErr(why);
+        if(String(why).startsWith('error')){ closed=true; att.current=null; if(/NotAllowed|Security/i.test(why)) setNo(true); else { eng.current='old'; } return; }
+        if(!heard || !audio){ closed=true; att.current=null; nothing(); return; }
+        if(cnt(best)>=need && need){ result(); return; } setThink(true);
+        // si después de la última pausa no dijo nada más, alcanza con lo que ya se está entendiendo
+        if(!fresh && (inFlight || heardOnce)){ if(inFlight) pend={audio:null, final:true}; else result(); return; } run(audio, true); } });
+    att.current={stopNow:()=>L.stop(), clear:()=>{ closed=true; L.stop(); micOff(); }}; }
+  function again(){ setTimeout(()=>{ whenQuiet(()=>alive.current, 12000).then(go=>{ if(go && alive.current && !fired.current && !att.current) start(); }); }, 300); }
+  function nothing(){ deafN.current++; setDeaf(d=>d+1); api.sfx('no'); Voice.say(['Probá otra vez, despacio y fuerte.']); if(deafN.current<2) again(); }
+  function judgeEnd(best){ tryN.current++; setTries(t=>t+1); const got=cnt(best);
+    if(need && got/need>=.8){ setOk(words.map(()=>true)); api.sfx('ok'); Voice.say(pick(PRAISE)); setTimeout(()=>onDone(true),1300); return; }
+    api.sfx('no'); const miss=words.filter((w,k)=>normW(w) && !(best[k]));
+    if(tryN.current>=3){ Voice.say([otx('Lo leímos juntos. ¡Seguimos!')]).then(()=>{ if(alive.current) modelReadThenGo(); }); return; }
+    Voice.say(miss.length && miss.length<=4? [F('Te faltó: {0}.', miss.join(', ')), 'Probá otra vez.'] : ['Probá otra vez, despacio y fuerte.']); again(); }
+  async function modelReadThenGo(){ setPhase('model'); setKar(0); try{ const sp0=Voice.speed; Voice.speed=Math.min(sp0,.7); await Voice.say(text); Voice.speed=sp0; }catch(e){} if(alive.current){ setKar(words.length); onDone(false); } }
   function startVosk(){ micOn(); setOk(null); setLive(true); let best=[];
     const L=listenVosk({model:VOSK.model, words,
       onHeard:t=>{ if(!alive.current) return; const m=matchWords(words, t.split(/\s+/)); if(m.filter(Boolean).length>=best.filter(Boolean).length){ best=m; setOk(m); } if(best.filter((x,k)=>x && normW(words[k])).length>=need) L.stop(); },
-      onEnd:({heard, why})=>{ micOff(); if(!alive.current) return; setLive(false); setTries(t=>t+1); setErr(why); const got=best.filter((x,k)=>x && normW(words[k])).length;
-        if(need && got/need>=.8){ setOk(best); api.sfx('ok'); Voice.say(pick(PRAISE)); setTimeout(()=>onDone(true),1300); }
-        else if(!heard && !got){ setDeaf(d=>d+1); api.sfx('no'); Voice.say(['Probá otra vez, despacio y fuerte.']); }
-        else { api.sfx('no'); const miss=words.filter((w,k)=>normW(w) && !(best[k])); Voice.say(miss.length && miss.length<=4? [F('Te faltó: {0}.', miss.join(', ')), 'Probá otra vez.'] : ['Probá otra vez, despacio y fuerte.']); } } });
+      onEnd:({heard, why})=>{ micOff(); att.current=null; if(!alive.current) return; setLive(false); setErr(why); if(!heard && !cnt(best)){ nothing(); return; } judgeEnd(best); } });
     att.current={stopNow:()=>L.stop(), clear:()=>{ L.stop(); micOff(); }}; }
   function startVoice(){ if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){ setNo(true); return; } micOn(); setOk(null); setLive(true);
     const idx=words.map((w,k)=>k).filter(k=>normW(words[k])); const L=listenVoice({n:idx.length,
       onWord:c=>{ if(!alive.current) return; const m=words.map(()=>false); for(let j=0;j<c;j++) m[idx[j]]=true; words.forEach((w,k)=>{ if(!normW(w)) m[k]=c>0; }); setOk(m); },
-      onEnd:({words:c, heard, why})=>{ micOff(); if(!alive.current) return; setLive(false); setTries(t=>t+1); setErr(why);
+      onEnd:({words:c, heard, why})=>{ micOff(); att.current=null; if(!alive.current) return; setLive(false); setTries(t=>t+1); setErr(why);
         if(!heard){ setDeaf(d=>d+1); api.sfx('no'); Voice.say(['Probá otra vez, despacio y fuerte.']); return; }
         if(c>=Math.ceil(idx.length*.7)){ setOk(words.map(()=>true)); api.sfx('ok'); Voice.say(pick(PRAISE)); setTimeout(()=>onDone(true),1300); }
         else { api.sfx('no'); Voice.say(['Seguí hasta el final de la frase.','Probá otra vez.']); } } });
     att.current={stopNow:()=>L.stop(), clear:()=>{ L.stop(); micOff(); }}; }
   const cls=k=>{ if(ok && ok[k]) return 'w-ok'; if(phase==='model' && kar>=k) return 'w-read'; if(ok && !live && tries>0) return 'w-miss'; return ''; };
+  const loading= !no && !live && (eng.current==='oido'? (!OIDO.asrOk && OIDO.prog.asr>=0 && OIDO.prog.asr<1) : (useVosk() && vp>=0 && vp<1));
+  const lp= eng.current==='oido'? OIDO.prog.asr : vp;
+  const ring= live? {boxShadow:`0 0 0 ${4+Math.round(lvl*22)}px rgba(29,185,84,${.25+lvl*.3})`, transition:'box-shadow .08s'} : null;
   return html`<div className="readcheck">
     <p className=${"b-now"+(long?" long":"")} data-noread>${words.map((w,k)=>html`<span key=${k} className=${cls(k)}>${w} </span>`)}</p>
     <div className="row" style=${{justifyContent:'center'}}>
       ${phase==='model' && kar<words.length? html`<p className="small muted">👂 ${tr('Escuchá a Lumi…')}</p>` : html`
-      ${(model || !noListen || tries>=1) && html`<button className="btn soft small" onClick=${()=>{ Sfx.unlock(); if(model) modelRead(); else Voice.say(text); }} disabled=${live}>🔊 ${tr('Escuchar')}</button>`}
-      ${!no && useVosk() && vp>=0 && vp<1 && !live? html`<button className="btn mic" disabled>⏳ ${tr('Preparando el oído de Lumi…')} ${Math.round(vp*100)}%</button>` : !no && html`<button className=${'btn mic'+(live?' on':'')+(model&&!tries&&!live?' ready':'')} onClick=${start}>${live? '👂 '+tr('Te escucho… (tocá al terminar)') : model? '🙋 '+tr('¡Ahora yo!') : '🎤 '+tr('Leer en voz alta')}</button>`}
+      ${(model || !noListen || tries>=1) && html`<button className="btn soft small" onClick=${()=>{ Sfx.unlock(); stopAll(); setLive(false); if(model) modelRead(); else { Voice.say(text); again(); } }} disabled=${live}>🔊 ${tr('Escuchar')}</button>`}
+      ${loading? html`<button className="btn mic" disabled>⏳ ${tr('Preparando el oído de Lumi…')} ${Math.round(Math.max(0,lp)*100)}%</button>`
+        : think? html`<button className="btn mic" disabled>🤔 ${otx('Pensando…')}</button>`
+        : !no && html`<button className=${'btn mic'+(live?' on':'')} style=${ring} onClick=${()=>{ Sfx.unlock(); start(); }}>${live? '👂 '+otx('Te escucho…') : model? '🙋 '+tr('¡Ahora yo!') : '🎤 '+tr('Leer en voz alta')}</button>`}
       ${(no || tries>=1 || canSkip) && html`<button className="btn soft small" onClick=${()=>{ stopAll(); api.sfx('tap'); onDone(false); }}>${tr('Seguir')} ▶</button>`}`}
     </div>
-    ${(no || deaf>=1) && !live && html`<div className="mic-help"><p className="small">${no? tr('Este dispositivo no deja usar el micrófono acá.') : tr('No se oyó nada.')} ${tr('Que lo lea en voz alta y un adulto toca:')}</p>
+    ${live && html`<p className="small muted">${otx('Leé en voz alta, Lumi te escucha.')}</p>`}
+    ${(no || deaf>=2) && !live && html`<div className="mic-help"><p className="small">${no? tr('Este dispositivo no deja usar el micrófono acá.') : tr('No se oyó nada.')} ${tr('Que lo lea en voz alta y un adulto toca:')}</p>
       <div className="row" style=${{justifyContent:'center'}}><button className="btn small" onClick=${()=>{ stopAll(); setOk(words.map(()=>true)); api.sfx('ok'); Voice.say(pick(PRAISE)); setTimeout(()=>onDone(true),1100); }}>✅ ${tr('Lo leyó bien')}</button>
       <button className="btn soft small" onClick=${()=>{ stopAll(); api.sfx('tap'); onDone(false); }}>🔁 ${tr('Le costó')}</button></div>
-      ${deaf>=2 && html`<p className="small muted">${tr('En iPad: Ajustes › General › Teclado › activá Dictado, y en Ajustes › Safari › Micrófono elegí Permitir.')}${err? ' ('+err+')' : ''}</p>`}</div>`}
+      ${html`<p className="small muted">${tr('En iPad: Ajustes › General › Teclado › activá Dictado, y en Ajustes › Safari › Micrófono elegí Permitir.')}${err? ' ('+err+')' : ''}</p>`}</div>`}
   </div>`; }
 function StoryTask({lv, api, onEnd}){
   const st=useMemo(()=>storyFor(lv, Math.random),[]); const alone= lv>=7; const [j,setJ]=useState(0); const [phase,setPhase]=useState('read'); const [qi,setQi]=useState(0); const [mark,setMark]=useState({});
