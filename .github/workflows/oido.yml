@@ -17,7 +17,7 @@ jobs:
             [ -f "$3" ] || ls "$3".part* >/dev/null 2>&1 && { echo "ya está $3"; return; } || true
             mkdir -p "$(dirname "$3")"; curl -fsSL -o "$3" "https://huggingface.co/$1/resolve/main/$2"
             sz=$(stat -c %s "$3"); echo "$sz $3"
-            if [ "$sz" -gt 90000000 ]; then split -b 90000000 -d -a 1 "$3" "$3.part"; rm "$3"; n=$(ls "$3".part* | wc -l); echo "[$(seq -s, 0 $((n-1)))]" > "$3.parts.json"; ls -la "$3".part*; fi
+            if [ "$sz" -gt 90000000 ]; then split -b 90000000 -d -a 1 "$3" "$3.part"; rm "$3"; np=$(ls "$3".part* | wc -l); echo "[$(seq -s, 0 $((np-1)))]" > "$3.parts.json"; ls -la "$3".part*; fi
             # de a un archivo por push (si no, GitHub corta por tiempo)
             git add "$(dirname "$3")"; git diff --cached --quiet || { git commit -qm "Modelo de voz: $(basename "$3")"; for i in 1 2 3 4; do git push && break || sleep $((i*5)); done; }
           }
