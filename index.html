@@ -485,6 +485,7 @@ html,body{height:100%; height:100dvh}
 <script src="lib/jspdf.umd.min.js"></script>
 <script src="iq.js"></script>
 <script src="progress.js?v=2"></script>
+<script src="cards.js?v=1"></script>
 <script>
 (function(){
 'use strict';
@@ -2977,6 +2978,7 @@ function AgeAlbum({save, age}){ const {theme, slots}=useMemo(()=>albumSlots(age)
     <p className="small muted">${tr('Cada juego bien hecho en un nivel nuevo pega una figurita. Al cumplir años empieza un álbum nuevo.')}</p></div>`; }
 function Album({save, onClose}){ const got=Object.keys(save.days).sort().filter(k=>save.days[k].complete && save.days[k].fig!=null).map(k=>({k,f:save.days[k].fig}));
   return html`<div className="modal" onPointerDown=${e=>{ if(e.target===e.currentTarget) onClose(); }}><div className="modal-box album">
+    ${window.LumiCards && html`<${window.LumiCards.Album} save=${save} say=${t=>Voice.say(t)}/>`}
     <${AlbumTabs} save=${save}/>
     <h3>${tr('Figuras del día')}</h3>${got.length? html`<div className="album-grid">${got.map(x=>html`<div key=${x.k} className="album-it"><${Fig} f=${x.f} n=${FIGN} size=${110}/><span className="small muted">${cap(longDate(x.k)).replace(/,? \d{4}$/,'')}</span></div>`)}</div>`
       : html`<p className="muted">Todavía no hay figuritas completas. Terminá todos los ejercicios de un día y se arma la primera.</p>`}
@@ -2992,17 +2994,18 @@ function AlbumActions({save, n}){ const [busy,setBusy]=useState(false); const [m
   return html`<div className="album-act"><button className="btn soft small" disabled=${busy} onClick=${dl}>📄 ${tr('Descargar mi álbum (PDF)')}</button>
     ${ORDER_URL && html`${full? html`<a className="btn sun small" href=${ORDER_URL} target="_blank" rel="noopener">📦 ${F('Pedir el álbum impreso ({0})', ORDER_PRICE)}</a><p className="small muted">${tr('Primero descargá el PDF y adjuntalo o mencioná el nombre del chico en el pedido.')} ${tr('El nombre y la dirección se usan solo para imprimir y enviar el álbum.')}</p>` : html`<p className="small muted">${F('Completá las {0} figuritas y vas a poder pedir tu álbum impreso a casa.', FIGS.length)}</p>`}`}
     ${msg && html`<p className="small">${msg}</p>`}</div>`; }
-function Reward({game, stars, points, onNext, fig, tm}){
-  useEffect(()=>{ Sfx.play('star'); const pr=stars>=2? GAMES[game].praise : T.effort; const won= fig && fig.after>fig.before? FIGS[fig.f].parts.slice(fig.before,fig.after).map(p=>p[0]) : [];
+function Reward({game, stars, points, onNext, fig, tm, card}){ const [cardOn,setCardOn]=useState(!!(card&&window.LumiCards));
+  useEffect(()=>{ if(card&&window.LumiCards) return; Sfx.play('star'); const pr=stars>=2? GAMES[game].praise : T.effort; const won= fig && fig.after>fig.before? FIGS[fig.f].parts.slice(fig.before,fig.after).map(p=>p[0]) : [];
     Voice.say(tm && tm.beat? [pr, tr(tm.rec? '¡Le ganaste al reloj! ¡Récord nuevo!' : '¡Le ganaste al reloj!')] : won.length? [pr, F('¡Ganaste {0}!', won.join(tr(' y ')))] : pr); },[]);
   return html`<div className="screen" style=${{alignItems:'center',justifyContent:'center',gap: fig?'10px':'22px',textAlign:'center'}}>
     <${Lumi} size=${fig? Math.round(Math.min(window.innerHeight*.11,110)) : 150} glow=${stars+1}/>
     <div className="stars">${[1,2,3].map(k=>html`<span key=${k} className=${k<=stars?'':'off'} style=${{animationDelay:(k*.18)+'s'}}>⭐</span>`)}</div>
     <h2>${stars>=2? GAMES[game].praise : '¡Buen esfuerzo!'}</h2>
     ${tm && html`<p className="tbest">⏱ ${fmtSec(tm.secs)} · ${tm.beat? (tm.rec? tr('¡Le ganaste al reloj! ¡Récord nuevo!') : tr('¡Le ganaste al reloj!')) : tr('La próxima, más rápido.')}</p>`}
-    <p className="chip">+${points} puntos</p>
+    <p className="chip">+${points} puntos${card? ' (×2) 🃏' : ''}</p>
     ${fig && html`<div className="fig-box"><${Fig} f=${fig.f} n=${fig.after} fresh=${fig.after-fig.before} size=${Math.round(Math.min(window.innerHeight*.22,180))}/>${fig.after>fig.before && html`<p className="small"><b>${F('¡Ganaste {0}!', FIGS[fig.f].parts.slice(fig.before,fig.after).map(p=>p[0]).join(tr(' y ')))}</b></p>`}</div>`}
     <button className="btn" onClick=${onNext}>Seguir <span className="emoji">▶</span></button>
+    ${cardOn && html`<${window.LumiCards.Reveal} card=${card} mode="win" say=${t=>Voice.say(t)} tone=${(f,t0,d)=>{ Sfx.unlock(); if(Sfx.on&&Sfx.ctx) Sfx.tone(f,t0,d,'sine',.12); }} onClose=${()=>{ Sfx.play('tap'); setCardOn(false); }}/>`}
   </div>`;
 }
 function DayDone({save, streak, today, onHome, onCalendar, onNextRound}){
@@ -3275,7 +3278,9 @@ function App({acct}={}){
     const fig= pr? null : {f:figOf(today,round), before:partsFor(before,slots.length), after:partsFor(before+(isNew?1:0),slots.length)};
     let tm=null; if(sess.current.timed){ const secs=Math.round((Date.now()-(sess.current.t0||Date.now()))/1000); const prev=(save.timed||{})[game]; tm={secs, target:sess.current.timed, beat: secs<=sess.current.timed, rec: !!prev && secs<prev.best};
       update(n=>{ n.timed=n.timed||{}; const p=n.timed[game]; n.timed[game]={best: p? Math.min(p.best, secs) : secs, last:secs, n:(p? p.n : 0)+1}; return n; }); if(tm.beat) Sfx.play('star'); }
-    setView({s:'reward', game, stars, points:POINTS(stars,lv), fig, tm}); }
+    let card=null; if(window.LumiCards){ try{ const secs=(Date.now()-(sess.current.t0||Date.now()))/1000; const cr=window.LumiCards.roll(save, {game, acc, stars, total, secs, timed:!!sess.current.timed, beat:!!(tm&&tm.beat), today, force:/[?&]carta=1/.test(location.search)}); const bonus=POINTS(stars,lv);
+      update(n=>window.LumiCards.apply(n, cr, {game, today, bonus})); card=cr.card; }catch(e){ card=null; } }
+    setView({s:'reward', game, stars, points:POINTS(stars,lv)*(card?2:1), fig, tm, card}); }
   function next(){ const s=sess.current; if(!s||s.practice){ setView({s:'practice'}); return; }
     const pl=slotStates(slots, save.days[today]); if(pl.every(p=>p.st==='done')){ setView({s:'daydone'}); return; }
     const nx=pl.find(p=>p.st==='next'); if(nx) play(nx.g); else { setView({s:'home'}); speak(T.paperWait); } }
@@ -3330,7 +3335,7 @@ function App({acct}={}){
         <button className="icon-btn" onClick=${()=>speak(hint)} aria-label="Repetir"><span className="emoji">🔊</span></button></div>
       ${s.timed ? html`<${TimerBar} key=${'t'+view.key} t0=${s.t0||Date.now()} target=${s.timed}/>` : null}
       <${G} key=${view.key} api=${api} save=${save} mode=${view.mode}/></div>`; }
-  else if(view.s==='reward') body=html`<${Reward} game=${view.game} stars=${view.stars} points=${view.points} fig=${view.fig} tm=${view.tm} onNext=${next}/>`;
+  else if(view.s==='reward') body=html`<${Reward} game=${view.game} stars=${view.stars} points=${view.points} fig=${view.fig} tm=${view.tm} card=${view.card} onNext=${next}/>`;
   else if(view.s==='daydone') body=html`<${DayDone} save=${save} streak=${streak} today=${today} onHome=${home} onNextRound=${nextRound} onCalendar=${()=>setView({s:'calendar'})}/>`;
   else if(view.s==='practice') body=html`<${Practice} name=${save.settings.name} save=${save} timed=${timed} setTimed=${setTimed} onPick=${practice} onBack=${home}/>`;
   else if(view.s==='calendar') body=html`<${Calendar} save=${save} streak=${streak} onBack=${home}/>`;
