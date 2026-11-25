@@ -13,7 +13,7 @@ const H=()=>core().html || window.htm.bind(window.React.createElement);
 
 const TX={
  es:{ intro:'Lee la parte pintada. Después, toda la palabra.', listen:'Te escucho…', think:'Pensando…', lumi:'Escucha a Lumi…', you:'¡Ahora tú!', whole:'¡Ahora toda junta!',
-      together:'La leemos juntos.', help:'Ayuda', skip:'Seguir', again:'Otra vez', readOk:'Lo leyó bien', hard:'Le costó', tapMode:'Toca la parte pintada, escucha y repite.',
+      together:'La leemos juntos.', prep:'Preparando el oído de Lumi…', help:'Ayuda', skip:'Seguir', again:'Otra vez', readOk:'Lo leyó bien', hard:'Le costó', tapMode:'Toca la parte pintada, escucha y repite.',
       noMic:'Sin micrófono: que lo lea en voz alta y un adulto toca.', words:'Palabras leídas', stageUp:'¡{0} palabras leídas!', stageSay:'¡Leíste {0} palabras! Ahora vienen palabras más largas.',
       st:'Palabras de {0} letras', stMax:'Palabras largas', next:'Faltan {0} para palabras más largas',
       wsIntro:'Busca las palabras escondidas. Pasa el dedo de la primera letra a la última.', wsLeft:'Faltan {0}', wsAll:'¡Las encontraste todas!', wsHint:'Toca una palabra y te enseño dónde empieza.',
@@ -22,7 +22,7 @@ const TX={
       shRead:'Lee en voz alta', shReadNote:'Lee cada parte y después toda la palabra. Pinta la estrella cuando la leas.', shWs:'Encuentra las palabras escondidas', shWsNote:'Rodea cada palabra. Táchala de la lista cuando la encuentres.',
       row:'fila', col:'columna' },
  ca:{ intro:'Llegeix la part pintada. Després, tota la paraula.', listen:'T’escolto…', think:'Pensant…', lumi:'Escolta la Lumi…', you:'Ara tu!', whole:'Ara tota junta!',
-      together:'La llegim junts.', help:'Ajuda', skip:'Segueix', again:'Una altra vegada', readOk:'Ho ha llegit bé', hard:'Li ha costat', tapMode:'Toca la part pintada, escolta i repeteix.',
+      together:'La llegim junts.', prep:'Preparant l’oïda de la Lumi…', help:'Ajuda', skip:'Segueix', again:'Una altra vegada', readOk:'Ho ha llegit bé', hard:'Li ha costat', tapMode:'Toca la part pintada, escolta i repeteix.',
       noMic:'Sense micròfon: que ho llegeixi en veu alta i un adult toca.', words:'Paraules llegides', stageUp:'{0} paraules llegides!', stageSay:'Has llegit {0} paraules! Ara venen paraules més llargues.',
       st:'Paraules de {0} lletres', stMax:'Paraules llargues', next:'En falten {0} per a paraules més llargues',
       wsIntro:'Busca les paraules amagades. Passa el dit de la primera lletra a l’última.', wsLeft:'En falten {0}', wsAll:'Les has trobat totes!', wsHint:'Toca una paraula i t’ensenyo on comença.',
@@ -31,7 +31,7 @@ const TX={
       shRead:'Llegeix en veu alta', shReadNote:'Llegeix cada part i després tota la paraula. Pinta l’estrella quan l’hagis llegit.', shWs:'Troba les paraules amagades', shWsNote:'Encercla cada paraula. Ratlla-la de la llista quan la trobis.',
       row:'fila', col:'columna' },
  en:{ intro:'Read the coloured part. Then the whole word.', listen:"I'm listening…", think:'Thinking…', lumi:'Listen to Lumi…', you:'Your turn!', whole:'Now the whole word!',
-      together:"Let's read it together.", help:'Help', skip:'Go on', again:'Again', readOk:'Read it well', hard:'It was hard', tapMode:'Tap the coloured part, listen and repeat.',
+      together:"Let's read it together.", prep:"Getting Lumi's ears ready…", help:'Help', skip:'Go on', again:'Again', readOk:'Read it well', hard:'It was hard', tapMode:'Tap the coloured part, listen and repeat.',
       noMic:'No microphone: read it out loud and a grown-up taps.', words:'Words read', stageUp:'{0} words read!', stageSay:'You read {0} words! Longer words are coming now.',
       st:'{0}-letter words', stMax:'Long words', next:'{0} to go for longer words',
       wsIntro:'Find the hidden words. Slide your finger from the first letter to the last.', wsLeft:'{0} to go', wsAll:'You found them all!', wsHint:'Tap a word and I will show you where it starts.',
@@ -210,6 +210,9 @@ function ReadWords({api, save}){ const React=R(), h=H(), C=core(); const {useSta
   function closeMic(){ const A=S.att; S.att=null; if(A){ try{ A.kill(); }catch(e){} } try{ C.micOff && C.micOff(); }catch(e){} }
   async function listen(){ if(!S.alive) return; const my=++S.seq;
     if(!mic.current){ setPhase('tap'); return; }
+    /* solo se aprueba lo que el oído entendió de verdad: sin oído no hay escucha automática */
+    const O=C.OIDO; if(!O || !O.usable()){ mic.current=false; setPhase('tap'); return; }
+    if(!O.asrOk){ setPhase('prep'); try{ await O.loadAsr(); }catch(e){} if(!S.alive || my!==S.seq) return; if(!O.asrOk){ mic.current=false; setPhase('tap'); return; } }
     setPhase('wait'); try{ await C.whenQuiet(()=>S.alive && my===S.seq); }catch(e){} if(!S.alive || my!==S.seq) return; open(my); }
   function open(my){ closeMic(); try{ C.micOn(); }catch(e){} setPhase('listen'); setLvl(0);
     const t0=Date.now(); let run=0, inSeg=false, lastOn=0, segs=0, wordSeg=false, stepAt=t0, ended=false, why='', tFirst=0, tSeg=0, tWord=0;
@@ -225,15 +228,19 @@ function ReadWords({api, save}){ const React=R(), h=H(), C=core(); const {useSta
         if(!heard || !audio || !segs){ fail(my, true); return; }
         /* al oído le llega solo la palabra entera (las sílabas sueltas lo confunden) */
         let a=audio; if(wordSeg && tWord>tFirst){ const from=Math.floor((tWord-tFirst+350-320)*16); if(from>0 && a.length-from>4000) a=a.subarray(from); }
-        evaluate(my, a, y, wordSeg); } });
+        evaluate(my, a, y, wordSeg, audio); } });
     S.att={L, kill:()=>{ ended=true; try{ L.stop(); }catch(e){} }}; }
-  async function evaluate(my, audio, why, wordSeg){ const O=C.OIDO; let res=null;
-    if(O && O.usable() && O.asrOk){ setPhase('think'); try{ const r=await Promise.race([O.hear(audio, 4, C.asrPrompt? C.asrPrompt(W().w) : low(W().w)), sleep(12000).then(()=>null)]); if(r && typeof r.text==='string'){ res=judge(W().w, r.text);
-        /* el oído se confunde con palabras sueltas y voces de niño: si no entendió nada parecido, la segunda vez vale haberla dicho entera */
-        if(!res && (/^\s*[\[(]/.test(r.text) || !phon(r.text))) res=null; else if(!res && wordSeg && (S.tryN>=1 || near(W().w, r.text))) res='word'; window.LumiLeer.last={w:W().w, heard:r.text, res, why}; } }catch(e){ res=null; } }
+  async function evaluate(my, audio, why, wordSeg, full){ const O=C.OIDO; let res=null, heard='';
+    const ask=async au=>{ const r=await Promise.race([O.hear(au, 4, C.asrPrompt? C.asrPrompt(W().w) : low(W().w)), sleep(15000).then(()=>null)]); return r && typeof r.text==='string'? r.text : null; };
+    setPhase('think');
+    try{ const x=await ask(audio); if(x!==null){ heard=x; res=judge(W().w, x); if(!res && wordSeg && near(W().w, x)) res='word';
+        if(res!=='word' && full && full!==audio && S.alive && my===S.seq){ const y=await ask(full); if(y!==null){ heard+=' | '+y; const r2=judge(W().w, y); if(r2==='word' || !res) res=r2; } } } }catch(e){ res=null; }
+    window.LumiLeer.last={w:W().w, heard, res, why};
     if(!S.alive || my!==S.seq) return;
-    if(res===null) res= wordSeg? 'word' : (why==='idle' && S.step>=LAST())? 'parts' : '';      /* sin oído: vale haber dicho todas las partes y la palabra */
-    if(res==='word' || (res==='parts' && wordSeg)){ good(my); return; }
+    /* el oído falló (no es que el niño leyera mal): se vuelve a escuchar; si falla dos veces, pasa a modo con adulto. Nunca se aprueba sin entender. */
+    if(res===null){ S.asrErr=(S.asrErr||0)+1; if(S.asrErr>=2){ mic.current=false; setPhase('tap'); return; } listen(); return; }
+    S.asrErr=0;
+    if(res==='word'){ good(my); return; }
     if(res==='parts' && S.nudge<1){ S.nudge++; S.step=LAST(); re(); setPhase('wait'); await sayRaw(t('whole')); if(S.alive && my===S.seq) listen(); return; }
     fail(my, false); }
   async function good(my){ const first=S.tryN===0; S.readN++; if(first) S.okN++; S.read.push(W().w); S.step=STEPS(); setPhase('good'); re(); api.sfx('ok'); if(api.hit) api.hit(W().w);
@@ -261,7 +268,7 @@ function ReadWords({api, save}){ const React=R(), h=H(), C=core(); const {useSta
   const cls=k=>{ if(mk===99 || mk===k) return 'model'; if(phase==='good') return 'done'; if(S.step>=last && steps>1) return 'cur'; if(k<S.step) return 'done'; if(k===S.step) return 'cur'; return ''; };
   const size= w.n>=9? ' xl' : w.n>=6? ' long' : '';
   const ring= phase==='listen'? {boxShadow:`0 0 0 ${4+Math.round(lvl*20)}px rgba(29,185,84,${(.25+lvl*.35).toFixed(2)})`} : null;
-  const status= phase==='listen'? t('listen') : phase==='think'? t('think') : phase==='model'? t('lumi') : phase==='tap'? t('tapMode') : '';
+  const status= phase==='listen'? t('listen') : phase==='think'? t('think') : phase==='prep'? t('prep') : phase==='model'? t('lumi') : phase==='tap'? t('tapMode') : '';
   return h`<div className="stage ll-read">
     <div className="ll-count" data-noread><span>📚 ${t('words')}: ${tot}</span>${stage<STAGES && h`<div className="bar" title=${F(t('next'), STEP-into)}><i style=${{width:(into/STEP*100)+'%'}}></i></div>`}<span>${stage<STAGES? into+'/'+STEP : '🏅'}</span></div>
     <div className=${'ll-pic'+(phase==='good'? ' pop' : ' hid')} aria-hidden="true">${w.e||'⭐'}</div>
