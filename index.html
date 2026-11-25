@@ -485,8 +485,8 @@ html,body{height:100%; height:100dvh}
 <script src="lib/jspdf.umd.min.js"></script>
 <script src="iq.js"></script>
 <script src="progress.js?v=2"></script>
-<script src="cards.js?v=3"></script>
-<script src="leer.js?v=3"></script>
+<script src="cards.js?v=4"></script>
+<script src="leer.js?v=4"></script>
 <script>
 (function(){
 'use strict';
@@ -2506,7 +2506,7 @@ function concSheetPlan(key, round, lv){ const r=mulberry(dayNum(key)*577+round*4
   return {pairs, lines, starts:shuffle(PAIRS_POOL.slice(0,30),r).slice(0,nl)}; }
 
 const GAME_COMP={cups:CupsGame,pairs:PairsGame,look:BabyLook,colors:BabyColors,count:BabyCount,pop:BabyPop,brain:BrainGame,trace:TraceAny,compr:ComprGame,gonogo:GoNoGo,search:SearchGame,numbers:NumbersGame,memory:MemoryGame,series:SeriesGame,wait:WaitGame,breathe:BreatheGame,syll:SyllAny,math:MathGame,logic:LogicGame,maze:MazeGame,find:FindGame};
-if(window.LumiLeer){ window.LumiLeer.core={html, tr, F, LANG, Voice, Sfx, OIDO, PIPER, micListen, micOn, micOff, whenQuiet, heardWords, asrPrompt, pick, shuffle, mulberry, dayNum, PRAISE, TRY};
+if(window.LumiLeer){ window.LumiLeer.core={html, tr, F, LANG, Voice, Sfx, OIDO, PIPER, VOSK, micListen, micOn, micOff, whenQuiet, heardWords, asrPrompt, pick, shuffle, mulberry, dayNum, PRAISE, TRY};
   GAME_COMP.readw=window.LumiLeer.ReadWords; GAME_COMP.wsearch=window.LumiLeer.WordSearch; }
 
 /* ---------- fichas A4: una hoja por ejercicio ---------- */

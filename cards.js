@@ -3,7 +3,7 @@
      si no, no más lento que sus partidas anteriores de ese juego). Probabilidad 35 %, seguro a la 5.ª vez seguida
      que lo merece, como mucho 2 por día y nunca en dos partidas seguidas. La primera vez que lo merece, sale seguro.
    - Cada carta vale el doble de puntos (se suman otra vez los puntos de esa partida).
-   - 6 tipos × 2 etapas = 12 monstruos. Si vuelve a salir uno que ya tiene, evoluciona. A veces sale «brillante» (otros colores).
+   - 12 tipos × 2 etapas = 24 monstruos. Si vuelve a salir uno que ya tiene, evoluciona. A veces sale «brillante» (otros colores).
    - Todos los dibujos son originales de Lumi (SVG). No usar personajes, nombres ni diseños de otras marcas.
    Archivo aparte de index.html (como progress.js). Expone window.LumiCards. */
 (function(){
@@ -13,15 +13,15 @@ const TX={
   es:{won:'¡Ganaste una carta!', evo:'¡{0} evolucionó!', itIs:'¡Es {0}!', evoSay:'¡{0} evolucionó a {1}!', shiny:'¡Y es brillante!', double:'Vale el doble de puntos.', ok:'¡Genial!', close:'Cerrar',
       album:'Cartas brillantes', count:'{0} de {1} monstruos', shinyN:'{0} brillantes', how:'Salen de vez en cuando, si un ejercicio sale muy bien y a tiempo. Cada carta vale el doble de puntos. Si sale uno que ya tienes, evoluciona.',
       tilt:'Muévela con el dedo', own:'Imagen de la carta del día', ownNote:'Elige una imagen tuya para la felicitación diaria. Se guarda solo en este dispositivo: no se sube ni se comparte.', ownPick:'Elegir imagen', ownDel:'Quitar', ownBig:'No se pudo guardar la imagen.', sup:'¡{0}, has estado increíble!', sup0:'¡Has estado increíble!', daily:'¡Has ganado la carta de hoy!', howDay:'Todos los días, el primer ejercicio que te sale bien te da la carta del día.', nw:'¡Nueva!', r1:'Común', r2:'Rara', sh:'Brillante',
-      fire:'Fuego', water:'Agua', plant:'Planta', elec:'Eléctrico', rock:'Roca', air:'Aire'},
+      fire:'Fuego', water:'Agua', plant:'Planta', elec:'Eléctrico', rock:'Roca', air:'Aire', ice:'Hielo', night:'Noche', bug:'Bicho', metal:'Metal', star:'Estrella', dino:'Dragón'},
   ca:{won:'Has guanyat una carta!', evo:'{0} ha evolucionat!', itIs:'És {0}!', evoSay:'{0} ha evolucionat a {1}!', shiny:'I és brillant!', double:'Val el doble de punts.', ok:'Genial!', close:'Tanca',
       album:'Cartes brillants', count:'{0} de {1} monstres', shinyN:'{0} brillants', how:'Surten de tant en tant, quan un exercici surt molt bé i a temps. Cada carta val el doble de punts. Si en surt un que ja tens, evoluciona.',
       tilt:'Mou-la amb el dit', own:'Imatge de la carta del dia', ownNote:'Tria una imatge teva per a la felicitació diària. Es desa només en aquest dispositiu: no es puja ni es comparteix.', ownPick:'Tria una imatge', ownDel:'Treu-la', ownBig:'No s’ha pogut desar la imatge.', sup:'{0}, has estat increïble!', sup0:'Has estat increïble!', daily:'Has guanyat la carta d’avui!', howDay:'Cada dia, el primer exercici que et surt bé et dona la carta del dia.', nw:'Nova!', r1:'Comuna', r2:'Rara', sh:'Brillant',
-      fire:'Foc', water:'Aigua', plant:'Planta', elec:'Elèctric', rock:'Roca', air:'Aire'},
+      fire:'Foc', water:'Aigua', plant:'Planta', elec:'Elèctric', rock:'Roca', air:'Aire', ice:'Gel', night:'Nit', bug:'Bitxo', metal:'Metall', star:'Estrella', dino:'Drac'},
   en:{won:'You won a card!', evo:'{0} evolved!', itIs:"It's {0}!", evoSay:'{0} evolved into {1}!', shiny:"And it's shiny!", double:"It's worth double points.", ok:'Great!', close:'Close',
       album:'Shiny cards', count:'{0} of {1} monsters', shinyN:'{0} shiny', how:'They appear now and then when an exercise goes really well and on time. Each card is worth double points. If you get one you already have, it evolves.',
       tilt:'Move it with your finger', own:'Card of the day image', ownNote:'Choose an image of your own for the daily celebration. It is stored only on this device: never uploaded or shared.', ownPick:'Choose image', ownDel:'Remove', ownBig:'The image could not be saved.', sup:'{0}, you were amazing!', sup0:'You were amazing!', daily:"You won today's card!", howDay:'Every day, the first exercise you do well gives you the card of the day.', nw:'New!', r1:'Common', r2:'Rare', sh:'Shiny',
-      fire:'Fire', water:'Water', plant:'Plant', elec:'Electric', rock:'Rock', air:'Air'}};
+      fire:'Fire', water:'Water', plant:'Plant', elec:'Electric', rock:'Rock', air:'Air', ice:'Ice', night:'Night', bug:'Bug', metal:'Metal', star:'Star', dino:'Dragon'}};
 const t=k=>(TX[LG()]||TX.es)[k]||TX.es[k]||k;
 const F=(s,...a)=>String(s).replace(/\{(\d)\}/g,(m,i)=>a[+i]!=null? a[+i] : '');
 
@@ -42,7 +42,9 @@ const circles=(l,fill)=>l.map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" f
 const flower=(x,y,c='#F48FB1',r=4)=>[0,72,144,216,288].map(a=>{ const q=a*Math.PI/180; return `<circle cx="${(x+Math.cos(q)*r*1.2).toFixed(1)}" cy="${(y+Math.sin(q)*r*1.2).toFixed(1)}" r="${r}" fill="${c}"/>`; }).join('')+`<circle cx="${x}" cy="${y}" r="${r*.8}" fill="#FFEB3B"/>`;
 
 const TYPES={fire:{c:'#FF7043', bg:'#FFE3D6', i:'🔥'}, water:{c:'#29B6F6', bg:'#D7F1FF', i:'💧'}, plant:{c:'#66BB6A', bg:'#E3F5DA', i:'🌿'},
-  elec:{c:'#FBC02D', bg:'#FFF6C7', i:'⚡'}, rock:{c:'#8D6E63', bg:'#EFE6DF', i:'⛰️'}, air:{c:'#7E9CF5', bg:'#E5ECFF', i:'☁️'}};
+  elec:{c:'#FBC02D', bg:'#FFF6C7', i:'⚡'}, rock:{c:'#8D6E63', bg:'#EFE6DF', i:'⛰️'}, air:{c:'#7E9CF5', bg:'#E5ECFF', i:'☁️'},
+  ice:{c:'#4DD0E1', bg:'#E0F7FA', i:'❄️'}, night:{c:'#7E57C2', bg:'#E6DEF7', i:'🌙'}, bug:{c:'#9CCC65', bg:'#EEF7DD', i:'🐞'},
+  metal:{c:'#78909C', bg:'#E3EAEE', i:'⚙️'}, star:{c:'#EC407A', bg:'#FCE1EC', i:'⭐'}, dino:{c:'#26A69A', bg:'#D9F2EF', i:'🐉'}};
 
 const CARDS=[
  {id:'chispi', name:'Chispi', type:'fire', st:1, evo:'fogaro', svg:
@@ -98,6 +100,60 @@ const CARDS=[
   ['#EF5350','#FFA726','#FFEE58','#66BB6A','#42A5F5'].map((c,k)=>`<path d="M${14+k*5} 92 A${46-k*5} ${46-k*5} 0 0 1 ${106-k*5} 92" stroke="${c}" stroke-width="5" fill="none"/>`).join('')+
   circles([[32,72,22],[56,58,28],[84,66,24],[60,82,24],[92,84,14],[28,88,14]],'#C5D3F7')+circles([[32,72,20],[56,58,26],[84,66,22],[60,82,22],[92,84,12],[28,88,12]],'#F5F8FF')+
   `<path d="M100 40 q10 -6 14 2 q-8 2 -12 -2" stroke="#7E9CF5" stroke-width="2.6" fill="none" stroke-linecap="round"/>`+BROWS(50,70,70)+FACE(50,70,70,7)},
+ /* ---- segunda tanda (también originales) ---- */
+ {id:'copi', name:'Copi', type:'ice', st:1, evo:'glaciar', svg:
+  `<path d="M60 16 L72 36 L94 40 L82 60 L90 84 L60 96 L30 84 L38 60 L26 40 L48 36Z" fill="#80DEEA"/><path d="M60 30 L68 44 L82 48 L74 62 L78 78 L60 86 L42 78 L46 62 L38 48 L52 44Z" fill="#E0F7FA"/>`+
+  `<path d="M40 30 l4 6 M80 30 l-4 6" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`+FEET('#00ACC1',50,70,100)+FACE(52,68,62)},
+ {id:'glaciar', name:'Glaciar', type:'ice', st:2, svg:
+  `<path d="M40 30 L46 6 L56 28Z" fill="#B2EBF2"/><path d="M56 26 L62 2 L70 26Z" fill="#E0F7FA"/><path d="M68 28 L78 8 L82 32Z" fill="#B2EBF2"/>`+
+  `<path d="M22 100 L18 62 L34 34 L60 24 L88 34 L102 62 L98 100Z" fill="#26C6DA"/><path d="M32 100 L30 66 L42 44 L60 38 L80 44 L90 66 L88 100Z" fill="#B2EBF2"/>`+
+  `<path d="M18 70 L4 62 L14 84Z" fill="#80DEEA"/><path d="M102 70 L116 62 L106 84Z" fill="#80DEEA"/><ellipse cx="60" cy="88" rx="18" ry="9" fill="#E0F7FA"/>`+FEET('#00838F',46,74,104)+BROWS(50,70,66)+FACE(50,70,66,7)},
+ {id:'lunita', name:'Lunita', type:'night', st:1, evo:'sombron', svg:
+  `<path d="M34 46 L28 20 L48 36Z" fill="#7E57C2"/><path d="M86 46 L92 20 L72 36Z" fill="#7E57C2"/><path d="M35 40 L32 27 L42 35Z" fill="#F8BBD0"/><path d="M85 40 L88 27 L78 35Z" fill="#F8BBD0"/>`+
+  `<ellipse cx="60" cy="68" rx="30" ry="30" fill="#9575CD"/><ellipse cx="60" cy="80" rx="17" ry="14" fill="#D1C4E9"/>`+
+  `<path d="M88 84 C104 86 108 72 100 66 C102 74 96 78 88 76Z" fill="#7E57C2"/><path d="M56 44 a7 7 0 1 0 8 0 a5 5 0 1 1 -8 0Z" fill="#FFF59D"/>`+FEET('#5E35B1',50,70,100)+FACE(51,69,68)},
+ {id:'sombron', name:'Sombrón', type:'night', st:2, svg:
+  `<path d="M28 60 C4 50 2 28 10 18 C14 30 20 30 24 26 C24 36 30 38 36 36Z" fill="#5E35B1"/><path d="M92 60 C116 50 118 28 110 18 C106 30 100 30 96 26 C96 36 90 38 84 36Z" fill="#5E35B1"/>`+
+  `<path d="M38 40 L32 12 L52 30Z" fill="#673AB7"/><path d="M82 40 L88 12 L68 30Z" fill="#673AB7"/>`+
+  `<ellipse cx="60" cy="68" rx="34" ry="36" fill="#673AB7"/><ellipse cx="60" cy="82" rx="20" ry="18" fill="#B39DDB"/>`+
+  [[30,22,2.5],[92,24,2],[18,74,2],[104,78,2.5]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#FFF59D"/>`).join('')+
+  `<path d="M54 40 a8 8 0 1 0 12 0 a6 6 0 1 1 -12 0Z" fill="#FFF59D"/>`+FEET('#4527A0',46,74,105)+BROWS(50,70,64)+FACE(50,70,64,7)},
+ {id:'bichi', name:'Bichi', type:'bug', st:1, evo:'mariposon', svg:
+  `<path d="M50 34 C46 22 40 18 34 18" stroke="${DK}" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M70 34 C74 22 80 18 86 18" stroke="${DK}" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="34" cy="18" r="3.5" fill="#EF5350"/><circle cx="86" cy="18" r="3.5" fill="#EF5350"/>`+
+  `<ellipse cx="60" cy="68" rx="32" ry="30" fill="#EF5350"/><path d="M60 40 L60 98" stroke="${DK}" stroke-width="2.4"/>`+circles([[42,60,5],[78,60,5],[46,84,4.5],[74,84,4.5],[38,74,3],[82,74,3]],DK)+
+  `<path d="M38 50 A24 20 0 0 1 82 50 A30 22 0 0 0 38 50Z" fill="#FFCDD2"/><ellipse cx="60" cy="52" rx="22" ry="16" fill="#FFE0B2"/>`+FEET('#B71C1C',50,70,101)+FACE(52,68,50,6)},
+ {id:'mariposon', name:'Mariposón', type:'bug', st:2, svg:
+  `<path d="M56 60 C30 20 4 30 10 56 C12 68 30 70 54 66Z" fill="#AB47BC"/><path d="M64 60 C90 20 116 30 110 56 C108 68 90 70 66 66Z" fill="#AB47BC"/>`+
+  `<path d="M56 70 C34 76 20 90 30 102 C40 110 52 96 58 78Z" fill="#FF7043"/><path d="M64 70 C86 76 100 90 90 102 C80 110 68 96 62 78Z" fill="#FF7043"/>`+
+  circles([[28,48,7],[92,48,7],[38,94,5],[82,94,5]],'#FFF59D')+circles([[28,48,3],[92,48,3]],'#EC407A')+
+  `<path d="M54 30 C50 18 44 14 40 12" stroke="${DK}" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M66 30 C70 18 76 14 80 12" stroke="${DK}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`+
+  `<ellipse cx="60" cy="74" rx="11" ry="26" fill="#8BC34A"/><circle cx="60" cy="44" r="17" fill="#AED581"/>`+BROWS(54,66,44)+FACE(54,66,44,5.5)},
+ {id:'tuerqui', name:'Tuerqui', type:'metal', st:1, evo:'roboton', svg:
+  `<line x1="60" y1="34" x2="60" y2="20" stroke="#546E7A" stroke-width="3"/><circle cx="60" cy="17" r="5" fill="#FFCA28"/>`+
+  `<rect x="30" y="34" width="60" height="58" rx="14" fill="#90A4AE"/><rect x="38" y="42" width="44" height="34" rx="9" fill="#ECEFF1"/>`+
+  `<rect x="20" y="54" width="10" height="20" rx="5" fill="#78909C"/><rect x="90" y="54" width="10" height="20" rx="5" fill="#78909C"/>`+circles([[42,84,2.5],[60,84,2.5],[78,84,2.5]],'#FFCA28')+FEET('#546E7A',48,72,98)+FACE(51,69,56,6)},
+ {id:'roboton', name:'Robotón', type:'metal', st:2, svg:
+  `<path d="M44 26 L40 8 L52 22Z" fill="#FFCA28"/><path d="M76 26 L80 8 L68 22Z" fill="#FFCA28"/>`+
+  `<rect x="36" y="22" width="48" height="38" rx="12" fill="#78909C"/><rect x="42" y="28" width="36" height="24" rx="8" fill="#ECEFF1"/>`+
+  `<rect x="26" y="58" width="68" height="42" rx="12" fill="#607D8B"/><rect x="8" y="60" width="18" height="30" rx="9" fill="#90A4AE"/><rect x="94" y="60" width="18" height="30" rx="9" fill="#90A4AE"/>`+
+  `<circle cx="60" cy="78" r="12" fill="#4FC3F7"/><circle cx="60" cy="78" r="6" fill="#E1F5FE"/><rect x="40" y="98" width="14" height="12" rx="4" fill="#455A64"/><rect x="66" y="98" width="14" height="12" rx="4" fill="#455A64"/>`+BROWS(52,68,40)+FACE(52,68,40,5.5)},
+ {id:'estreli', name:'Estreli', type:'star', st:1, evo:'cometon', svg:
+  `<path d="M60 14 L72 44 L104 46 L79 66 L88 98 L60 80 L32 98 L41 66 L16 46 L48 44Z" fill="#FFD54F" stroke="#FFB300" stroke-width="3" stroke-linejoin="round"/>`+
+  `<circle cx="22" cy="24" r="3" fill="#F48FB1"/><circle cx="100" cy="22" r="2.5" fill="#F48FB1"/><circle cx="104" cy="84" r="2.5" fill="#fff"/>`+FACE(52,68,58,6)},
+ {id:'cometon', name:'Cometón', type:'star', st:2, svg:
+  `<path d="M6 104 C30 80 44 70 58 62 L66 78 C50 84 30 94 6 104Z" fill="#F48FB1"/><path d="M4 86 C26 70 40 62 54 56 L58 66 C42 72 26 78 4 86Z" fill="#CE93D8"/><path d="M22 110 C40 96 54 88 66 82 L70 90 C56 96 42 102 22 110Z" fill="#FFAB91"/>`+
+  `<path d="M74 10 L85 38 L114 40 L92 59 L99 88 L74 72 L49 88 L56 59 L34 40 L63 38Z" fill="#FFCA28" stroke="#FF8F00" stroke-width="3" stroke-linejoin="round"/>`+
+  `<path d="M74 26 L80 42 L96 44 L84 54 L88 70 L74 61 L60 70 L64 54 L52 44 L68 42Z" fill="#FFF59D"/>`+BROWS(67,81,50)+FACE(67,81,50,5.5)},
+ {id:'dini', name:'Dini', type:'dino', st:1, evo:'dragolin', svg:
+  `<path d="M82 84 C104 88 110 72 102 62 C102 72 94 76 84 72Z" fill="#26A69A"/>`+[[46,26],[60,20],[74,26]].map(([x,y])=>`<path d="M${x-7} ${y+14} L${x} ${y} L${x+7} ${y+14}Z" fill="#FFB74D"/>`).join('')+
+  `<ellipse cx="60" cy="66" rx="30" ry="32" fill="#4DB6AC"/><ellipse cx="60" cy="80" rx="17" ry="15" fill="#E0F2F1"/>`+
+  `<ellipse cx="32" cy="72" rx="6" ry="9" fill="#26A69A"/><ellipse cx="88" cy="72" rx="6" ry="9" fill="#26A69A"/>`+FEET('#00796B',48,72,101)+FACE(51,69,60)},
+ {id:'dragolin', name:'Dragolín', type:'dino', st:2, svg:
+  `<path d="M30 58 C8 40 4 20 12 8 C18 22 26 22 30 18 C30 30 38 34 44 36Z" fill="#00897B"/><path d="M90 58 C112 40 116 20 108 8 C102 22 94 22 90 18 C90 30 82 34 76 36Z" fill="#00897B"/>`+
+  `<path d="M88 92 C112 98 118 78 108 68 C108 80 100 84 90 80Z" fill="#00897B"/><path d="M108 68 l8 -6 l-2 10Z" fill="#FFB74D"/>`+
+  `<path d="M44 26 L48 8 L56 24Z" fill="#FFB74D"/><path d="M76 26 L72 8 L64 24Z" fill="#FFB74D"/>`+
+  `<ellipse cx="60" cy="66" rx="34" ry="38" fill="#26A69A"/><ellipse cx="60" cy="82" rx="20" ry="20" fill="#FFE0B2"/>`+[72,80,88].map(y=>`<path d="M46 ${y} Q60 ${y+4} 74 ${y}" stroke="#FFB74D" stroke-width="2" fill="none"/>`).join('')+
+  `<path d="M52 74 q-4 6 -8 2 M68 74 q4 6 8 2" stroke="#FF7043" stroke-width="0" fill="none"/>`+FEET('#00695C',46,74,105)+BROWS(50,70,56)+FACE(50,70,56,7)},
 ];
 const BYID={}; CARDS.forEach((c,k)=>{ c.no=k+1; BYID[c.id]=c; });
 CARDS.forEach(c=>{ if(c.evo) BYID[c.evo].from=c.id; });
