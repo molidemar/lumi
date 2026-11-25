@@ -12,15 +12,15 @@ const LG=()=>{ const l=(document.documentElement.lang||'es').slice(0,2); return 
 const TX={
   es:{won:'¡Ganaste una carta!', evo:'¡{0} evolucionó!', itIs:'¡Es {0}!', evoSay:'¡{0} evolucionó a {1}!', shiny:'¡Y es brillante!', double:'Vale el doble de puntos.', ok:'¡Genial!', close:'Cerrar',
       album:'Cartas brillantes', count:'{0} de {1} monstruos', shinyN:'{0} brillantes', how:'Salen de vez en cuando, si un ejercicio sale muy bien y a tiempo. Cada carta vale el doble de puntos. Si sale uno que ya tienes, evoluciona.',
-      tilt:'Muévela con el dedo', sup:'¡{0}, has estado increíble!', sup0:'¡Has estado increíble!', daily:'¡Has ganado la carta de hoy!', howDay:'Todos los días, el primer ejercicio que te sale bien te da la carta del día.', nw:'¡Nueva!', r1:'Común', r2:'Rara', sh:'Brillante',
+      tilt:'Muévela con el dedo', own:'Imagen de la carta del día', ownNote:'Elige una imagen tuya para la felicitación diaria. Se guarda solo en este dispositivo: no se sube ni se comparte.', ownPick:'Elegir imagen', ownDel:'Quitar', ownBig:'No se pudo guardar la imagen.', sup:'¡{0}, has estado increíble!', sup0:'¡Has estado increíble!', daily:'¡Has ganado la carta de hoy!', howDay:'Todos los días, el primer ejercicio que te sale bien te da la carta del día.', nw:'¡Nueva!', r1:'Común', r2:'Rara', sh:'Brillante',
       fire:'Fuego', water:'Agua', plant:'Planta', elec:'Eléctrico', rock:'Roca', air:'Aire'},
   ca:{won:'Has guanyat una carta!', evo:'{0} ha evolucionat!', itIs:'És {0}!', evoSay:'{0} ha evolucionat a {1}!', shiny:'I és brillant!', double:'Val el doble de punts.', ok:'Genial!', close:'Tanca',
       album:'Cartes brillants', count:'{0} de {1} monstres', shinyN:'{0} brillants', how:'Surten de tant en tant, quan un exercici surt molt bé i a temps. Cada carta val el doble de punts. Si en surt un que ja tens, evoluciona.',
-      tilt:'Mou-la amb el dit', sup:'{0}, has estat increïble!', sup0:'Has estat increïble!', daily:'Has guanyat la carta d’avui!', howDay:'Cada dia, el primer exercici que et surt bé et dona la carta del dia.', nw:'Nova!', r1:'Comuna', r2:'Rara', sh:'Brillant',
+      tilt:'Mou-la amb el dit', own:'Imatge de la carta del dia', ownNote:'Tria una imatge teva per a la felicitació diària. Es desa només en aquest dispositiu: no es puja ni es comparteix.', ownPick:'Tria una imatge', ownDel:'Treu-la', ownBig:'No s’ha pogut desar la imatge.', sup:'{0}, has estat increïble!', sup0:'Has estat increïble!', daily:'Has guanyat la carta d’avui!', howDay:'Cada dia, el primer exercici que et surt bé et dona la carta del dia.', nw:'Nova!', r1:'Comuna', r2:'Rara', sh:'Brillant',
       fire:'Foc', water:'Aigua', plant:'Planta', elec:'Elèctric', rock:'Roca', air:'Aire'},
   en:{won:'You won a card!', evo:'{0} evolved!', itIs:"It's {0}!", evoSay:'{0} evolved into {1}!', shiny:"And it's shiny!", double:"It's worth double points.", ok:'Great!', close:'Close',
       album:'Shiny cards', count:'{0} of {1} monsters', shinyN:'{0} shiny', how:'They appear now and then when an exercise goes really well and on time. Each card is worth double points. If you get one you already have, it evolves.',
-      tilt:'Move it with your finger', sup:'{0}, you were amazing!', sup0:'You were amazing!', daily:"You won today's card!", howDay:'Every day, the first exercise you do well gives you the card of the day.', nw:'New!', r1:'Common', r2:'Rare', sh:'Shiny',
+      tilt:'Move it with your finger', own:'Card of the day image', ownNote:'Choose an image of your own for the daily celebration. It is stored only on this device: never uploaded or shared.', ownPick:'Choose image', ownDel:'Remove', ownBig:'The image could not be saved.', sup:'{0}, you were amazing!', sup0:'You were amazing!', daily:"You won today's card!", howDay:'Every day, the first exercise you do well gives you the card of the day.', nw:'New!', r1:'Common', r2:'Rare', sh:'Shiny',
       fire:'Fire', water:'Water', plant:'Plant', elec:'Electric', rock:'Rock', air:'Air'}};
 const t=k=>(TX[LG()]||TX.es)[k]||TX.es[k]||k;
 const F=(s,...a)=>String(s).replace(/\{(\d)\}/g,(m,i)=>a[+i]!=null? a[+i] : '');
@@ -129,7 +129,7 @@ function roll(save, o){ const C=st(save); const spd= o.total && o.secs>0? o.secs
   const card= give? choose(save) : null; if(card && daily) card.sup=true;
   return {card, spd: o.timed? null : spd, elig, daily}; }
 
-/* Guarda el resultado en el progreso del chico (dentro de update). o={game, today, bonus} */
+/* Guarda el resultado en el progreso del niño (dentro de update). o={game, today, bonus} */
 function apply(n, r, o){ const C=n.cards=n.cards||{}; C.got=C.got||{}; C.log=C.log||[]; C.sp=C.sp||{};
   if(r.spd && r.spd>=.3 && r.spd<=600){ const a=C.sp[o.game]=(C.sp[o.game]||[]); a.push(Math.round(r.spd*10)/10); if(a.length>6) a.splice(0,a.length-6); }
   if(r.card){ const k=r.card.id+(r.card.shiny?'*':''); C.got[k]=(C.got[k]||0)+1; C.log.push({id:r.card.id, s:r.card.shiny?1:undefined, d:o.today, g:o.game, p:o.bonus});
@@ -229,7 +229,19 @@ if(document.head) injectCss(); else document.addEventListener('DOMContentLoaded'
 /* ---------- componentes ---------- */
 const R=()=>window.React; const H=()=>window.htm.bind(window.React.createElement);
 
+const OWN_KEY='lumi-carta-img';
+const ownGet=()=>{ try{ return localStorage.getItem(OWN_KEY)||''; }catch(e){ return ''; } };
+const ownSet=v=>{ try{ if(v) localStorage.setItem(OWN_KEY,v); else localStorage.removeItem(OWN_KEY); return true; }catch(e){ return false; } };
+function ownLoad(file){ return new Promise((res,rej)=>{ const u=URL.createObjectURL(file); const im=new Image(); im.onload=()=>{ try{ let w=im.naturalWidth, hh=im.naturalHeight; const k=Math.min(1, 1000/Math.max(w,hh)); w=Math.round(w*k); hh=Math.round(hh*k);
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=hh; cv.getContext('2d').drawImage(im,0,0,w,hh); URL.revokeObjectURL(u); res(cv.toDataURL('image/jpeg',.82)); }catch(e){ rej(e); } }; im.onerror=rej; im.src=u; }); }
+function OwnImg(){ const h=H(); const [img,setImg]=R().useState(ownGet()); const [err,setErr]=R().useState('');
+  const pick=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f) return; ownLoad(f).then(d=>{ if(ownSet(d)){ setImg(d); setErr(''); } else setErr(t('ownBig')); }).catch(()=>setErr(t('ownBig'))); };
+  return h`<div className="lc-own" data-notr><span className="small">${t('own')}</span>
+    <div className="seg">${img && h`<img src=${img} alt="" style=${{height:'64px', borderRadius:'8px', marginRight:'8px'}}/>`}<label className="btn" style=${{cursor:'pointer'}}>${t('ownPick')}<input type="file" accept="image/*" onChange=${pick} style=${{display:'none'}}/></label>${img && h`<button onClick=${()=>{ ownSet(''); setImg(''); }}>${t('ownDel')}</button>`}</div>
+    <p className="small muted">${err||t('ownNote')}</p></div>`; }
 function Face({card, w, mini, isNew}){ const h=H(); const c=BYID[card.id]; const T0=TYPES[c.type];
+  const own= card.sup && !mini && card.own!==false? ownGet() : '';
+  if(own) return h`<div className="lc-face sup own" style=${{width:w+'px', height:Math.round(w*1.4)+'px', fontSize:(w*.072).toFixed(1)+'px'}}><img src=${own} alt="" style=${{width:'100%', height:'100%', objectFit:'cover', borderRadius:'inherit', display:'block'}}/><div className="lc-glare"></div></div>`;
   return h`<div className=${'lc-face'+(c.st>1?' r2':'')+(card.shiny?' shy':'')+(card.sup?' sup':'')+(mini?' mini':'')} style=${{width:w+'px', height:Math.round(w*1.4)+'px', fontSize:(w*.072).toFixed(1)+'px'}}>
     <div className="lc-in">
       <div className="lc-top"><b>${c.name.toUpperCase()}</b><span className="lc-x2">×2</span></div>
@@ -288,5 +300,5 @@ function Album({save, say, tone}){ const React=R(), h=H(); const [open,setOpen]=
     ${open && h`<${Reveal} card=${open} mode="view" say=${say} tone=${null} onClose=${()=>setOpen(null)}/>`}
   </div>`; }
 
-window.LumiCards={CARDS, BYID, TYPES, roll, apply, choose, sayFor, owned, Reveal, Album, Face, t, rules:{CHANCE, PITY, MAXDAY, GAP}};
+window.LumiCards={CARDS, BYID, TYPES, roll, apply, choose, sayFor, owned, Reveal, Album, Face, OwnImg, t, rules:{CHANCE, PITY, MAXDAY, GAP}};
 })();

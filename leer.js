@@ -1,6 +1,6 @@
 /* Lumi · Leer palabras (lectura guiada por sílabas con el micrófono), Sopa de letras, niveles de explorador y tamaño de las letras para trazar.
    - Leer palabras: se pinta la sílaba que hay que decir, después la siguiente y al final la palabra entera. Lumi escucha (oído de Lumi: Whisper en el
-     dispositivo) y ayuda: si no sale, la dice ella parte por parte y el chico repite. Cada 50 palabras leídas sube una etapa (palabras con más letras).
+     dispositivo) y ayuda: si no sale, la dice ella parte por parte y el niño repite. Cada 50 palabras leídas sube una etapa (palabras con más letras).
    - Sopa de letras: desde los 5 años, 12 niveles (5×5 con 3 palabras en horizontal … 12×12 con 12 palabras en todas las direcciones). También en papel.
    - Niveles de explorador: muchos niveles cortos según los puntos, con barra en el inicio y festejo al subir.
    Archivo aparte de index.html (como progress.js y cards.js). Expone window.LumiLeer; index.html le pasa sus piezas en LumiLeer.core. */
@@ -92,7 +92,7 @@ function pickWords(n, recent, r, lang){ r=r||Math.random; const W=words(lang); c
     const pic=r()<.8; const w=pool.find(x=>!rec.has(x.w) && (!pic || x.e)) || pool.find(x=>!rec.has(x.w)) || pool[0]; used.add(w.w); out.push(w); });
   return out; }
 
-/* ---------- comparar lo que oyó con la palabra (amable con un chico que recién lee) ---------- */
+/* ---------- comparar lo que oyó con la palabra (amable con un niño que empieza a leer) ---------- */
 function phon(s, lang){ s=String(s).toLowerCase().normalize('NFD').replace(/[̀-̂̄-̨̦-ͯ]/g,'').normalize('NFC').replace(/[^a-zñç]/g,'');
   if((lang||LG())==='es') s=s.replace(/h/g,'').replace(/v/g,'b').replace(/z/g,'s').replace(/c(?=[ei])/g,'s').replace(/qu/g,'k').replace(/c/g,'k').replace(/ll/g,'y').replace(/gu(?=[ei])/g,'g').replace(/w/g,'u').replace(/x/g,'ks').replace(/(.)\1+/g,'$1');
   else if((lang||LG())==='ca') s=s.replace(/h/g,'').replace(/v/g,'b').replace(/ç/g,'s').replace(/(.)\1+/g,'$1');
@@ -115,7 +115,7 @@ const RANKS=[[1,'🌱','r1'],[3,'✨','r2'],[6,'⭐','r3'],[10,'☄️','r4'],[1
 function rank(points){ let lv=1, left=Math.max(0,Math.floor(points||0)); while(left>=need(lv) && lv<999){ left-=need(lv); lv++; }
   let k=0; RANKS.forEach((x,i)=>{ if(lv>=x[0]) k=i; }); return {lv, into:left, need:need(lv), icon:RANKS[k][1], title:t(RANKS[k][2]), k}; }
 
-/* ---------- letras para trazar: cada vez más chicas ---------- */
+/* ---------- letras para trazar: cada vez más pequeñas ---------- */
 function traceScale(save, level){ const L=(save&&save.letters)||{}; const total=Object.values(L).reduce((a,b)=>a+(+b||0),0); const age=(save&&save.settings&&save.settings.age)||5;
   const steps=Math.floor(total/10)+Math.max(0,(level||1)-1)+(age>=6? 3 : age>=5? 1 : 0); return Math.max(.36, 1-.08*steps); }
 const traceTol=(tol, sc)=>tol*(1+(1-sc)*.7);
@@ -229,7 +229,7 @@ function ReadWords({api, save}){ const React=R(), h=H(), C=core(); const {useSta
     S.att={L, kill:()=>{ ended=true; try{ L.stop(); }catch(e){} }}; }
   async function evaluate(my, audio, why, wordSeg){ const O=C.OIDO; let res=null;
     if(O && O.usable() && O.asrOk){ setPhase('think'); try{ const r=await Promise.race([O.hear(audio, 4, C.asrPrompt? C.asrPrompt(W().w) : low(W().w)), sleep(12000).then(()=>null)]); if(r && typeof r.text==='string'){ res=judge(W().w, r.text);
-        /* el oído se confunde con palabras sueltas y voces de chico: si no entendió nada parecido, la segunda vez vale haberla dicho entera */
+        /* el oído se confunde con palabras sueltas y voces de niño: si no entendió nada parecido, la segunda vez vale haberla dicho entera */
         if(!res && (/^\s*[\[(]/.test(r.text) || !phon(r.text))) res=null; else if(!res && wordSeg && (S.tryN>=1 || near(W().w, r.text))) res='word'; window.LumiLeer.last={w:W().w, heard:r.text, res, why}; } }catch(e){ res=null; } }
     if(!S.alive || my!==S.seq) return;
     if(res===null) res= wordSeg? 'word' : (why==='idle' && S.step>=LAST())? 'parts' : '';      /* sin oído: vale haber dicho todas las partes y la palabra */
