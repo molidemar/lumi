@@ -11,16 +11,16 @@
 const LG=()=>{ const l=(document.documentElement.lang||'es').slice(0,2); return l==='ca'||l==='en'? l : 'es'; };
 const TX={
   es:{won:'¡Ganaste una carta!', evo:'¡{0} evolucionó!', itIs:'¡Es {0}!', evoSay:'¡{0} evolucionó a {1}!', shiny:'¡Y es brillante!', double:'Vale el doble de puntos.', ok:'¡Genial!', close:'Cerrar',
-      album:'Cartas brillantes', count:'{0} de {1} monstruos', shinyN:'{0} brillantes', how:'Salen de vez en cuando, si un ejercicio sale muy bien y a tiempo. Cada carta vale el doble de puntos. Si sale uno que ya tenés, evoluciona.',
-      tilt:'Movela con el dedo', nw:'¡Nueva!', r1:'Común', r2:'Rara', sh:'Brillante',
+      album:'Cartas brillantes', count:'{0} de {1} monstruos', shinyN:'{0} brillantes', how:'Salen de vez en cuando, si un ejercicio sale muy bien y a tiempo. Cada carta vale el doble de puntos. Si sale uno que ya tienes, evoluciona.',
+      tilt:'Muévela con el dedo', own:'Imagen de la carta del día', ownNote:'Elige una imagen tuya para la felicitación diaria. Se guarda solo en este dispositivo: no se sube ni se comparte.', ownPick:'Elegir imagen', ownDel:'Quitar', ownBig:'No se pudo guardar la imagen.', sup:'¡{0}, has estado increíble!', sup0:'¡Has estado increíble!', daily:'¡Has ganado la carta de hoy!', howDay:'Todos los días, el primer ejercicio que te sale bien te da la carta del día.', nw:'¡Nueva!', r1:'Común', r2:'Rara', sh:'Brillante',
       fire:'Fuego', water:'Agua', plant:'Planta', elec:'Eléctrico', rock:'Roca', air:'Aire'},
   ca:{won:'Has guanyat una carta!', evo:'{0} ha evolucionat!', itIs:'És {0}!', evoSay:'{0} ha evolucionat a {1}!', shiny:'I és brillant!', double:'Val el doble de punts.', ok:'Genial!', close:'Tanca',
       album:'Cartes brillants', count:'{0} de {1} monstres', shinyN:'{0} brillants', how:'Surten de tant en tant, quan un exercici surt molt bé i a temps. Cada carta val el doble de punts. Si en surt un que ja tens, evoluciona.',
-      tilt:'Mou-la amb el dit', nw:'Nova!', r1:'Comuna', r2:'Rara', sh:'Brillant',
+      tilt:'Mou-la amb el dit', own:'Imatge de la carta del dia', ownNote:'Tria una imatge teva per a la felicitació diària. Es desa només en aquest dispositiu: no es puja ni es comparteix.', ownPick:'Tria una imatge', ownDel:'Treu-la', ownBig:'No s’ha pogut desar la imatge.', sup:'{0}, has estat increïble!', sup0:'Has estat increïble!', daily:'Has guanyat la carta d’avui!', howDay:'Cada dia, el primer exercici que et surt bé et dona la carta del dia.', nw:'Nova!', r1:'Comuna', r2:'Rara', sh:'Brillant',
       fire:'Foc', water:'Aigua', plant:'Planta', elec:'Elèctric', rock:'Roca', air:'Aire'},
   en:{won:'You won a card!', evo:'{0} evolved!', itIs:"It's {0}!", evoSay:'{0} evolved into {1}!', shiny:"And it's shiny!", double:"It's worth double points.", ok:'Great!', close:'Close',
       album:'Shiny cards', count:'{0} of {1} monsters', shinyN:'{0} shiny', how:'They appear now and then when an exercise goes really well and on time. Each card is worth double points. If you get one you already have, it evolves.',
-      tilt:'Move it with your finger', nw:'New!', r1:'Common', r2:'Rare', sh:'Shiny',
+      tilt:'Move it with your finger', own:'Card of the day image', ownNote:'Choose an image of your own for the daily celebration. It is stored only on this device: never uploaded or shared.', ownPick:'Choose image', ownDel:'Remove', ownBig:'The image could not be saved.', sup:'{0}, you were amazing!', sup0:'You were amazing!', daily:"You won today's card!", howDay:'Every day, the first exercise you do well gives you the card of the day.', nw:'New!', r1:'Common', r2:'Rare', sh:'Shiny',
       fire:'Fire', water:'Water', plant:'Plant', elec:'Electric', rock:'Rock', air:'Air'}};
 const t=k=>(TX[LG()]||TX.es)[k]||TX.es[k]||k;
 const F=(s,...a)=>String(s).replace(/\{(\d)\}/g,(m,i)=>a[+i]!=null? a[+i] : '');
@@ -123,19 +123,24 @@ function roll(save, o){ const C=st(save); const spd= o.total && o.secs>0? o.secs
   let give=false;
   if(elig && todayN<MAXDAY && since>=GAP){ const first=!(C.log||[]).length; give= first || (C.miss||0)>=PITY || Math.random()<CHANCE; }
   if(o.force) give=true;
-  return {card: give? choose(save) : null, spd: o.timed? null : spd, elig}; }
+  /* carta del día: una vez por día, en el primer ejercicio que sale bien (2 estrellas o más) o, si no, desde el tercero */
+  const daily= !!o.sup || (o.daily!==false && C.dday!==o.today && (o.stars>=2 || (o.nth||0)>=3));
+  if(daily) give=true;
+  const card= give? choose(save) : null; if(card && daily) card.sup=true;
+  return {card, spd: o.timed? null : spd, elig, daily}; }
 
-/* Guarda el resultado en el progreso del chico (dentro de update). o={game, today, bonus} */
+/* Guarda el resultado en el progreso del niño (dentro de update). o={game, today, bonus} */
 function apply(n, r, o){ const C=n.cards=n.cards||{}; C.got=C.got||{}; C.log=C.log||[]; C.sp=C.sp||{};
   if(r.spd && r.spd>=.3 && r.spd<=600){ const a=C.sp[o.game]=(C.sp[o.game]||[]); a.push(Math.round(r.spd*10)/10); if(a.length>6) a.splice(0,a.length-6); }
   if(r.card){ const k=r.card.id+(r.card.shiny?'*':''); C.got[k]=(C.got[k]||0)+1; C.log.push({id:r.card.id, s:r.card.shiny?1:undefined, d:o.today, g:o.game, p:o.bonus});
-    if(C.log.length>KEEP) C.log=C.log.slice(-KEEP); C.miss=0; C.since=0;
+    if(C.log.length>KEEP) C.log=C.log.slice(-KEEP); C.miss=0; C.since=0; if(r.daily) C.dday=o.today;
     if(o.bonus){ n.points=(n.points||0)+o.bonus; const d=n.days&&n.days[o.today]; if(d) d.points=(d.points||0)+o.bonus; } }
   else { C.since=(C.since==null? GAP : C.since)+1; if(r.elig) C.miss=(C.miss||0)+1; }
   return n; }
 
 /* qué dice Lumi */
-function sayFor(card){ const c=BYID[card.id]; const out=[t('won')];
+const supText=card=> card.kid? F(t('sup'), card.kid) : t('sup0');
+function sayFor(card){ const c=BYID[card.id]; const out= card.sup? [supText(card), t('daily')] : [t('won')];
   if(card.evo) out.push(F(t('evoSay'), BYID[card.evo].name, c.name)); else out.push(F(t('itIs'), c.name));
   if(card.shiny) out.push(t('shiny')); out.push(t('double')); return out; }
 
@@ -192,6 +197,22 @@ const CSS=`
 .lc-cell.off .lc-art svg{filter:brightness(0); opacity:.16}
 .lc-cell .lc-cnt{position:absolute; right:2px; bottom:2px; background:#1B2B5A; color:#fff; border-radius:10px; font-size:12px; padding:1px 6px; font-weight:800}
 .lc-cell .lc-sh{position:absolute; left:2px; top:-4px; font-size:16px}
+.lc-ov.sup{background:radial-gradient(circle at 50% 47%, #FFFDE7 0, #FFEB3B 16%, #FFC107 34%, #EF6C00 56%, #4E2A04 80%, #140B02 100%)}
+.lc-ov.sup .lc-rays{background:repeating-conic-gradient(from 0deg, rgba(255,255,255,.6) 0deg 4deg, rgba(255,255,255,0) 4deg 15deg); animation-duration:9s, 1s}
+.lc-ov.sup h2{color:#fff; font-size:clamp(30px,8vw,64px); line-height:1.02; text-transform:uppercase; text-shadow:-2px -2px 0 #8A2B00, 2px -2px 0 #8A2B00, -2px 2px 0 #8A2B00, 2px 2px 0 #8A2B00, 0 5px 0 #8A2B00, 0 9px 14px rgba(0,0,0,.45); animation:lc-pop .7s .2s both, lc-beat 1.2s 1.2s ease-in-out infinite}
+.lc-ov.sup h2 span{display:block} .lc-ov.sup h2 span+span{font-size:.66em; color:#FFF59D; margin-top:.12em}
+.lc-ov.sup .lc-sub{color:#fff; text-shadow:0 2px 0 rgba(0,0,0,.45)}
+.lc-bolts{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+.lc-bolts path{fill:none; stroke:#fff; stroke-width:.9; stroke-linejoin:miter; filter:drop-shadow(0 0 3px #FFF176) drop-shadow(0 0 8px #FFD600); opacity:0; animation:lc-zap 1.7s linear infinite; vector-effect:non-scaling-stroke; stroke-width:5px}
+.lc-face.sup{background:linear-gradient(135deg,#FFF59D,#FFB300 30%,#FFFDE7 50%,#FF6F00 78%,#FFE082); box-shadow:0 0 0 .18em #fff, 0 0 2.2em rgba(255,235,59,.95), 0 .6em 1.6em rgba(0,0,0,.4)}
+.lc-face.sup .lc-art{background:radial-gradient(circle at 50% 55%, #FFFDE7 0, #FFEB3B 34%, #FF8F00 78%, #5D2E00 120%) !important; overflow:hidden}
+.lc-face.sup .lc-art svg.mon{animation:lc-jump 1.15s ease-in-out infinite; position:relative}
+.lc-zap{position:absolute; inset:0; width:100%; height:100%} .lc-face.sup .lc-type{z-index:2}
+.lc-zap path{fill:none; stroke:#fff; stroke-width:2.2; stroke-linejoin:miter; opacity:.9; animation:lc-zap 1.3s linear infinite}
+.lc-day{position:absolute; left:-.3em; bottom:2.6em; transform:rotate(-10deg); background:#D50000; color:#fff; font-weight:800; border-radius:.5em; padding:.1em .45em; font-size:.8em; box-shadow:0 .15em .4em rgba(0,0,0,.3); z-index:3}
+@keyframes lc-zap{0%,100%{opacity:0} 8%{opacity:1} 16%{opacity:.25} 24%{opacity:1} 40%{opacity:0}}
+@keyframes lc-jump{0%,100%{transform:translateY(3%) rotate(-3deg)} 50%{transform:translateY(-6%) rotate(3deg)}}
+@keyframes lc-beat{0%,100%{transform:scale(1)} 50%{transform:scale(1.05)}}
 @keyframes lc-in{0%{transform:scale(.12) rotateY(0deg); opacity:0} 12%{opacity:1} 72%{transform:scale(1.08) rotateY(1080deg)} 100%{transform:scale(1) rotateY(1080deg)}}
 @keyframes lc-float{0%,100%{transform:translateY(0) rotateY(-9deg)} 50%{transform:translateY(-10px) rotateY(9deg)}}
 @keyframes lc-shim{from{background-position:0% 0%} to{background-position:100% 100%}}
@@ -200,7 +221,7 @@ const CSS=`
 @keyframes lc-tw{0%,100%{opacity:0; transform:scale(.4)} 50%{opacity:1; transform:scale(1.15)}}
 @keyframes lc-fade{from{opacity:0} to{opacity:1}}
 @keyframes lc-pop{0%{transform:scale(.3); opacity:0} 70%{transform:scale(1.12); opacity:1} 100%{transform:scale(1)}}
-@media (prefers-reduced-motion: reduce){ .lc-card.spin{animation:lc-fade .6s both} .lc-float,.lc-rays,.lc-glow,.lc-spk i,.lc-foil,.lc-face.shy{animation:none} .lc-spk i{opacity:.8} }
+@media (prefers-reduced-motion: reduce){ .lc-card.spin{animation:lc-fade .6s both} .lc-float,.lc-rays,.lc-glow,.lc-spk i,.lc-foil,.lc-face.shy,.lc-face.sup .lc-art svg.mon,.lc-ov.sup h2{animation:none} .lc-bolts path,.lc-zap path{animation:none; opacity:.7} .lc-spk i{opacity:.8} }
 `;
 function injectCss(){ if(document.getElementById('lc-css')) return; const s=document.createElement('style'); s.id='lc-css'; s.textContent=CSS; document.head.appendChild(s); }
 if(document.head) injectCss(); else document.addEventListener('DOMContentLoaded', injectCss);
@@ -208,24 +229,42 @@ if(document.head) injectCss(); else document.addEventListener('DOMContentLoaded'
 /* ---------- componentes ---------- */
 const R=()=>window.React; const H=()=>window.htm.bind(window.React.createElement);
 
+const OWN_KEY='lumi-carta-img';
+const ownGet=()=>{ try{ return localStorage.getItem(OWN_KEY)||''; }catch(e){ return ''; } };
+const ownSet=v=>{ try{ if(v) localStorage.setItem(OWN_KEY,v); else localStorage.removeItem(OWN_KEY); return true; }catch(e){ return false; } };
+function ownLoad(file){ return new Promise((res,rej)=>{ const u=URL.createObjectURL(file); const im=new Image(); im.onload=()=>{ try{ let w=im.naturalWidth, hh=im.naturalHeight; const k=Math.min(1, 1000/Math.max(w,hh)); w=Math.round(w*k); hh=Math.round(hh*k);
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=hh; cv.getContext('2d').drawImage(im,0,0,w,hh); URL.revokeObjectURL(u); res(cv.toDataURL('image/jpeg',.82)); }catch(e){ rej(e); } }; im.onerror=rej; im.src=u; }); }
+function OwnImg(){ const h=H(); const [img,setImg]=R().useState(ownGet()); const [err,setErr]=R().useState('');
+  const pick=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f) return; ownLoad(f).then(d=>{ if(ownSet(d)){ setImg(d); setErr(''); } else setErr(t('ownBig')); }).catch(()=>setErr(t('ownBig'))); };
+  return h`<div className="lc-own" data-notr><span className="small">${t('own')}</span>
+    <div className="seg">${img && h`<img src=${img} alt="" style=${{height:'64px', borderRadius:'8px', marginRight:'8px'}}/>`}<label className="btn" style=${{cursor:'pointer'}}>${t('ownPick')}<input type="file" accept="image/*" onChange=${pick} style=${{display:'none'}}/></label>${img && h`<button onClick=${()=>{ ownSet(''); setImg(''); }}>${t('ownDel')}</button>`}</div>
+    <p className="small muted">${err||t('ownNote')}</p></div>`; }
 function Face({card, w, mini, isNew}){ const h=H(); const c=BYID[card.id]; const T0=TYPES[c.type];
-  return h`<div className=${'lc-face'+(c.st>1?' r2':'')+(card.shiny?' shy':'')+(mini?' mini':'')} style=${{width:w+'px', height:Math.round(w*1.4)+'px', fontSize:(w*.072).toFixed(1)+'px'}}>
+  const own= card.sup && !mini && card.own!==false? ownGet() : '';
+  if(own) return h`<div className="lc-face sup own" style=${{width:w+'px', height:Math.round(w*1.4)+'px', fontSize:(w*.072).toFixed(1)+'px'}}><img src=${own} alt="" style=${{width:'100%', height:'100%', objectFit:'cover', borderRadius:'inherit', display:'block'}}/><div className="lc-glare"></div></div>`;
+  return h`<div className=${'lc-face'+(c.st>1?' r2':'')+(card.shiny?' shy':'')+(card.sup?' sup':'')+(mini?' mini':'')} style=${{width:w+'px', height:Math.round(w*1.4)+'px', fontSize:(w*.072).toFixed(1)+'px'}}>
     <div className="lc-in">
       <div className="lc-top"><b>${c.name.toUpperCase()}</b><span className="lc-x2">×2</span></div>
       <div className="lc-art" style=${{background:T0.bg}}><span className="lc-type" style=${{background:T0.c}}>${T0.i} ${t(c.type)}</span>
-        <svg viewBox="0 0 120 120" aria-hidden="true" dangerouslySetInnerHTML=${{__html:c.svg}}></svg></div>
+        ${card.sup && h`<svg className="lc-zap" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${ZAP_IN.map((d,k)=>h`<path key=${k} d=${d} style=${{animationDelay:(k*.21)+'s'}}/>`)}</svg>`}
+        <svg className="mon" viewBox="0 0 120 120" aria-hidden="true" dangerouslySetInnerHTML=${{__html:c.svg}}></svg></div>
       <div className="lc-bot"><span className="st">${c.st>1?'★★':'★'}</span><span className="sp">${card.shiny? '✨ '+t('sh') : t(c.st>1?'r2':'r1')}</span><span className="no">${String(c.no).padStart(2,'0')}/${CARDS.length}</span></div>
     </div>
     <div className="lc-foil"></div><div className="lc-glare"></div>
     ${isNew && !mini && h`<span className="lc-new">${t('nw')}</span>`}
+    ${card.sup && !mini && h`<span className="lc-day">⚡ ${new Date().toLocaleDateString(LG(),{day:'numeric',month:'short'})}</span>`}
   </div>`; }
 
+/* rayos (dibujo propio) para la carta del día */
+const ZAP_IN=['M8 0 L20 22 L13 25 L27 46','M92 0 L80 20 L88 24 L74 44','M0 62 L16 58 L12 68 L30 66','M100 58 L84 62 L89 70 L70 72','M22 100 L30 82 L24 80 L36 66','M80 100 L72 84 L79 80 L66 68'];
+const ZAP_OUT=['M0 8 L14 16 L9 20 L24 30 L19 34 L33 42','M100 6 L86 15 L92 20 L76 29 L82 34 L67 43','M0 52 L12 50 L8 56 L22 55 L18 61 L30 60','M100 50 L88 49 L92 56 L78 55 L82 62 L70 61','M4 100 L16 86 L10 83 L24 71 L18 68 L32 58','M96 100 L84 87 L90 83 L76 72 L82 68 L68 59','M38 0 L42 10 L37 12 L44 24','M62 100 L58 90 L63 88 L56 76','M60 0 L57 9 L62 11 L56 22','M40 100 L43 91 L38 89 L45 78'];
 const SPK=[[8,18,22,0],[86,14,18,.4],[14,70,16,.9],[90,64,24,.2],[24,40,14,1.3],[78,38,14,.7],[50,8,18,1.1],[12,88,20,.5],[88,88,16,1.5],[50,92,14,.3]];
 function Reveal({card, mode='win', onClose, say, tone}){ const React=R(), h=H(); const {useEffect, useRef}=React; const c=BYID[card.id];
   const tilt=useRef(null), face=useRef(null), stage=useRef(null);
-  const w=Math.max(150, Math.round(Math.min(window.innerWidth*.68, 300, (window.innerHeight-(mode==='win'?250:170))/1.4)));
+  const w=Math.max(150, Math.round(Math.min(window.innerWidth*.68, 300, (window.innerHeight-(mode==='win'? (card.sup? 300 : 250) : 170))/1.4)));
   useEffect(()=>{ let a=true; const ts=[];
-    if(tone) try{ [784,988,1175,1568,1976].forEach((f,i)=>tone(f,.05+i*.11,.35)); ts.push(setTimeout(()=>{ if(a) [1319,1568,2093].forEach((f,i)=>tone(f,i*.08,.5)); },1750)); }catch(e){}
+    if(tone && sup) try{ [523,659,784,1047,1319,1568].forEach((f,i)=>tone(f,.04+i*.09,.4)); [1047,1319,1568,2093].forEach((f,i)=>tone(f,.75+i*.07,.7)); }catch(e){}
+    if(tone) try{ [784,988,1175,1568,1976].forEach((f,i)=>tone(f,(sup?1.5:.05)+i*.11,.35)); ts.push(setTimeout(()=>{ if(a) [1319,1568,2093].forEach((f,i)=>tone(f,i*.08,.5)); },1750)); }catch(e){}
     if(say) ts.push(setTimeout(()=>{ if(a) say(mode==='win'? sayFor(card) : [c.name]); }, mode==='win'? 450 : 100));
     return ()=>{ a=false; ts.forEach(clearTimeout); }; },[]);
   function move(e){ const st0=stage.current, tl=tilt.current; if(!st0||!tl) return; const r=st0.getBoundingClientRect();
@@ -233,17 +272,19 @@ function Reveal({card, mode='win', onClose, say, tone}){ const React=R(), h=H();
     tl.style.transform=`rotateX(${(-dy*16).toFixed(1)}deg) rotateY(${(dx*20).toFixed(1)}deg)`;
     const f=face.current&&face.current.firstChild; if(f){ f.style.setProperty('--mx',(50+dx*45).toFixed(0)+'%'); f.style.setProperty('--my',(50+dy*45).toFixed(0)+'%'); } }
   function leave(){ if(tilt.current) tilt.current.style.transform=''; }
-  const title= mode!=='win'? c.name.toUpperCase() : card.evo? F(t('evo'), BYID[card.evo].name.toUpperCase()) : t('won');
-  return h`<div className="lc-ov" role="dialog" aria-label=${title} onPointerMove=${move} onPointerDown=${move} onPointerUp=${leave} onPointerLeave=${leave}>
+  const sup= mode==='win' && !!card.sup; const stx= sup? supText(card) : ''; const cut= stx.indexOf(',');
+  const title= sup? stx : mode!=='win'? c.name.toUpperCase() : card.evo? F(t('evo'), BYID[card.evo].name.toUpperCase()) : t('won');
+  return h`<div className=${'lc-ov'+(sup?' sup':'')} role="dialog" aria-label=${title} onPointerMove=${move} onPointerDown=${move} onPointerUp=${leave} onPointerLeave=${leave}>
     <div className="lc-rays"></div><div className="lc-glow"></div>
     <div className="lc-spk">${SPK.map(([x,y,s,d],k)=>h`<i key=${k} style=${{left:x+'%', top:y+'%', fontSize:s+'px', animationDelay:(d+(mode==='win'?1.2:0))+'s'}}>✦</i>`)}</div>
-    <h2>${title}</h2>
+    ${sup && h`<svg className="lc-bolts" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${ZAP_OUT.map((d,k)=>h`<path key=${k} d=${d} style=${{animationDelay:(k*.17)+'s'}}/>`)}</svg>`}
+    ${sup && cut>0? h`<h2><span>${stx.slice(0,cut+1)}</span><span>${stx.slice(cut+1).trim()}</span></h2>` : h`<h2>${title}</h2>`}
     <div className="lc-stage" ref=${stage}><div className="lc-float"><div className="lc-tilt" ref=${tilt}>
       <div className=${'lc-card'+(mode==='win'?' spin':'')} style=${{fontSize:(w*.072).toFixed(1)+'px'}}>
         <div className="lc-front" ref=${face}><${Face} card=${card} w=${w} isNew=${mode==='win' && card.isNew}/></div>
         <div className="lc-back"><span>✦ LUMI ✦</span></div>
       </div></div></div></div>
-    ${mode==='win' && h`<p className="lc-sub">${t('double')}</p>`}
+    ${mode==='win' && h`<p className="lc-sub">${sup? t('daily')+' ' : ''}${t('double')}</p>`}
     <button className="btn sun" onClick=${e=>{ e.stopPropagation(); onClose&&onClose(); }}>${mode==='win'? t('ok')+' ✨' : t('close')}</button>
   </div>`; }
 
@@ -255,9 +296,9 @@ function Album({save, say, tone}){ const React=R(), h=H(); const [open,setOpen]=
     <div className="lc-grid">${CARDS.map(c=>{ const k= g[c.id+'*']? c.id+'*' : g[c.id]? c.id : null; const cnt=(g[c.id]||0)+(g[c.id+'*']||0);
       return k? h`<button key=${c.id} className="lc-cell" onClick=${()=>setOpen({id:c.id, shiny:k.endsWith('*')})} aria-label=${c.name}><${Face} card=${{id:c.id, shiny:k.endsWith('*')}} w=${96} mini=${true}/>${cnt>1 && h`<span className="lc-cnt">×${cnt}</span>`}</button>`
         : h`<div key=${c.id} className="lc-cell off" aria-hidden="true"><${Face} card=${{id:c.id}} w=${96} mini=${true}/></div>`; })}</div>
-    <p className="small muted">${t('how')}</p>
+    <p className="small muted">${t('howDay')} ${t('how')}</p>
     ${open && h`<${Reveal} card=${open} mode="view" say=${say} tone=${null} onClose=${()=>setOpen(null)}/>`}
   </div>`; }
 
-window.LumiCards={CARDS, BYID, TYPES, roll, apply, choose, sayFor, owned, Reveal, Album, Face, t, rules:{CHANCE, PITY, MAXDAY, GAP}};
+window.LumiCards={CARDS, BYID, TYPES, roll, apply, choose, sayFor, owned, Reveal, Album, Face, OwnImg, t, rules:{CHANCE, PITY, MAXDAY, GAP}};
 })();

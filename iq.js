@@ -4,7 +4,7 @@
    - 7 áreas: razonamiento fluido, comprensión verbal, visoespacial, memoria de trabajo, velocidad de procesamiento,
      razonamiento cuantitativo (que no está como índice en WAIS) y atención sostenida (tipo CPT, que WAIS no mide).
    - Dificultad adaptativa pregunta a pregunta (modelo de respuesta al ítem, estimación EAP) en los tres modos;
-     el modo preciso además sigue hasta que el error de medida es chico.
+     el modo preciso además sigue hasta que el error de medida es niño.
    - Edad: se compara con lo esperable para la edad (curvas de desarrollo y envejecimiento aproximadas de la literatura).
      El sexo se guarda solo como dato: no cambia el puntaje (los tests modernos no usan normas por sexo).
    - Los parámetros de dificultad y las curvas por edad son estimaciones de diseño, no baremos medidos:
@@ -49,28 +49,28 @@ const S={
   quick:['Rápido','Ràpid','Quick'], medium:['Medio','Mitjà','Standard'], precise:['Preciso','Precís','Precise'],
   quickD:['Unos 12 minutos. Una primera idea, con más margen de error.','Uns 12 minuts. Una primera idea, amb més marge d\'error.','About 12 minutes. A first idea, with a wider margin of error.'],
   mediumD:['Unos 25 minutos. Buen equilibrio entre tiempo y precisión.','Uns 25 minuts. Bon equilibri entre temps i precisió.','About 25 minutes. A good balance of time and precision.'],
-  preciseD:['Unos 45 minutos. Sigue hasta que la medida es estable: el margen más chico.','Uns 45 minuts. Continua fins que la mesura és estable: el marge més petit.','About 45 minutes. Keeps going until the measure is stable: the smallest margin.'],
+  preciseD:['Unos 45 minutos. Sigue hasta que la medida es estable: el margen más pequeño.','Uns 45 minuts. Continua fins que la mesura és estable: el marge més petit.','About 45 minutes. Keeps going until the measure is stable: the smallest margin.'],
   who:['¿Quién hace el test?','Qui fa el test?','Who is taking the test?'],
   age:['Edad','Edat','Age'], years:['años','anys','years'],
   sex:['Sexo (opcional)','Sexe (opcional)','Sex (optional)'],
   sexF:['Femenino','Femení','Female'], sexM:['Masculino','Masculí','Male'], sexX:['Prefiero no decirlo','Prefereixo no dir-ho','Prefer not to say'],
   sexNote:['Se guarda como dato. No cambia el puntaje: los tests serios comparan por edad, no por sexo.','Es desa com a dada. No canvia la puntuació: els tests seriosos comparen per edat, no per sexe.','Saved as information only. It does not change the score: serious tests compare by age, not by sex.'],
-  ageErr:['Poné una edad entre 12 y 100 años.','Posa una edat entre 12 i 100 anys.','Enter an age between 12 and 100.'],
+  ageErr:['Pon una edad entre 12 y 100 años.','Posa una edat entre 12 i 100 anys.','Enter an age between 12 and 100.'],
   start:['Empezar el test','Comença el test','Start the test'],
   tips:['Antes de empezar: un lugar tranquilo, sin papel, calculadora ni ayuda de nadie. Si se puede, en horizontal y con el sonido apagado.','Abans de començar: un lloc tranquil, sense paper, calculadora ni ajuda de ningú. Si es pot, en horitzontal i amb el so apagat.','Before you start: a quiet place, no paper, calculator or help from anyone. Landscape and sound off if possible.'],
   disc:['Es un CI ESTIMADO, no un diagnóstico. Las preguntas y las curvas por edad son propias y aproximadas: no reemplaza una evaluación con un psicólogo. No detecta TDAH, autismo ni otros trastornos.','És un CI ESTIMAT, no un diagnòstic. Les preguntes i les corbes per edat són pròpies i aproximades: no substitueix una avaluació amb un psicòleg. No detecta TDAH, autisme ni altres trastorns.','This is an ESTIMATED IQ, not a diagnosis. Items and age curves are our own and approximate: it does not replace an assessment by a psychologist. It does not detect ADHD, autism or other conditions.'],
   hist:['Resultados anteriores','Resultats anteriors','Previous results'],
-  kidNote:['Este perfil es de {0} años. El test es para 12 a 100: para un adulto, mejor creá su propio perfil, así su plan no se mezcla con el de los chicos.','Aquest perfil és de {0} anys. El test és de 12 a 100: per a un adult, millor crea el seu propi perfil, així el seu pla no es barreja amb el dels nens.','This profile is {0} years old. The test is for ages 12 to 100: for an adult, better create their own profile so their plan does not mix with the children\'s.'],
+  kidNote:['Este perfil es de {0} años. El test es para 12 a 100: para un adulto, mejor crea su propio perfil, así su plan no se mezcla con el de los niños.','Aquest perfil és de {0} anys. El test és de 12 a 100: per a un adult, millor crea el seu propi perfil, així el seu pla no es barreja amb el dels nens.','This profile is {0} years old. The test is for ages 12 to 100: for an adult, better create their own profile so their plan does not mix with the children\'s.'],
   testN:['Prueba {0} de {1}','Prova {0} de {1}','Task {0} of {1}'],
   example:['Ver un ejemplo','Veure un exemple','Try an example'],
   go:['Empezar','Comença','Start'], goOn:['Seguir','Continua','Continue'],
   exampleT:['Ejemplo (no cuenta)','Exemple (no compta)','Example (does not count)'],
   right:['¡Correcto!','Correcte!','Correct!'], wrongWas:['La respuesta era: {0}','La resposta era: {0}','The answer was: {0}'],
   timeUp:['Se acabó el tiempo.','S\'ha acabat el temps.','Time\'s up.'], seeGreen:['La correcta está en verde.','La correcta és la verda.','The correct one is in green.'],
-  corsiWrong:['No era ese orden: mirá los números.','No era aquest ordre: mira els números.','Wrong order: look at the numbers.'],
+  corsiWrong:['No era ese orden: mira los números.','No era aquest ordre: mira els números.','Wrong order: look at the numbers.'],
   cptGood:['¡Bien!','Molt bé!','Good!'], cptX:['¡Con la X no se toca!','Amb la X no es toca!','Do not tap on X!'], cptMiss:['Te faltó tocar.','No has tocat.','You missed it.'], cptXok:['Bien: con la X no tocaste.','Molt bé: amb la X no has tocat.','Good: you did not tap on X.'],
   ok:['OK','OK','OK'], yes:['SÍ','SÍ','YES'], noB:['NO','NO','NO'],
-  watch:['Mirá…','Mira…','Watch…'], yourTurn:['Ahora vos','Ara tu','Your turn'],
+  watch:['Mira…','Mira…','Watch…'], yourTurn:['Ahora tú','Ara tu','Your turn'],
   tapBtn:['TOCAR','TOCA','TAP'],
   timeLeft:['{0} s','{0} s','{0} s'],
   computing:['Calculando…','Calculant…','Calculating…'],
@@ -86,7 +86,7 @@ const S={
   applied:['Plan aplicado: los ejercicios diarios darán más lugar a {0}.','Pla aplicat: els exercicis diaris donaran més lloc a {0}.','Plan applied: daily exercises will give more room to {0}.'],
   train:['Entrenar','Entrena','Train'],
   trainT:['Entrenamiento: {0}','Entrenament: {0}','Training: {0}'],
-  trainNote:['No cuenta para el CI. Ojo: entrenar con el mismo tipo de ejercicio sube el puntaje del test por práctica; para medir el progreso, repetí el test cada 3 meses o más.','No compta per al CI. Compte: entrenar amb el mateix tipus d\'exercici puja la puntuació del test per pràctica; per mesurar el progrés, repeteix el test cada 3 mesos o més.','Does not count towards IQ. Note: training on the same item types raises test scores through practice; to measure progress, retake the test every 3 months or more.'],
+  trainNote:['No cuenta para el CI. Ojo: entrenar con el mismo tipo de ejercicio sube el puntaje del test por práctica; para medir el progreso, repite el test cada 3 meses o más.','No compta per al CI. Compte: entrenar amb el mateix tipus d\'exercici puja la puntuació del test per pràctica; per mesurar el progrés, repeteix el test cada 3 mesos o més.','Does not count towards IQ. Note: training on the same item types raises test scores through practice; to measure progress, retake the test every 3 months or more.'],
   trainDone:['{0} de {1} bien','{0} de {1} bé','{0} of {1} correct'],
   again:['Otra vez','Una altra vegada','Again'],
   validity:['Algunas respuestas parecen hechas al azar, con apuro o con distracciones. El resultado puede quedar por debajo de lo real: conviene repetirlo con calma otro día.','Algunes respostes semblen fetes a l\'atzar, amb pressa o amb distraccions. El resultat pot quedar per sota del real: convé repetir-lo amb calma un altre dia.','Some answers look random, rushed or distracted. The result may be lower than the true one: consider retaking it calmly another day.'],
@@ -119,7 +119,7 @@ const AREAS=[
 ];
 const AREA=Object.fromEntries(AREAS.map(a=>[a.k,a]));
 /* áreas de los juegos de Lumi (las claves son las de GAMES en index.html) que refuerza cada área del test */
-const FOCUS={gf:['Lógica'], gc:['Comprensión','Lectura'], gv:['Lógica'], gwm:['Memoria'], gs:['Concentración'], gq:['Matemática'], att:['Atención','Concentración','Paciencia']};
+const FOCUS={gf:['Lógica'], gc:['Comprensión','Lectura'], gv:['Lógica'], gwm:['Memoria'], gs:['Concentración'], gq:['Matemáticas'], att:['Atención','Concentración','Paciencia']};
 
 /* Media esperada por edad, en unidades theta (0 = adulto joven de 20 a 34 años, desvío 1).
    Aproximación de las tendencias publicadas (desarrollo hasta ~20 años; caída temprana de velocidad,
@@ -255,11 +255,11 @@ function genSer(lv){ let s=[], len=5;
 /* ---------- 4. Cálculo mental y problemas ---------- */
 const WP={
   w1:[
-    (x=ri(20,95),y=ri(5,x-5))=>[x-y,[`Tenés ${x} € y gastás ${y} €. ¿Cuántos euros te quedan?`,`Tens ${x} € i en gastes ${y}. Quants euros et queden?`,`You have €${x} and spend €${y}. How many euros are left?`]],
+    (x=ri(20,95),y=ri(5,x-5))=>[x-y,[`Tienes ${x} € y gastas ${y} €. ¿Cuántos euros te quedan?`,`Tens ${x} € i en gastes ${y}. Quants euros et queden?`,`You have €${x} and spend €${y}. How many euros are left?`]],
     (x=ri(4,12),y=ri(3,9))=>[x*y,[`Cada caja trae ${x} lápices. ¿Cuántos lápices hay en ${y} cajas?`,`Cada capsa porta ${x} llapis. Quants llapis hi ha en ${y} capses?`,`Each box holds ${x} pencils. How many pencils are in ${y} boxes?`]],
-    (y=ri(3,8),q=ri(3,12))=>[q,[`Se reparten ${y*q} caramelos entre ${y} chicos, en partes iguales. ¿Cuántos recibe cada uno?`,`Es reparteixen ${y*q} caramels entre ${y} nens, a parts iguals. Quants en rep cadascun?`,`${y*q} sweets are shared equally among ${y} children. How many does each one get?`]]],
+    (y=ri(3,8),q=ri(3,12))=>[q,[`Se reparten ${y*q} caramelos entre ${y} niños, en partes iguales. ¿Cuántos recibe cada uno?`,`Es reparteixen ${y*q} caramels entre ${y} nens, a parts iguals. Quants en rep cadascun?`,`${y*q} sweets are shared equally among ${y} children. How many does each one get?`]]],
   w2:[
-    (n=ri(2,5),p=ri(3,9),bill=(n*p<50?50:100))=>[bill-n*p,[`Comprás ${n} cuadernos a ${p} € cada uno y pagás con un billete de ${bill} €. ¿Cuánto te devuelven?`,`Compres ${n} llibretes a ${p} € cadascuna i pagues amb un bitllet de ${bill} €. Quant et tornen?`,`You buy ${n} notebooks at €${p} each and pay with a €${bill} note. How much change do you get?`]],
+    (n=ri(2,5),p=ri(3,9),bill=(n*p<50?50:100))=>[bill-n*p,[`Compras ${n} cuadernos a ${p} € cada uno y pagas con un billete de ${bill} €. ¿Cuánto te devuelven?`,`Compres ${n} llibretes a ${p} € cadascuna i pagues amb un bitllet de ${bill} €. Quant et tornen?`,`You buy ${n} notebooks at €${p} each and pay with a €${bill} note. How much change do you get?`]],
     (a=ri(20,45),b=ri(5,15),c=ri(3,18))=>[a-b+c,[`Un autobús sale con ${a} pasajeros. En la primera parada bajan ${b} y suben ${c}. ¿Cuántos pasajeros hay ahora?`,`Un autobús surt amb ${a} passatgers. A la primera parada en baixen ${b} i en pugen ${c}. Quants passatgers hi ha ara?`,`A bus leaves with ${a} passengers. At the first stop ${b} get off and ${c} get on. How many passengers are there now?`]],
     (a=ri(6,25))=>[3*a,[`Ana tiene el doble de libros que Luis, y Luis tiene ${a}. ¿Cuántos libros tienen entre los dos?`,`L'Anna té el doble de llibres que en Lluís, i en Lluís en té ${a}. Quants llibres tenen entre tots dos?`,`Anna has twice as many books as Luis, and Luis has ${a}. How many books do they have altogether?`]]],
   w3:[
@@ -291,7 +291,7 @@ const VOC=[
  [1,'VELOZ|rápido|pesado|oscuro|frío','VELOÇ|ràpid|pesat|fosc|fred','RAPID|fast|heavy|dark|cold'],
  [2,'ANCIANO|viejo|joven|alto|rico','ANCIÀ|vell|jove|alt|ric','ELDERLY|old|young|tall|rich'],
  [2,'SOLICITAR|pedir|negar|romper|mirar','SOL·LICITAR|demanar|negar|trencar|mirar','REQUEST|ask|deny|break|watch'],
- [2,'ENOJADO|furioso|tranquilo|dormido|limpio','ENFADAT|furiós|tranquil|adormit|net','ANGRY|furious|calm|asleep|clean'],
+ [2,'ENFADADO|furioso|tranquilo|dormido|limpio','ENFADAT|furiós|tranquil|adormit|net','ANGRY|furious|calm|asleep|clean'],
  [3,'ESCASO|insuficiente|abundante|caro|lejano','ESCÀS|insuficient|abundant|car|llunyà','SCARCE|insufficient|plentiful|expensive|distant'],
  [3,'SINCERO|honesto|falso|tímido|cruel','SINCER|honest|fals|tímid|cruel','SINCERE|honest|false|shy|cruel'],
  [3,'OBSTÁCULO|impedimento|ayuda|camino|premio','OBSTACLE|impediment|ajuda|camí|premi','OBSTACLE|hindrance|help|path|prize'],
@@ -363,17 +363,17 @@ const SUBN={
   dfw:['Dígitos en orden','Dígits en ordre','Digits forwards'], dbw:['Dígitos al revés','Dígits a l\'inrevés','Digits backwards'], cor:['Cuadrados que se encienden','Quadrats que s\'encenen','Lighting squares'],
   sym:['Búsqueda de símbolos','Cerca de símbols','Symbol search'], cpt:['Atención sostenida','Atenció sostinguda','Sustained attention']};
 const SUBI={
-  voc:['Elegí la palabra que significa lo mismo (o casi lo mismo) que la palabra en mayúsculas.','Tria la paraula que vol dir el mateix (o gairebé el mateix) que la paraula en majúscules.','Choose the word that means the same (or nearly the same) as the word in capitals.'],
-  ana:['Completá la relación: la tercera palabra se relaciona con la respuesta igual que la primera con la segunda.','Completa la relació: la tercera paraula es relaciona amb la resposta igual que la primera amb la segona.','Complete the relation: the third word relates to the answer as the first relates to the second.'],
-  mat:['Mirá cómo cambian las figuras en cada fila y en cada columna, y elegí la que completa el hueco.','Mira com canvien les figures a cada fila i a cada columna, i tria la que completa el forat.','Look at how the shapes change across each row and down each column, and pick the one that fills the gap.'],
-  ser:['Descubrí la regla de la serie y escribí el número que sigue.','Descobreix la regla de la sèrie i escriu el número que ve.','Find the rule of the series and type the next number.'],
-  rot:['Elegí la figura que es la misma que la de arriba, solo que girada. Las otras están dadas vuelta como en un espejo o tienen un cuadrado cambiado.','Tria la figura que és la mateixa que la de dalt, només que girada. Les altres estan girades com en un mirall o tenen un quadrat canviat.','Choose the shape that is the same as the one at the top, only rotated. The others are mirrored or have one square moved.'],
-  cal:['Resolvé de cabeza, sin papel ni calculadora, y escribí el resultado.','Resol-ho de cap, sense paper ni calculadora, i escriu el resultat.','Work it out in your head, without paper or calculator, and type the result.'],
-  dfw:['Vas a ver números de a uno. Cuando terminen, escribilos en el mismo orden.','Veuràs números d\'un en un. Quan acabin, escriu-los en el mateix ordre.','You will see digits one at a time. When they finish, type them in the same order.'],
-  dbw:['Vas a ver números de a uno. Cuando terminen, escribilos al revés: del último al primero.','Veuràs números d\'un en un. Quan acabin, escriu-los a l\'inrevés: de l\'últim al primer.','You will see digits one at a time. When they finish, type them in reverse: from last to first.'],
-  cor:['Algunos cuadrados se encienden de a uno. Cuando terminen, tocalos en el mismo orden.','Alguns quadrats s\'encenen d\'un en un. Quan acabin, toca\'ls en el mateix ordre.','Some squares light up one at a time. When they finish, tap them in the same order.'],
-  sym:['¿Está el símbolo de la izquierda en el grupo de la derecha? Respondé SÍ o NO lo más rápido que puedas, sin equivocarte. Tenés {0} segundos.','Hi ha el símbol de l\'esquerra al grup de la dreta? Respon SÍ o NO tan de pressa com puguis, sense equivocar-te. Tens {0} segons.','Is the symbol on the left in the group on the right? Answer YES or NO as fast as you can without mistakes. You have {0} seconds.'],
-  cpt:['Van a aparecer letras de a una. Tocá el botón con cada letra, MENOS con la X. Tenés tiempo hasta que salga la letra siguiente; el botón se pone verde si está bien y rojo si no. Dura {0} segundos: mantené la atención hasta el final.','Apareixeran lletres d\'una en una. Toca el botó amb cada lletra, MENYS amb la X. Tens temps fins que surti la lletra següent; el botó es posa verd si està bé i vermell si no. Dura {0} segons: mantén l\'atenció fins al final.','Letters will appear one at a time. Tap the button for every letter EXCEPT X. You have until the next letter appears; the button turns green if right and red if not. It lasts {0} seconds: stay focused until the end.']};
+  voc:['Elige la palabra que significa lo mismo (o casi lo mismo) que la palabra en mayúsculas.','Tria la paraula que vol dir el mateix (o gairebé el mateix) que la paraula en majúscules.','Choose the word that means the same (or nearly the same) as the word in capitals.'],
+  ana:['Completa la relación: la tercera palabra se relaciona con la respuesta igual que la primera con la segunda.','Completa la relació: la tercera paraula es relaciona amb la resposta igual que la primera amb la segona.','Complete the relation: the third word relates to the answer as the first relates to the second.'],
+  mat:['Mira cómo cambian las figuras en cada fila y en cada columna, y elige la que completa el hueco.','Mira com canvien les figures a cada fila i a cada columna, i tria la que completa el forat.','Look at how the shapes change across each row and down each column, and pick the one that fills the gap.'],
+  ser:['Descubre la regla de la serie y escribe el número que sigue.','Descobreix la regla de la sèrie i escriu el número que ve.','Find the rule of the series and type the next number.'],
+  rot:['Elige la figura que es la misma que la de arriba, solo que girada. Las otras están dadas vuelta como en un espejo o tienen un cuadrado cambiado.','Tria la figura que és la mateixa que la de dalt, només que girada. Les altres estan girades com en un mirall o tenen un quadrat canviat.','Choose the shape that is the same as the one at the top, only rotated. The others are mirrored or have one square moved.'],
+  cal:['Resuelve de cabeza, sin papel ni calculadora, y escribe el resultado.','Resol-ho de cap, sense paper ni calculadora, i escriu el resultat.','Work it out in your head, without paper or calculator, and type the result.'],
+  dfw:['Vas a ver números de a uno. Cuando terminen, escríbelos en el mismo orden.','Veuràs números d\'un en un. Quan acabin, escriu-los en el mateix ordre.','You will see digits one at a time. When they finish, type them in the same order.'],
+  dbw:['Vas a ver números de a uno. Cuando terminen, escríbelos al revés: del último al primero.','Veuràs números d\'un en un. Quan acabin, escriu-los a l\'inrevés: de l\'últim al primer.','You will see digits one at a time. When they finish, type them in reverse: from last to first.'],
+  cor:['Algunos cuadrados se encienden de a uno. Cuando terminen, tócalos en el mismo orden.','Alguns quadrats s\'encenen d\'un en un. Quan acabin, toca\'ls en el mateix ordre.','Some squares light up one at a time. When they finish, tap them in the same order.'],
+  sym:['¿Está el símbolo de la izquierda en el grupo de la derecha? Responde SÍ o NO lo más rápido que puedas, sin equivocarte. Tienes {0} segundos.','Hi ha el símbol de l\'esquerra al grup de la dreta? Respon SÍ o NO tan de pressa com puguis, sense equivocar-te. Tens {0} segons.','Is the symbol on the left in the group on the right? Answer YES or NO as fast as you can without mistakes. You have {0} seconds.'],
+  cpt:['Van a aparecer letras de a una. Toca el botón con cada letra, MENOS con la X. Tienes tiempo hasta que salga la letra siguiente; el botón se pone verde si está bien y rojo si no. Dura {0} segundos: mantén la atención hasta el final.','Apareixeran lletres d\'una en una. Toca el botó amb cada lletra, MENYS amb la X. Tens temps fins que surti la lletra següent; el botó es posa verd si està bé i vermell si no. Dura {0} segons: mantén l\'atenció fins al final.','Letters will appear one at a time. Tap the button for every letter EXCEPT X. You have until the next letter appears; the button turns green if right and red if not. It lasts {0} seconds: stay focused until the end.']};
 
 /* ---------- componentes comunes ---------- */
 function TimeBar({limit, onEnd}){ const [left,setLeft]=useState(limit); const t0=useRef(now()); const done=useRef(false);
@@ -723,13 +723,13 @@ const CSS=`
 try{ const st=document.createElement('style'); st.id='lumi-iq-css'; st.textContent=CSS; document.head.appendChild(st); }catch(e){}
 
 /* ===================== Plan diario para adultos =====================
-   Los perfiles de más de 12 años usan esta pantalla de inicio en vez de la de los chicos.
+   Los perfiles de más de 12 años usan esta pantalla de inicio en vez de la de los niños.
    Ejercicios = los mismos tipos de prueba del test, en modo entrenamiento (con corrección al momento).
    Nivel por área en theta (0 = adulto joven medio): arranca según Fácil / Medio / Difícil o según el último test,
    y se ajusta con cada sesión. Las áreas a reforzar (y las flojas del último test) salen más seguido. */
 S.hello=['¡Hola, {0}!','Hola, {0}!','Hi, {0}!'];
 S.planToday=['Plan de hoy · {0} de {1}','Pla d\'avui · {0} de {1}','Today\'s plan · {0} of {1}'];
-S.allDone=['¡Plan de hoy completo! Mañana hay más. Si querés, podés repetir cualquier ejercicio.','Pla d\'avui complet! Demà n\'hi ha més. Si vols, pots repetir qualsevol exercici.','Today\'s plan is complete! More tomorrow. You can repeat any exercise if you like.'];
+S.allDone=['¡Plan de hoy completo! Mañana hay más. Si quieres, puedes repetir cualquier ejercicio.','Pla d\'avui complet! Demà n\'hi ha més. Si vols, pots repetir qualsevol exercici.','Today\'s plan is complete! More tomorrow. You can repeat any exercise if you like.'];
 S.iqBtn=['🧠 Test de CI','🧠 Test de CI','🧠 IQ test'];
 S.iqLast=['Último: {0} ({1}–{2})','Últim: {0} ({1}–{2})','Latest: {0} ({1}–{2})'];
 S.admin=['Admin','Admin','Admin'];
@@ -815,15 +815,15 @@ try{ const st2=document.createElement('style'); st2.textContent=CSS2; document.h
 const DICT_IDX={
   ca:{'Test de coeficiente intelectual':'Test de coeficient intel·lectual','Para 12 a 100 años: razonamiento, lenguaje, visoespacial, memoria, velocidad, cálculo y atención. Da un CI estimado con su margen de error y un plan de refuerzo.':'De 12 a 100 anys: raonament, llenguatge, visuoespacial, memòria, velocitat, càlcul i atenció. Dona un CI estimat amb el seu marge d\'error i un pla de reforç.',
     'Hacer el test':'Fes el test','Último resultado: CI estimado {0} ({1}–{2}), {3}.':'Últim resultat: CI estimat {0} ({1}–{2}), {3}.','Áreas a reforzar':'Àrees a reforçar',
-    'Las áreas marcadas aparecen más seguido en el plan de cada día. Sirve para cualquier edad: por ejemplo, Atención y Concentración para un chico que se distrae, o Matemática para un adulto que quiere aprender a sumar.':'Les àrees marcades surten més sovint al pla de cada dia. Serveix per a qualsevol edat: per exemple, Atenció i Concentració per a un nen que es distreu, o Matemàtiques per a un adult que vol aprendre a sumar.',
+    'Las áreas marcadas aparecen más seguido en el plan de cada día. Sirve para cualquier edad: por ejemplo, Atención y Concentración para un niño que se distrae, o Matemáticas para un adulto que quiere aprender a sumar.':'Les àrees marcades surten més sovint al pla de cada dia. Serveix per a qualsevol edat: per exemple, Atenció i Concentració per a un nen que es distreu, o Matemàtiques per a un adult que vol aprendre a sumar.',
     'Ninguna marcada: el plan rota todo y da más lugar a lo que le cuesta.':'Cap marcada: el pla ho fa rotar tot i dona més lloc al que li costa.','Adulto':'Adult','13 a 100':'13 a 100','¿Qué edad?':'Quina edat?',
-    'Para adultos, los ejercicios diarios son los de los chicos más grandes y se adaptan solos al nivel (más fáciles si cuesta). El test de CI está en la zona de padres.':'Per als adults, els exercicis diaris són els dels nens més grans i s\'adapten sols al nivell (més fàcils si costa). El test de CI és a la zona de pares.',
+    'Para adultos, los ejercicios diarios son los de los niños más grandes y se adaptan solos al nivel (más fáciles si cuesta). El test de CI está en la zona de padres.':'Per als adults, els exercicis diaris són els dels nens més grans i s\'adapten sols al nivell (més fàcils si costa). El test de CI és a la zona de pares.',
     'Los perfiles de adulto no participan en el top 10.':'Els perfils d\'adult no participen en el top 10.','Plan de refuerzo aplicado.':'Pla de reforç aplicat.','Agregar nuevo individuo':'Afegeix un nou individu','No hace falta acertar: cada ejercicio se adapta solo. Sube si te va bien y baja si cuesta.':'No cal encertar: cada exercici s\'adapta sol. Puja si et va bé i baixa si costa.','Cambiar de individuo':'Canvia d\'individu'},
   en:{'Test de coeficiente intelectual':'IQ test','Para 12 a 100 años: razonamiento, lenguaje, visoespacial, memoria, velocidad, cálculo y atención. Da un CI estimado con su margen de error y un plan de refuerzo.':'Ages 12 to 100: reasoning, language, visual-spatial, memory, speed, maths and attention. Gives an estimated IQ with its margin of error and a training plan.',
     'Hacer el test':'Take the test','Último resultado: CI estimado {0} ({1}–{2}), {3}.':'Latest result: estimated IQ {0} ({1}–{2}), {3}.','Áreas a reforzar':'Areas to strengthen',
-    'Las áreas marcadas aparecen más seguido en el plan de cada día. Sirve para cualquier edad: por ejemplo, Atención y Concentración para un chico que se distrae, o Matemática para un adulto que quiere aprender a sumar.':'Marked areas appear more often in the daily plan. Works at any age: for example, Attention and Focus for a child who gets distracted, or Maths for an adult who wants to learn to add.',
+    'Las áreas marcadas aparecen más seguido en el plan de cada día. Sirve para cualquier edad: por ejemplo, Atención y Concentración para un niño que se distrae, o Matemáticas para un adulto que quiere aprender a sumar.':'Marked areas appear more often in the daily plan. Works at any age: for example, Attention and Focus for a child who gets distracted, or Maths for an adult who wants to learn to add.',
     'Ninguna marcada: el plan rota todo y da más lugar a lo que le cuesta.':'None marked: the plan rotates everything and gives more room to what is hard.','Adulto':'Adult','13 a 100':'13 to 100','¿Qué edad?':'What age?',
-    'Para adultos, los ejercicios diarios son los de los chicos más grandes y se adaptan solos al nivel (más fáciles si cuesta). El test de CI está en la zona de padres.':'For adults, daily exercises are those for the oldest children and adapt to the level by themselves (easier if it is hard). The IQ test is in the parents\' area.',
+    'Para adultos, los ejercicios diarios son los de los niños más grandes y se adaptan solos al nivel (más fáciles si cuesta). El test de CI está en la zona de padres.':'For adults, daily exercises are those for the oldest children and adapt to the level by themselves (easier if it is hard). The IQ test is in the parents\' area.',
     'Los perfiles de adulto no participan en el top 10.':'Adult profiles do not take part in the top 10.','Plan de refuerzo aplicado.':'Training plan applied.','Agregar nuevo individuo':'Add new person','No hace falta acertar: cada ejercicio se adapta solo. Sube si te va bien y baja si cuesta.':'No need to get it right: each exercise adapts by itself. It goes up if you do well and down if it is hard.','Cambiar de individuo':'Switch person'}};
 
 window.LumiIQ={App:IQApp, AdultHome, adultDiff, adultSummary:n=>t('adultSum', n), dict:DICT_IDX, FOCUS, focusFor, weakAreas, classify,
