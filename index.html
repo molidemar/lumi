@@ -486,7 +486,7 @@ html,body{height:100%; height:100dvh}
 <script src="iq.js"></script>
 <script src="progress.js?v=2"></script>
 <script src="cards.js?v=4"></script>
-<script src="leer.js?v=4"></script>
+<script src="leer.js?v=5"></script>
 <script>
 (function(){
 'use strict';
@@ -2041,7 +2041,7 @@ const OIDO={ws:{}, id:0, cb:{}, prog:{asr:-1, tts:-1}, st:{asr:'', tts:''}, at:{
   emit(){ this.subs.forEach(f=>{ try{ f(); }catch(e){} }); },
   can(){ try{ return !!(window.Worker && window.WebAssembly && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && localStorage.getItem('lumi-oido-off')!=='1'; }catch(e){ return false; } },
   // dos workers: uno para entender (Whisper) y otro para hablar (Piper), así uno no frena al otro
-  worker(k){ if(this.ws[k]) return this.ws[k]; const w=new Worker('lib/oido/oido-worker.js?v=3',{type:'module'}); this.ws[k]=w; w.mine=new Set();
+  worker(k){ if(this.ws[k]) return this.ws[k]; const w=new Worker('lib/oido/oido-worker.js?v=4',{type:'module'}); this.ws[k]=w; w.mine=new Set();
     w.onmessage=e=>{ const m=e.data||{}; if(m.cmd==='boot'){ w.booted=true; return; }
       if(m.cmd==='prog'){ if(m.p>this.prog[m.what] || (m.st && m.st!==this.st[m.what])) this.at[m.what]=Date.now(); this.prog[m.what]=Math.max(this.prog[m.what],m.p); if(m.st) this.st[m.what]=m.st; this.emit(); return; } const c=this.cb[m.id]; if(c){ delete this.cb[m.id]; w.mine.delete(m.id); m.ok? c[0](m.res) : c[1](new Error(m.err)); } };
     w.onerror=()=>this.kill(k,'worker');
@@ -2049,22 +2049,29 @@ const OIDO={ws:{}, id:0, cb:{}, prog:{asr:-1, tts:-1}, st:{asr:'', tts:''}, at:{
   kill(k, why){ const w=this.ws[k]; if(!w) return; this.ws[k]=null; try{ w.terminate(); }catch(e){} [...w.mine].forEach(id=>{ const c=this.cb[id]; delete this.cb[id]; c&&c[1](new Error(why)); });
     if(k==='asr'){ this.asrP=null; this.asrOk=false; this.asrFail++; this.prog.asr=-2; } else { PIPER.p=null; PIPER.ok=false; PIPER.fails++; } this.emit(); },
   /* cuántas veces se quedó colgado el oído en este dispositivo (la última semana) */
-  stalls(){ try{ const s=JSON.parse(localStorage.getItem('lumi-oido-stall')||'null'); return s && Date.now()-s.t<7*864e5? s.n : 0; }catch(e){ return 0; } },
+  stalls(){ try{ const s=JSON.parse(localStorage.getItem('lumi-oido-stall2')||'null'); return s && Date.now()-s.t<7*864e5? s.n : 0; }catch(e){ return 0; } },
   call(cmd, args, tr){ return new Promise((res,rej)=>{ let w; try{ w=this.worker(/^tts/.test(cmd)? 'tts' : 'asr'); }catch(e){ return rej(e); } const id=++this.id; this.cb[id]=[res,rej]; w.mine.add(id); w.postMessage({id, cmd, ...(args||{})}, tr||[]); }); },
   loadAsr(){ if(this.asrOk) return Promise.resolve(); if(!this.usable()) return Promise.reject(new Error('sin oído')); if(!this.asrP){ this.prog.asr=Math.max(0,this.prog.asr); const t0=Date.now(); this.st.asr='arranque'; this.at.asr=t0; this.why=''; this.emit();
-      const p=this.call('asrLoad');
+      const p=this.call('asrLoad', {lang:LANG});
       /* vigilante: si la carga deja de avanzar (falta de memoria en el iPad, descarga cortada…), se corta y Lumi sigue con el oído ligero o con el adulto */
       const iv=setInterval(()=>{ const now=Date.now(), w=this.ws.asr, slow=/montar|ajuste/.test(this.st.asr);
         if(now-this.at.asr > (slow? 90000 : 45000) || now-t0 > 360000){ clearInterval(iv);
           this.why='oído parado: '+(w && !w.booted? 'no arranca' : this.st.asr)+' '+Math.round(Math.max(0,this.prog.asr)*100)+'%';
-          try{ localStorage.setItem('lumi-oido-stall', JSON.stringify({n:this.stalls()+1, t:now, why:this.why})); }catch(e){}
+          try{ localStorage.setItem('lumi-oido-stall2', JSON.stringify({n:this.stalls()+1, t:now, why:this.why})); }catch(e){}
           this.kill('asr', this.why); this.asrFail=Math.max(this.asrFail,2); this.emit(); } },1000);
-      this.asrP=p.then(r=>{ clearInterval(iv); this.asrOk=true; this.dev=r&&r.dev||''; this.prog.asr=1; this.st.asr='listo'; try{ localStorage.removeItem('lumi-oido-stall'); }catch(e){} this.emit(); });
-      this.asrP.catch(e=>{ clearInterval(iv); if(!this.why) this.why=String(e&&e.message||e); this.asrP=null; this.asrFail++; this.prog.asr=-2; this.emit(); }); }
+      this.asrP=p.then(r=>{ clearInterval(iv); this.asrOk=true; this.dev=r&&r.dev||''; this.test=r&&r.test||''; this.prog.asr=1; this.st.asr='listo'; try{ localStorage.removeItem('lumi-oido-stall2'); }catch(e){} this.emit(); });
+      this.asrP.catch(e=>{ clearInterval(iv); if(!this.why) this.why=String(e&&e.message||e);
+        /* no entendió la frase de prueba: en este dispositivo Whisper no sirve; una semana sin usarlo */
+        if(/^prueba/.test(this.why)){ this.asrFail=Math.max(this.asrFail,1); try{ localStorage.setItem('lumi-oido-stall2', JSON.stringify({n:2, t:Date.now(), why:this.why})); }catch(x){} }
+        this.asrP=null; this.asrFail++; this.prog.asr=-2; this.emit(); }); }
     return this.asrP; },
   /* si se colgó 2 veces en este dispositivo, una semana sin intentarlo */
   usable(){ return this.can() && this.asrFail<2 && this.stalls()<2; },
-  hear(audio, words, prompt){ const a=new Float32Array(audio); return this.call('asr', {audio:a, lang:LANG, words, prompt}, [a.buffer]).then(r=>{ this.last=r; return r; }); } };
+  /* si devuelve letras de otros alfabetos (o el símbolo �), el oído está roto en este dispositivo: no se usa más (una semana) */
+  hear(audio, words, prompt){ const a=new Float32Array(audio); return this.call('asr', {audio:a, lang:LANG, words, prompt}, [a.buffer]).then(r=>{ this.last=r;
+    const t=String(r&&r.text||''); if(/\uFFFD/.test(t) || (t.match(/[^\p{Script=Latin}\p{N}\p{P}\p{S}\s]/gu)||[]).length>0){ this.why='basura: '+t.slice(0,40); this.asrOk=false; this.asrFail=2;
+      try{ localStorage.setItem('lumi-oido-stall2', JSON.stringify({n:2, t:Date.now(), why:this.why})); }catch(e){} this.emit(); throw new Error(this.why); }
+    return r; }); } };
 /* la frase que hay que leer, en minúsculas normales, ayuda a Whisper con la ortografía (no inventa lo que no se dijo) */
 const asrPrompt=t=>{ const s=String(t).toLowerCase().replace(/\s+/g,' ').trim(); return s.charAt(0).toUpperCase()+s.slice(1); };
 /* números en palabras para comparar lo que oye (Whisper escribe "3") con lo que hay que leer */
@@ -2082,10 +2089,17 @@ const targetWords=words=> words.map(w=>{ const m=String(w).match(/^\D*(\d+)\D*$/
 function matchHeard(words, text){ const T=targetWords(words); const H0=heardWords(text); const H=[]; H0.forEach(w=>H.push(w));
   // los números de varias palabras ("veinte y tres") se juntan para comparar con "veintitrés"/"23"
   const join=(k,n)=>H.slice(k,k+n).join('');
-  let h=0; return T.map(t=>{ if(!t) return true;
+  let h=0, L=null; return T.map(t=>{ if(!t) return true;
     for(let k=h;k<Math.min(H.length,h+5);k++){ for(let n=1;n<=3 && k+n<=H.length;n++){ const c=join(k,n); const d=levD(t,c); const tol= t.length<=3? 0 : t.length<=6? 1 : 2;
         if(d<=tol || (t.length>=5 && c.length>=4 && (t.startsWith(c)||c.startsWith(t)) && Math.abs(t.length-c.length)<=2)){ h=k+n; return true; } } }
-    return false; }); }
+    return false; }).map((ok,i)=> ok || (L=L||byLetters(T, H))[i]); }
+/* segunda mirada, letra a letra sin espacios: Whisper a veces corta mal las palabras («un gato gris» → «una togris»).
+   Cada palabra vale si se oyeron en su sitio casi todas sus letras (2 de 2, 2 de 3, 3 de 4, 4 de 5…). */
+function byLetters(T, H){ const tw=T.map(t=>t||''), a=tw.join(''), b=H.join(''); const n=a.length, m=b.length; if(!n || !m) return tw.map(t=>!t);
+  const D=Array.from({length:n+1},(_,i)=>{ const r=new Uint16Array(m+1); r[0]=i; return r; }); for(let j=0;j<=m;j++) D[0][j]=j;
+  for(let i=1;i<=n;i++) for(let j=1;j<=m;j++) D[i][j]=Math.min(D[i-1][j]+1, D[i][j-1]+1, D[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  const hit=new Uint8Array(n); let i=n, j=m; while(i>0 && j>0){ if(a[i-1]===b[j-1] && D[i][j]===D[i-1][j-1]){ hit[i-1]=1; i--; j--; } else if(D[i][j]===D[i-1][j-1]+1){ i--; j--; } else if(D[i][j]===D[i-1][j]+1) i--; else j--; }
+  let o=0; return tw.map(t=>{ if(!t) return true; let c=0; for(let k=0;k<t.length;k++) c+=hit[o+k]; o+=t.length; return c>=Math.max(1, Math.ceil(t.length*.67)); }); }
 /* espera a que Lumi termine de hablar antes de abrir el micrófono (si no, se escucha a sí misma) */
 function voiceBusy(){ if(Voice.talk>0) return true; try{ const el=Voice.el; if(el && el.src && !el.paused && !el.ended) return true; }catch(e){} try{ if(window.speechSynthesis && speechSynthesis.speaking) return true; }catch(e){} return false; }
 function whenQuiet(alive, max=9000){ return new Promise(res=>{ const t0=Date.now(); let calm=0; const iv=setInterval(()=>{ if(!alive()){ clearInterval(iv); res(false); return; } calm= voiceBusy()? 0 : calm+1; if(calm>=3 || Date.now()-t0>max){ clearInterval(iv); res(true); } },110); }); }
@@ -2181,8 +2195,21 @@ const VOSK={model:null, p:null, prog:0, err:'', fails:0, at:0, subs:new Set(),
       if(!blob){ const res=await fetch(url); if(!res.ok) throw new Error('modelo '+res.status); const tot=+res.headers.get('content-length')||40e6; const rd=res.body.getReader(); const parts=[]; let got=0;
         for(;;){ const {done,value}=await rd.read(); if(done) break; parts.push(value); got+=value.length; this.set(Math.min(.99,got/tot)); }
         blob=new Blob(parts,{type:'application/gzip'}); try{ cache && await cache.put(url, new Response(blob)); }catch(e){} }
-      this.set(.99); const m=await window.Vosk.createModel(URL.createObjectURL(blob)); this.model=m; this.set(1); return m; })()]);
+      this.set(.99); const m=await window.Vosk.createModel(URL.createObjectURL(blob));
+      /* prueba con una frase grabada conocida: si no la entiende, en este dispositivo no sirve */
+      this.test=await this.probe(m, L); if(!this.test.ok) throw new Error('prueba vosk: '+(this.test.text||'—'));
+      this.model=m; this.set(1); return m; })()]);
     this.p.then(()=>clearInterval(iv), e=>{ clearInterval(iv); this.err=String(e&&e.message||e); this.fails++; this.p=null; this.set(-2); }); return this.p; } };
+VOSK.probe=function(model, L){ const P={es:['el gato come pan','casa perro mesa luna sol agua leche mano oso pato'], ca:['el gat menja pa','casa gos taula lluna sol aigua llet mà ós ànec'], en:['the cat eats bread','house dog table moon sun water milk hand bear duck']}[L]||null;
+  if(!P) return Promise.resolve({ok:true, text:''});
+  return fetch('lib/oido/prueba/prueba-'+L+'.pcm').then(r=>{ if(!r.ok) throw new Error('prueba '+r.status); return r.arrayBuffer(); }).then(buf=>new Promise(res=>{
+    const i16=new Int16Array(buf), a=new Float32Array(i16.length+9600); for(let i=0;i<i16.length;i++) a[4800+i]=i16[i]/32768;
+    let rec=null, txt='', done=false; const fin=()=>{ if(done) return; done=true; try{ rec&&rec.remove(); }catch(e){} const want=P[0].split(' '), got=new Set(txt.split(/\s+/)); res({ok: want.filter(w=>got.has(w)).length>=want.length-1, text:txt}); };
+    try{ rec=new model.KaldiRecognizer(16000, JSON.stringify([...new Set((P[0]+' '+P[1]).split(' '))].concat('[unk]')));
+      let t=null; const wait=ms=>{ clearTimeout(t); t=setTimeout(fin, ms); };
+      rec.on('result',m=>{ const x=(m.result&&m.result.text)||''; if(x) txt=(txt+' '+x.replace(/\[unk\]/g,' ')).replace(/\s+/g,' ').trim(); wait(700); });
+      for(let i=0;i<a.length;i+=4000) rec.acceptWaveformFloat(a.subarray(i,i+4000),16000); rec.retrieveFinalResult(); wait(4000); setTimeout(fin, 10000);
+    }catch(e){ txt='error '+(e&&e.message||e); fin(); } })).catch(e=>({ok:true, text:'sin prueba: '+(e&&e.message||e)})); };
 const useVosk=()=> IS_IOS || !SR || SR_OFF();
 const gWord=w=>String(w).toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
 function listenVosk({model, words, onHeard, onEnd}){ let stream=null, ctx=null, node=null, rec=null, done=false, acc='', part='', floor=0, fl=0, lastVoice=0, heard=false; const t0=Date.now(), cap=6000+words.length*1400;
@@ -2203,8 +2230,46 @@ function listenVosk({model, words, onHeard, onEnd}){ let stream=null, ctx=null, 
         if(heard && now-lastVoice>1800) end('silence'); else if(now-t0>cap) end('cap'); },100);
     }catch(e){ end('error:'+(e&&e.name||e)); } })();
   return {stop:()=>end('tap')}; }
-const OIDO_TX={ca:{'Lo leímos juntos. ¡Seguimos!':'Ho hem llegit junts. Seguim!','Te escucho…':'T’escolto…','Pensando…':'Pensant…','Lee en voz alta, Lumi te escucha.':'Llegeix en veu alta, la Lumi t’escolta.','Lumi entiende con su oído nuevo':'La Lumi entén amb la seva oïda nova','Lumi no ha podido preparar su oído en este dispositivo.':'La Lumi no ha pogut preparar la seva oïda en aquest dispositiu.','Lumi todavía está preparando su oído. Para no esperar:':'La Lumi encara prepara la seva oïda. Per no esperar:'},
-  en:{'Lo leímos juntos. ¡Seguimos!':"We read it together. Let's go on!",'Te escucho…':"I'm listening…",'Pensando…':'Thinking…','Lee en voz alta, Lumi te escucha.':'Read it out loud, Lumi is listening.','Lumi entiende con su oído nuevo':'Lumi understands with her new ears','Lumi no ha podido preparar su oído en este dispositivo.':"Lumi couldn't get her ears ready on this device.",'Lumi todavía está preparando su oído. Para no esperar:':'Lumi is still getting her ears ready. To avoid waiting:'}};
+/* Admin › Probar el oído: graba 3 s y enseña qué entiende cada oído, para ver en el propio iPad/iPhone qué falla */
+function EarTest(){ const [st,setSt]=useState({}); const [busy,setBusy]=useState(''); const [, bump]=useState(0); const rec=useRef(null);
+  useEffect(()=>{ const f=()=>bump(x=>x+1); OIDO.subs.add(f); VOSK.subs.add(f); return ()=>{ OIDO.subs.delete(f); VOSK.subs.delete(f); }; },[]);
+  const ear=()=> OIDO.asrOk? '✅ '+(OIDO.dev||'')+(OIDO.test? ' · «'+OIDO.test+'»' : '') : OIDO.asrP? '⏳ '+OIDO.st.asr+' '+Math.round(Math.max(0,OIDO.prog.asr)*100)+'%' : '❌ '+(OIDO.why || (OIDO.usable()? 'sin cargar' : 'desactivado'));
+  const vosk=()=> VOSK.model? '✅'+(VOSK.test&&VOSK.test.text? ' · «'+VOSK.test.text+'»' : '') : VOSK.p? '⏳ '+Math.round(Math.max(0,VOSK.prog)*100)+'%' : '❌ '+(VOSK.err||'sin cargar');
+  async function reset(){ try{ localStorage.removeItem('lumi-oido-stall2'); }catch(e){} OIDO.asrFail=0; OIDO.why=''; VOSK.fails=0; VOSK.err=''; bump(x=>x+1);
+    setBusy('load'); await Promise.all([OIDO.loadAsr().catch(()=>{}), VOSK.load().catch(()=>{})]); setBusy(''); }
+  async function record(){ setBusy('rec'); setSt({}); let stream, ctx;
+    try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true, channelCount:1}});
+      const C=window.AudioContext||window.webkitAudioContext; ctx=new C(); if(ctx.state==='suspended') await ctx.resume(); const sr=ctx.sampleRate; const chunks=[];
+      const src=ctx.createMediaStreamSource(stream), node=ctx.createScriptProcessor(2048,1,1); node.onaudioprocess=ev=>chunks.push(new Float32Array(ev.inputBuffer.getChannelData(0)));
+      src.connect(node); node.connect(ctx.destination); await new Promise(r=>setTimeout(r,3200)); node.disconnect(); src.disconnect(); stream.getTracks().forEach(t=>t.stop()); try{ ctx.close(); }catch(e){}
+      const n=chunks.reduce((a,b)=>a+b.length,0), all=new Float32Array(n); let o=0; chunks.forEach(c=>{ all.set(c,o); o+=c.length; });
+      const r=sr/16000, m=Math.floor(n/r), a=new Float32Array(m); let pk=0, e2=0; for(let i=0;i<m;i++){ const v=all[Math.floor(i*r)]; a[i]=v; pk=Math.max(pk,Math.abs(v)); e2+=v*v; }
+      if(pk>0 && pk<.5){ const g=Math.min(8,.7/pk); for(let i=0;i<m;i++) a[i]*=g; }
+      rec.current=a; const info=F('{0} Hz · pico {1} · nivel {2}', sr, pk.toFixed(3), Math.sqrt(e2/Math.max(1,m)).toFixed(4)); setSt({info}); setBusy('think');
+      let v='—', w='—';
+      if(VOSK.model){ v=await new Promise(res=>{ let k=null, txt='', t=null; const fin=()=>{ try{ k&&k.remove(); }catch(e){} res(txt||'(nada)'); }; const wait=ms=>{ clearTimeout(t); t=setTimeout(fin,ms); };
+        try{ k=new VOSK.model.KaldiRecognizer(16000); k.on('result',x=>{ const s=(x.result&&x.result.text)||''; if(s) txt=(txt+' '+s).trim(); wait(700); }); for(let i=0;i<a.length;i+=4000) k.acceptWaveformFloat(a.subarray(i,i+4000),16000); k.retrieveFinalResult(); wait(4000); }catch(e){ txt='error '+e.message; fin(); } }); }
+      setSt({info, v});
+      if(OIDO.asrOk){ try{ const t0=Date.now(); const x=await OIDO.hear(a.slice(), 8, ''); w=(x.text||'(nada)')+' · '+((Date.now()-t0)/1000).toFixed(1)+' s'; }catch(e){ w='error '+e.message; } }
+      setSt({info, v, w}); }
+    catch(e){ setSt({info:'error '+(e&&e.name||e)}); try{ stream&&stream.getTracks().forEach(t=>t.stop()); }catch(x){} }
+    setBusy(''); }
+  function play(){ const a=rec.current; if(!a) return; try{ const C=window.AudioContext||window.webkitAudioContext, c=new C(); const b=c.createBuffer(1,a.length,16000); b.copyToChannel? b.copyToChannel(a,0) : b.getChannelData(0).set(a); const s=c.createBufferSource(); s.buffer=b; s.connect(c.destination); s.start(); s.onended=()=>{ try{ c.close(); }catch(e){} }; }catch(e){} }
+  return html`<div className="panel" data-notr>
+    <h3>Probar el oído de Lumi</h3>
+    <p className="small muted">Toca «Grabar», di despacio «EL GATO COME PAN» y espera. Si algo falla, haz una captura de esta parte.</p>
+    <p className="small">Oído grande (Whisper): ${ear()}</p>
+    <p className="small">Oído ligero (Vosk): ${vosk()}</p>
+    <div className="row"><button className="btn small" disabled=${!!busy} onClick=${()=>{ Sfx.unlock(); record(); }}>${busy==='rec'? '🔴 Grabando…' : busy==='think'? '🤔 Pensando…' : '🎤 Grabar 3 segundos'}</button>
+      <button className="btn soft small" disabled=${!rec.current || !!busy} onClick=${play}>▶ Escuchar la grabación</button>
+      <button className="btn soft small" disabled=${!!busy} onClick=${reset}>${busy==='load'? '⏳ Cargando…' : '🔄 Reintentar los oídos'}</button></div>
+    ${st.info && html`<p className="small muted">Micrófono: ${st.info}</p>`}
+    ${st.v && html`<p className="small">Vosk ha oído: «${st.v}»</p>`}
+    ${st.w && html`<p className="small">Whisper ha oído: «${st.w}»</p>`}
+    <p className="small muted" style=${{wordBreak:'break-all'}}>${navigator.userAgent}</p>
+  </div>`; }
+const OIDO_TX={ca:{'Lo leímos juntos. ¡Seguimos!':'Ho hem llegit junts. Seguim!','Te escucho…':'T’escolto…','Pensando…':'Pensant…','Lee en voz alta, Lumi te escucha.':'Llegeix en veu alta, la Lumi t’escolta.','Lumi entiende con su oído nuevo':'La Lumi entén amb la seva oïda nova','Lumi no ha podido preparar su oído en este dispositivo.':'La Lumi no ha pogut preparar la seva oïda en aquest dispositiu.','Lumi todavía está preparando su oído. Para no esperar:':'La Lumi encara prepara la seva oïda. Per no esperar:','Si lo ha leído bien y Lumi no lo ha entendido:':'Si ho ha llegit bé i la Lumi no ho ha entès:'},
+  en:{'Lo leímos juntos. ¡Seguimos!':"We read it together. Let's go on!",'Te escucho…':"I'm listening…",'Pensando…':'Thinking…','Lee en voz alta, Lumi te escucha.':'Read it out loud, Lumi is listening.','Lumi entiende con su oído nuevo':'Lumi understands with her new ears','Lumi no ha podido preparar su oído en este dispositivo.':"Lumi couldn't get her ears ready on this device.",'Lumi todavía está preparando su oído. Para no esperar:':'Lumi is still getting her ears ready. To avoid waiting:','Si lo ha leído bien y Lumi no lo ha entendido:':"If it was read well and Lumi didn't understand:"}};
 const otx=t=> (OIDO_TX[LANG]&&OIDO_TX[LANG][t]) || tr(t);
 /* Lectura guiada, sin tocar botones: Lumi lee (si hace falta), el micrófono se abre solo, el niño lee, Lumi entiende (Whisper en el iPad)
    y pinta de verde lo leído. Si falta algo lo dice y vuelve a escuchar sola; a la tercera lo leen juntos y siguen. Tocar el micrófono corta o vuelve a abrir. */
@@ -2308,7 +2373,7 @@ function ReadCheck({text, onDone:onDone0, api, canSkip, noListen, long, model}){
       ${(no || tries>=1 || canSkip) && html`<button className="btn soft small" onClick=${()=>{ stopAll(); api.sfx('tap'); onDone(false); }}>${tr('Seguir')} ▶</button>`}`}
     </div>
     ${live && html`<p className="small muted">${otx('Lee en voz alta, Lumi te escucha.')}</p>`}
-    ${(no || deaf>=2 || noEar || (loading && slow)) && !live && html`<div className="mic-help"><p className="small">${no? tr('Este dispositivo no deja usar el micrófono aquí.') : noEar? otx('Lumi no ha podido preparar su oído en este dispositivo.') : loading? otx('Lumi todavía está preparando su oído. Para no esperar:') : tr('No se oyó nada.')} ${tr('Que lo lea en voz alta y un adulto toca:')}</p>
+    ${(no || deaf>=2 || noEar || (loading && slow) || (tries>=1 && !think && phase!=='model' && !(ok && ok.every(Boolean)))) && !live && html`<div className="mic-help"><p className="small">${no? tr('Este dispositivo no deja usar el micrófono aquí.') : noEar? otx('Lumi no ha podido preparar su oído en este dispositivo.') : loading? otx('Lumi todavía está preparando su oído. Para no esperar:') : deaf>=2? tr('No se oyó nada.') : otx('Si lo ha leído bien y Lumi no lo ha entendido:')} ${tr('Que lo lea en voz alta y un adulto toca:')}</p>
       <div className="row" style=${{justifyContent:'center'}}><button className="btn small" onClick=${()=>{ stopAll(); setOk(words.map(()=>true)); api.sfx('ok'); Voice.say(pick(PRAISE)); setTimeout(()=>onDone(true),1100); }}>✅ ${tr('Lo leyó bien')}</button>
       <button className="btn soft small" onClick=${()=>{ stopAll(); api.sfx('tap'); onDone(false); }}>🔁 ${tr('Le costó')}</button></div>
       ${(no || deaf>=2)? html`<p className="small muted">${tr('En iPad: Ajustes › General › Teclado › activa Dictado, y en Ajustes › Safari › Micrófono elige Permitir.')}${err? ' ('+err+')' : ''}</p>`
@@ -3225,6 +3290,7 @@ function Parents({save, setSave, update, sync, streak, onBack, onCalendar, toast
         <p className="small muted">${st.voice==='dev'? (Voice.name? F('Ahora suena: {0}.', Voice.name) : tr('Este dispositivo no tiene voz para este idioma.'))+' '+tr('En el iPad puedes bajar voces nativas mejoradas en Ajustes › Accesibilidad › Contenido leído › Voces.') : (Voice.files? tr('Voz humana grabada por una voz nativa de este idioma.') : tr('Los audios grabados no cargaron: se usa la voz del dispositivo.'))} ${tr('Si no se oye, saca el modo silencio del iPad.')}</p>
         <p className="small muted">Guardado: en este dispositivo${sync==='home'?' y en el ordenador de casa (tablet y ordenador comparten el progreso)':sync==='cloud'?' y en tu cuenta de Claude':sync==='acct'?' y en tu cuenta de Lumi (se comparte entre dispositivos)':''}.</p>
         ${window.LumiCards && window.LumiCards.OwnImg && html`<${window.LumiCards.OwnImg}/>`}
+        <${EarTest}/>
         ${confirm? html`<div className="row"><span>¿Seguro? Se borra todo el progreso.</span><button className="btn danger small" onClick=${()=>{ const d=defaultSave(); d.settings=save.settings; d.updatedAt=Date.now(); setSave(d); setConfirm(false); toast('Progreso borrado.'); }}>Sí, borrar</button><button className="btn soft small" onClick=${()=>setConfirm(false)}>No</button></div>`
           : html`<div><button className="btn soft small" onClick=${()=>setConfirm(true)}>Borrar progreso</button></div>`}
       </div>
