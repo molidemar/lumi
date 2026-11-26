@@ -2049,7 +2049,7 @@ const OIDO={ws:{}, id:0, cb:{}, prog:{asr:-1, tts:-1}, st:{asr:'', tts:''}, at:{
   kill(k, why){ const w=this.ws[k]; if(!w) return; this.ws[k]=null; try{ w.terminate(); }catch(e){} [...w.mine].forEach(id=>{ const c=this.cb[id]; delete this.cb[id]; c&&c[1](new Error(why)); });
     if(k==='asr'){ this.asrP=null; this.asrOk=false; this.asrFail++; this.prog.asr=-2; } else { PIPER.p=null; PIPER.ok=false; PIPER.fails++; } this.emit(); },
   /* cuántas veces se quedó colgado el oído en este dispositivo (la última semana) */
-  stalls(){ try{ const s=JSON.parse(localStorage.getItem('lumi-oido-stall')||'null'); return s && Date.now()-s.t<7*864e5? s.n : 0; }catch(e){ return 0; } },
+  stalls(){ try{ const s=JSON.parse(localStorage.getItem('lumi-oido-stall2')||'null'); return s && Date.now()-s.t<7*864e5? s.n : 0; }catch(e){ return 0; } },
   call(cmd, args, tr){ return new Promise((res,rej)=>{ let w; try{ w=this.worker(/^tts/.test(cmd)? 'tts' : 'asr'); }catch(e){ return rej(e); } const id=++this.id; this.cb[id]=[res,rej]; w.mine.add(id); w.postMessage({id, cmd, ...(args||{})}, tr||[]); }); },
   loadAsr(){ if(this.asrOk) return Promise.resolve(); if(!this.usable()) return Promise.reject(new Error('sin oído')); if(!this.asrP){ this.prog.asr=Math.max(0,this.prog.asr); const t0=Date.now(); this.st.asr='arranque'; this.at.asr=t0; this.why=''; this.emit();
       const p=this.call('asrLoad', {lang:LANG});
@@ -2057,12 +2057,12 @@ const OIDO={ws:{}, id:0, cb:{}, prog:{asr:-1, tts:-1}, st:{asr:'', tts:''}, at:{
       const iv=setInterval(()=>{ const now=Date.now(), w=this.ws.asr, slow=/montar|ajuste/.test(this.st.asr);
         if(now-this.at.asr > (slow? 90000 : 45000) || now-t0 > 360000){ clearInterval(iv);
           this.why='oído parado: '+(w && !w.booted? 'no arranca' : this.st.asr)+' '+Math.round(Math.max(0,this.prog.asr)*100)+'%';
-          try{ localStorage.setItem('lumi-oido-stall', JSON.stringify({n:this.stalls()+1, t:now, why:this.why})); }catch(e){}
+          try{ localStorage.setItem('lumi-oido-stall2', JSON.stringify({n:this.stalls()+1, t:now, why:this.why})); }catch(e){}
           this.kill('asr', this.why); this.asrFail=Math.max(this.asrFail,2); this.emit(); } },1000);
-      this.asrP=p.then(r=>{ clearInterval(iv); this.asrOk=true; this.dev=r&&r.dev||''; this.test=r&&r.test||''; this.prog.asr=1; this.st.asr='listo'; try{ localStorage.removeItem('lumi-oido-stall'); }catch(e){} this.emit(); });
+      this.asrP=p.then(r=>{ clearInterval(iv); this.asrOk=true; this.dev=r&&r.dev||''; this.test=r&&r.test||''; this.prog.asr=1; this.st.asr='listo'; try{ localStorage.removeItem('lumi-oido-stall2'); }catch(e){} this.emit(); });
       this.asrP.catch(e=>{ clearInterval(iv); if(!this.why) this.why=String(e&&e.message||e);
         /* no entendió la frase de prueba: en este dispositivo Whisper no sirve; una semana sin usarlo */
-        if(/^prueba/.test(this.why)){ this.asrFail=Math.max(this.asrFail,1); try{ localStorage.setItem('lumi-oido-stall', JSON.stringify({n:2, t:Date.now(), why:this.why})); }catch(x){} }
+        if(/^prueba/.test(this.why)){ this.asrFail=Math.max(this.asrFail,1); try{ localStorage.setItem('lumi-oido-stall2', JSON.stringify({n:2, t:Date.now(), why:this.why})); }catch(x){} }
         this.asrP=null; this.asrFail++; this.prog.asr=-2; this.emit(); }); }
     return this.asrP; },
   /* si se colgó 2 veces en este dispositivo, una semana sin intentarlo */
@@ -2070,7 +2070,7 @@ const OIDO={ws:{}, id:0, cb:{}, prog:{asr:-1, tts:-1}, st:{asr:'', tts:''}, at:{
   /* si devuelve letras de otros alfabetos (o el símbolo �), el oído está roto en este dispositivo: no se usa más (una semana) */
   hear(audio, words, prompt){ const a=new Float32Array(audio); return this.call('asr', {audio:a, lang:LANG, words, prompt}, [a.buffer]).then(r=>{ this.last=r;
     const t=String(r&&r.text||''); if(/\uFFFD/.test(t) || (t.match(/[^\p{Script=Latin}\p{N}\p{P}\p{S}\s]/gu)||[]).length>0){ this.why='basura: '+t.slice(0,40); this.asrOk=false; this.asrFail=2;
-      try{ localStorage.setItem('lumi-oido-stall', JSON.stringify({n:2, t:Date.now(), why:this.why})); }catch(e){} this.emit(); throw new Error(this.why); }
+      try{ localStorage.setItem('lumi-oido-stall2', JSON.stringify({n:2, t:Date.now(), why:this.why})); }catch(e){} this.emit(); throw new Error(this.why); }
     return r; }); } };
 /* la frase que hay que leer, en minúsculas normales, ayuda a Whisper con la ortografía (no inventa lo que no se dijo) */
 const asrPrompt=t=>{ const s=String(t).toLowerCase().replace(/\s+/g,' ').trim(); return s.charAt(0).toUpperCase()+s.slice(1); };
@@ -2235,7 +2235,7 @@ function EarTest(){ const [st,setSt]=useState({}); const [busy,setBusy]=useState
   useEffect(()=>{ const f=()=>bump(x=>x+1); OIDO.subs.add(f); VOSK.subs.add(f); return ()=>{ OIDO.subs.delete(f); VOSK.subs.delete(f); }; },[]);
   const ear=()=> OIDO.asrOk? '✅ '+(OIDO.dev||'')+(OIDO.test? ' · «'+OIDO.test+'»' : '') : OIDO.asrP? '⏳ '+OIDO.st.asr+' '+Math.round(Math.max(0,OIDO.prog.asr)*100)+'%' : '❌ '+(OIDO.why || (OIDO.usable()? 'sin cargar' : 'desactivado'));
   const vosk=()=> VOSK.model? '✅'+(VOSK.test&&VOSK.test.text? ' · «'+VOSK.test.text+'»' : '') : VOSK.p? '⏳ '+Math.round(Math.max(0,VOSK.prog)*100)+'%' : '❌ '+(VOSK.err||'sin cargar');
-  async function reset(){ try{ localStorage.removeItem('lumi-oido-stall'); }catch(e){} OIDO.asrFail=0; OIDO.why=''; VOSK.fails=0; VOSK.err=''; bump(x=>x+1);
+  async function reset(){ try{ localStorage.removeItem('lumi-oido-stall2'); }catch(e){} OIDO.asrFail=0; OIDO.why=''; VOSK.fails=0; VOSK.err=''; bump(x=>x+1);
     setBusy('load'); await Promise.all([OIDO.loadAsr().catch(()=>{}), VOSK.load().catch(()=>{})]); setBusy(''); }
   async function record(){ setBusy('rec'); setSt({}); let stream, ctx;
     try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true, channelCount:1}});
