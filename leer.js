@@ -290,7 +290,7 @@ function ReadWords({api, save}){ const React=R(), h=H(), C=core(); const {useSta
     ${dbg && h`<p className="small muted ll-dbg" data-noread data-notr style=${{margin:'0', opacity:.75}}>${t('heard')} ${dbg}</p>`}
     <div className="ll-acts">
       <button className="btn soft small" disabled=${phase==='model'||phase==='good'||phase==='think'} onClick=${()=>{ try{ C.Sfx.unlock(); }catch(e){} helpNow(); }}>🔊 ${t('help')}</button>
-      ${phase==='tap' && S.step>=last && h`<button className="btn small" onClick=${()=>{ const my=++S.seq; good(my); }}>✅ ${t('readOk')}</button>`}
+      ${((phase==='tap' && S.step>=last) || (S.tryN>=1 && !['good','model','think'].includes(phase))) && h`<button className="btn small" onClick=${()=>{ const my=++S.seq; closeMic(); good(my); }}>✅ ${t('readOk')}</button>`}
       ${(phase==='tap' || S.tryN>=1) && phase!=='good' && h`<button className="btn soft small" onClick=${skip}>${t('skip')} ▶</button>`}
     </div>
     ${phase==='tap' && !mic.current && h`<p className="small muted" data-noread>${t('noMic')}</p>`}
