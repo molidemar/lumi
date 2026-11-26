@@ -2037,21 +2037,33 @@ const STORIES=({es:STORIES_ES,ca:STORIES_CA,en:STORIES_EN})[LANG]||STORIES_ES;
 function storyFor(lv, r){ const band= lv<=4?1 : lv<=8?2 : 3; return pickR(STORIES.filter(s=>s.lv===band), r); }
 /* comprobar la lectura con el micrófono: pinta de verde lo que dijo y de rojo lo que faltó */
 /* ===== Oído y voz de Lumi en el dispositivo (lib/oido/): Whisper para entender la lectura y Piper (Daniela) para decir cualquier frase ===== */
-const OIDO={ws:{}, id:0, cb:{}, prog:{asr:-1, tts:-1}, dev:'', subs:new Set(), asrP:null, asrOk:false, asrFail:0, last:null,
+const OIDO={ws:{}, id:0, cb:{}, prog:{asr:-1, tts:-1}, st:{asr:'', tts:''}, at:{asr:0, tts:0}, dev:'', subs:new Set(), asrP:null, asrOk:false, asrFail:0, last:null, why:'',
   emit(){ this.subs.forEach(f=>{ try{ f(); }catch(e){} }); },
   can(){ try{ return !!(window.Worker && window.WebAssembly && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && localStorage.getItem('lumi-oido-off')!=='1'; }catch(e){ return false; } },
   // dos workers: uno para entender (Whisper) y otro para hablar (Piper), así uno no frena al otro
-  worker(k){ if(this.ws[k]) return this.ws[k]; const w=new Worker('lib/oido/oido-worker.js?v=2',{type:'module'}); this.ws[k]=w; w.mine=new Set();
-    w.onmessage=e=>{ const m=e.data||{}; if(m.cmd==='prog'){ this.prog[m.what]=Math.max(this.prog[m.what],m.p); this.emit(); return; } const c=this.cb[m.id]; if(c){ delete this.cb[m.id]; w.mine.delete(m.id); m.ok? c[0](m.res) : c[1](new Error(m.err)); } };
-    w.onerror=()=>{ const ids=[...w.mine]; ids.forEach(id=>{ const c=this.cb[id]; delete this.cb[id]; c&&c[1](new Error('worker')); }); this.ws[k]=null;
-      if(k==='asr'){ this.asrP=null; this.asrOk=false; this.asrFail++; this.prog.asr=-2; } else { PIPER.p=null; PIPER.ok=false; PIPER.fails++; } this.emit(); };
+  worker(k){ if(this.ws[k]) return this.ws[k]; const w=new Worker('lib/oido/oido-worker.js?v=3',{type:'module'}); this.ws[k]=w; w.mine=new Set();
+    w.onmessage=e=>{ const m=e.data||{}; if(m.cmd==='boot'){ w.booted=true; return; }
+      if(m.cmd==='prog'){ if(m.p>this.prog[m.what] || (m.st && m.st!==this.st[m.what])) this.at[m.what]=Date.now(); this.prog[m.what]=Math.max(this.prog[m.what],m.p); if(m.st) this.st[m.what]=m.st; this.emit(); return; } const c=this.cb[m.id]; if(c){ delete this.cb[m.id]; w.mine.delete(m.id); m.ok? c[0](m.res) : c[1](new Error(m.err)); } };
+    w.onerror=()=>this.kill(k,'worker');
     return w; },
+  kill(k, why){ const w=this.ws[k]; if(!w) return; this.ws[k]=null; try{ w.terminate(); }catch(e){} [...w.mine].forEach(id=>{ const c=this.cb[id]; delete this.cb[id]; c&&c[1](new Error(why)); });
+    if(k==='asr'){ this.asrP=null; this.asrOk=false; this.asrFail++; this.prog.asr=-2; } else { PIPER.p=null; PIPER.ok=false; PIPER.fails++; } this.emit(); },
+  /* cuántas veces se quedó colgado el oído en este dispositivo (la última semana) */
+  stalls(){ try{ const s=JSON.parse(localStorage.getItem('lumi-oido-stall')||'null'); return s && Date.now()-s.t<7*864e5? s.n : 0; }catch(e){ return 0; } },
   call(cmd, args, tr){ return new Promise((res,rej)=>{ let w; try{ w=this.worker(/^tts/.test(cmd)? 'tts' : 'asr'); }catch(e){ return rej(e); } const id=++this.id; this.cb[id]=[res,rej]; w.mine.add(id); w.postMessage({id, cmd, ...(args||{})}, tr||[]); }); },
-  loadAsr(){ if(this.asrOk) return Promise.resolve(); if(!this.asrP){ this.prog.asr=Math.max(0,this.prog.asr); this.emit();
-      this.asrP=this.call('asrLoad').then(r=>{ this.asrOk=true; this.dev=r&&r.dev||''; this.prog.asr=1; this.emit(); });
-      this.asrP.catch(()=>{ this.asrP=null; this.asrFail++; this.prog.asr=-2; this.emit(); }); }
+  loadAsr(){ if(this.asrOk) return Promise.resolve(); if(!this.usable()) return Promise.reject(new Error('sin oído')); if(!this.asrP){ this.prog.asr=Math.max(0,this.prog.asr); const t0=Date.now(); this.st.asr='arranque'; this.at.asr=t0; this.why=''; this.emit();
+      const p=this.call('asrLoad');
+      /* vigilante: si la carga deja de avanzar (falta de memoria en el iPad, descarga cortada…), se corta y Lumi sigue con el oído ligero o con el adulto */
+      const iv=setInterval(()=>{ const now=Date.now(), w=this.ws.asr, slow=/montar|ajuste/.test(this.st.asr);
+        if(now-this.at.asr > (slow? 90000 : 45000) || now-t0 > 360000){ clearInterval(iv);
+          this.why='oído parado: '+(w && !w.booted? 'no arranca' : this.st.asr)+' '+Math.round(Math.max(0,this.prog.asr)*100)+'%';
+          try{ localStorage.setItem('lumi-oido-stall', JSON.stringify({n:this.stalls()+1, t:now, why:this.why})); }catch(e){}
+          this.kill('asr', this.why); this.asrFail=Math.max(this.asrFail,2); this.emit(); } },1000);
+      this.asrP=p.then(r=>{ clearInterval(iv); this.asrOk=true; this.dev=r&&r.dev||''; this.prog.asr=1; this.st.asr='listo'; try{ localStorage.removeItem('lumi-oido-stall'); }catch(e){} this.emit(); });
+      this.asrP.catch(e=>{ clearInterval(iv); if(!this.why) this.why=String(e&&e.message||e); this.asrP=null; this.asrFail++; this.prog.asr=-2; this.emit(); }); }
     return this.asrP; },
-  usable(){ return this.can() && this.asrFail<2; },
+  /* si se colgó 2 veces en este dispositivo, una semana sin intentarlo */
+  usable(){ return this.can() && this.asrFail<2 && this.stalls()<2; },
   hear(audio, words, prompt){ const a=new Float32Array(audio); return this.call('asr', {audio:a, lang:LANG, words, prompt}, [a.buffer]).then(r=>{ this.last=r; return r; }); } };
 /* la frase que hay que leer, en minúsculas normales, ayuda a Whisper con la ortografía (no inventa lo que no se dijo) */
 const asrPrompt=t=>{ const s=String(t).toLowerCase().replace(/\s+/g,' ').trim(); return s.charAt(0).toUpperCase()+s.slice(1); };
@@ -2131,7 +2143,7 @@ const PIPER={p:null, ok:false, fails:0, cache:new Map(),
   // cuántas frases está diciendo Lumi ahora (para no abrir el micrófono mientras habla, aunque la voz tarde en arrancar)
   const say0=Voice.say; Voice.talk=0; Voice.say=async function(p){ this.talk++; try{ return await say0.call(this,p); } finally{ this.talk=Math.max(0,this.talk-1); } }; }
 /* se bajan solos un rato después de abrir la app (una sola vez; quedan guardados en el iPad) */
-setTimeout(()=>{ if(OIDO.can()){ OIDO.loadAsr().catch(()=>{}); if(PIPER.usable()) setTimeout(()=>PIPER.load().catch(()=>{}), 1500); } }, 5000);
+setTimeout(()=>{ if(OIDO.can()){ if(OIDO.usable()) OIDO.loadAsr().catch(()=>{}); if(PIPER.usable()) setTimeout(()=>PIPER.load().catch(()=>{}), 1500); } }, 5000);
 
 /* comprobar la lectura con el micrófono: pinta de verde lo que dijo y de rojo lo que faltó */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition||null;
@@ -2157,17 +2169,20 @@ function listenVoice({n, onWord, onEnd}){ let stream=null, ctx=null, iv=null, do
   return {stop:()=>stop('tap')}; }
 /* Oído propio de Lumi: Vosk (Apache 2.0) corre en el dispositivo, sin Safari ni internet una vez bajado el modelo (~40 MB, se guarda) */
 const IS_IOS=/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
-const VOSK={model:null, p:null, prog:0, err:'', subs:new Set(),
-  set(pr){ this.prog=pr; this.subs.forEach(f=>{ try{ f(pr); }catch(e){} }); },
-  load(){ if(this.p) return this.p; this.p=(async()=>{
+const VOSK={model:null, p:null, prog:0, err:'', fails:0, at:0, subs:new Set(),
+  set(pr){ if(pr>this.prog || pr<0) this.at=Date.now(); this.prog=pr; this.subs.forEach(f=>{ try{ f(pr); }catch(e){} }); },
+  load(){ if(this.p) return this.p; if(this.fails>=2) return Promise.reject(new Error(this.err||'vosk')); this.prog=0; const t0=Date.now(); this.at=t0; let iv;
+    /* vigilante: si deja de avanzar, se corta (no se queda en «Preparando…» para siempre) */
+    const dog=new Promise((_,rej)=>{ iv=setInterval(()=>{ const now=Date.now(); if(now-this.at > (this.prog>=.99? 60000 : 30000) || now-t0 > 360000){ clearInterval(iv); this.fails=2; rej(new Error('vosk parado '+Math.round(this.prog*100)+'%')); } },1000); });
+    this.p=Promise.race([dog, (async()=>{
       if(!window.Vosk) await new Promise((res,rej)=>{ const sc=document.createElement('script'); sc.src='lib/vosk.js'; sc.onload=res; sc.onerror=()=>rej(new Error('vosk.js')); document.head.appendChild(sc); });
       const L= ['es','ca','en'].includes(LANG)? LANG : 'es'; const url=new URL('models/'+L+'.tar.gz', location.href).href; let blob=null, cache=null;
       try{ cache=await caches.open('lumi-vosk-1'); const hit=await cache.match(url); if(hit) blob=await hit.blob(); }catch(e){}
       if(!blob){ const res=await fetch(url); if(!res.ok) throw new Error('modelo '+res.status); const tot=+res.headers.get('content-length')||40e6; const rd=res.body.getReader(); const parts=[]; let got=0;
         for(;;){ const {done,value}=await rd.read(); if(done) break; parts.push(value); got+=value.length; this.set(Math.min(.99,got/tot)); }
         blob=new Blob(parts,{type:'application/gzip'}); try{ cache && await cache.put(url, new Response(blob)); }catch(e){} }
-      this.set(.99); const m=await window.Vosk.createModel(URL.createObjectURL(blob)); this.model=m; this.set(1); return m; })();
-    this.p.catch(e=>{ this.err=String(e&&e.message||e); this.p=null; }); return this.p; } };
+      this.set(.99); const m=await window.Vosk.createModel(URL.createObjectURL(blob)); this.model=m; this.set(1); return m; })()]);
+    this.p.then(()=>clearInterval(iv), e=>{ clearInterval(iv); this.err=String(e&&e.message||e); this.fails++; this.p=null; this.set(-2); }); return this.p; } };
 const useVosk=()=> IS_IOS || !SR || SR_OFF();
 const gWord=w=>String(w).toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
 function listenVosk({model, words, onHeard, onEnd}){ let stream=null, ctx=null, node=null, rec=null, done=false, acc='', part='', floor=0, fl=0, lastVoice=0, heard=false; const t0=Date.now(), cap=6000+words.length*1400;
@@ -2188,19 +2203,19 @@ function listenVosk({model, words, onHeard, onEnd}){ let stream=null, ctx=null, 
         if(heard && now-lastVoice>1800) end('silence'); else if(now-t0>cap) end('cap'); },100);
     }catch(e){ end('error:'+(e&&e.name||e)); } })();
   return {stop:()=>end('tap')}; }
-const OIDO_TX={ca:{'Lo leímos juntos. ¡Seguimos!':'Ho hem llegit junts. Seguim!','Te escucho…':'T’escolto…','Pensando…':'Pensant…','Lee en voz alta, Lumi te escucha.':'Llegeix en veu alta, la Lumi t’escolta.','Lumi entiende con su oído nuevo':'La Lumi entén amb la seva oïda nova'},
-  en:{'Lo leímos juntos. ¡Seguimos!':"We read it together. Let's go on!",'Te escucho…':"I'm listening…",'Pensando…':'Thinking…','Lee en voz alta, Lumi te escucha.':'Read it out loud, Lumi is listening.','Lumi entiende con su oído nuevo':'Lumi understands with her new ears'}};
+const OIDO_TX={ca:{'Lo leímos juntos. ¡Seguimos!':'Ho hem llegit junts. Seguim!','Te escucho…':'T’escolto…','Pensando…':'Pensant…','Lee en voz alta, Lumi te escucha.':'Llegeix en veu alta, la Lumi t’escolta.','Lumi entiende con su oído nuevo':'La Lumi entén amb la seva oïda nova','Lumi no ha podido preparar su oído en este dispositivo.':'La Lumi no ha pogut preparar la seva oïda en aquest dispositiu.','Lumi todavía está preparando su oído. Para no esperar:':'La Lumi encara prepara la seva oïda. Per no esperar:'},
+  en:{'Lo leímos juntos. ¡Seguimos!':"We read it together. Let's go on!",'Te escucho…':"I'm listening…",'Pensando…':'Thinking…','Lee en voz alta, Lumi te escucha.':'Read it out loud, Lumi is listening.','Lumi entiende con su oído nuevo':'Lumi understands with her new ears','Lumi no ha podido preparar su oído en este dispositivo.':"Lumi couldn't get her ears ready on this device.",'Lumi todavía está preparando su oído. Para no esperar:':'Lumi is still getting her ears ready. To avoid waiting:'}};
 const otx=t=> (OIDO_TX[LANG]&&OIDO_TX[LANG][t]) || tr(t);
 /* Lectura guiada, sin tocar botones: Lumi lee (si hace falta), el micrófono se abre solo, el niño lee, Lumi entiende (Whisper en el iPad)
    y pinta de verde lo leído. Si falta algo lo dice y vuelve a escuchar sola; a la tercera lo leen juntos y siguen. Tocar el micrófono corta o vuelve a abrir. */
 function ReadCheck({text, onDone:onDone0, api, canSkip, noListen, long, model}){ const fired=useRef(false); const onDone=g=>{ if(fired.current) return; fired.current=true; stopAll(); onDone0(g); };
   const words=text.split(/\s+/); const [ok,setOk]=useState(null); const [live,setLive]=useState(false); const [tries,setTries]=useState(0); const [no,setNo]=useState(!SR && !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)); const rec=useRef(null);
-  const [phase,setPhase]=useState(model? 'model' : 'me'); const [deaf,setDeaf]=useState(0); const [err,setErr]=useState(''); const [vp,setVp]=useState(VOSK.model? 1 : -1); const [kar,setKar]=useState(-1); const alive=useRef(true); const att=useRef(null);
+  const [phase,setPhase]=useState(model? 'model' : 'me'); const [deaf,setDeaf]=useState(0); const [err,setErr]=useState(''); const [vp,setVp]=useState(VOSK.model? 1 : -1); const [noEar,setNoEar]=useState(false); const [slow,setSlow]=useState(false); const [kar,setKar]=useState(-1); const alive=useRef(true); const att=useRef(null);
   const [lvl,setLvl]=useState(0); const [think,setThink]=useState(false); const [, bump]=useState(0); const eng=useRef(OIDO.usable()? 'oido' : 'old'); const tryN=useRef(0), deafN=useRef(0);
   const need=words.filter(w=>normW(w)).length;
   const cnt=m=> m? m.filter((x,k)=>x && normW(words[k])).length : 0;
   useEffect(()=>{ const f=()=>{ if(eng.current==='oido' && OIDO.asrFail>=2 && !OIDO.asrOk) eng.current='old'; bump(x=>x+1); }; OIDO.subs.add(f); return ()=>OIDO.subs.delete(f); },[]);
-  useEffect(()=>{ if(eng.current==='oido' || !useVosk()) return; const f=p=>setVp(p); VOSK.subs.add(f); setVp(v=>v<0? 0 : v); VOSK.load().then(()=>setVp(1)).catch(()=>setVp(-2)); return ()=>VOSK.subs.delete(f); },[]);
+  useEffect(()=>{ const f=p=>setVp(p); VOSK.subs.add(f); if(eng.current!=='oido' && useVosk()){ setVp(v=>v<0? 0 : v); VOSK.load().then(()=>setVp(1)).catch(()=>setVp(-2)); } return ()=>VOSK.subs.delete(f); },[]);
   useEffect(()=>{ alive.current=true; let t; if(model) t=setTimeout(modelRead, 700); else if(!no) t=setTimeout(autoListen, 500); return ()=>{ clearTimeout(t); alive.current=false; stopAll(); }; },[]);
   function stopAll(){ const A=att.current; att.current=null; if(A){ A.clear(); } try{ rec.current&&rec.current.abort(); }catch(e){} }
   async function modelRead(){ if(!alive.current) return; stopAll(); setLive(false); setPhase('model'); setOk(null); setKar(0);
@@ -2217,7 +2232,7 @@ function ReadCheck({text, onDone:onDone0, api, canSkip, noListen, long, model}){
   function start(){ if(live || att.current){ const A=att.current; if(A) A.stopNow(); return; } Voice.stop(); setPhase('me'); setKar(-1);
     if(eng.current==='oido'){ if(OIDO.asrOk){ startOido(); return; } OIDO.loadAsr().then(()=>{ if(alive.current && !att.current) startOido(); }).catch(()=>{ eng.current='old'; if(alive.current) start(); }); return; }
     micOn();
-    if(useVosk()){ if(VOSK.model){ startVosk(); return; } micOff(); setVp(v=>v<0? 0 : v); VOSK.load().then(()=>{ if(alive.current) startVosk(); }).catch(()=>{ if(alive.current) startVoice(); }); return; }
+    if(useVosk()){ if(VOSK.model){ startVosk(); return; } micOff(); setVp(v=>v<0? Math.max(0,VOSK.prog) : v); VOSK.load().then(()=>{ if(alive.current) startVosk(); }).catch(()=>{ if(alive.current){ setVp(-2); setNoEar(true); } }); return; }
     // iPad/Safari corta la escucha sola (pausas, cambio de audio): se vuelve a abrir sola hasta que el niño termina o se acaba el tiempo
     let best=[], done=false, stopping=false, r=null, acc='', sess='', restarts=0, empty=0, gotAny=false; const timers=[]; let silence=null; const t0=Date.now(), cap=6000+need*1400;
     const finish=()=>{ if(done) return; done=true; timers.forEach(clearTimeout); clearTimeout(silence); try{ r&&r.abort(); }catch(e){} micOff(); att.current=null; if(!alive.current) return; setLive(false); setTries(t=>t+1);
@@ -2279,6 +2294,8 @@ function ReadCheck({text, onDone:onDone0, api, canSkip, noListen, long, model}){
   const cls=k=>{ if(ok && ok[k]) return 'w-ok'; if(phase==='model' && kar>=k) return 'w-read'; if(ok && !live && tries>0) return 'w-miss'; return ''; };
   const loading= !no && !live && (eng.current==='oido'? (!OIDO.asrOk && OIDO.prog.asr>=0 && OIDO.prog.asr<1) : (useVosk() && vp>=0 && vp<1));
   const lp= eng.current==='oido'? OIDO.prog.asr : vp;
+  /* si tarda, el adulto puede validar sin esperar */
+  useEffect(()=>{ if(!loading){ setSlow(false); return; } const t=setTimeout(()=>setSlow(true), 8000); return ()=>clearTimeout(t); },[loading]);
   const ring= live? {boxShadow:`0 0 0 ${4+Math.round(lvl*22)}px rgba(29,185,84,${.25+lvl*.3})`, transition:'box-shadow .08s'} : null;
   return html`<div className="readcheck">
     <p className=${"b-now"+(long?" long":"")} data-noread>${words.map((w,k)=>html`<span key=${k} className=${cls(k)}>${w} </span>`)}</p>
@@ -2291,10 +2308,11 @@ function ReadCheck({text, onDone:onDone0, api, canSkip, noListen, long, model}){
       ${(no || tries>=1 || canSkip) && html`<button className="btn soft small" onClick=${()=>{ stopAll(); api.sfx('tap'); onDone(false); }}>${tr('Seguir')} ▶</button>`}`}
     </div>
     ${live && html`<p className="small muted">${otx('Lee en voz alta, Lumi te escucha.')}</p>`}
-    ${(no || deaf>=2) && !live && html`<div className="mic-help"><p className="small">${no? tr('Este dispositivo no deja usar el micrófono aquí.') : tr('No se oyó nada.')} ${tr('Que lo lea en voz alta y un adulto toca:')}</p>
+    ${(no || deaf>=2 || noEar || (loading && slow)) && !live && html`<div className="mic-help"><p className="small">${no? tr('Este dispositivo no deja usar el micrófono aquí.') : noEar? otx('Lumi no ha podido preparar su oído en este dispositivo.') : loading? otx('Lumi todavía está preparando su oído. Para no esperar:') : tr('No se oyó nada.')} ${tr('Que lo lea en voz alta y un adulto toca:')}</p>
       <div className="row" style=${{justifyContent:'center'}}><button className="btn small" onClick=${()=>{ stopAll(); setOk(words.map(()=>true)); api.sfx('ok'); Voice.say(pick(PRAISE)); setTimeout(()=>onDone(true),1100); }}>✅ ${tr('Lo leyó bien')}</button>
       <button className="btn soft small" onClick=${()=>{ stopAll(); api.sfx('tap'); onDone(false); }}>🔁 ${tr('Le costó')}</button></div>
-      ${html`<p className="small muted">${tr('En iPad: Ajustes › General › Teclado › activa Dictado, y en Ajustes › Safari › Micrófono elige Permitir.')}${err? ' ('+err+')' : ''}</p>`}</div>`}
+      ${(no || deaf>=2)? html`<p className="small muted">${tr('En iPad: Ajustes › General › Teclado › activa Dictado, y en Ajustes › Safari › Micrófono elige Permitir.')}${err? ' ('+err+')' : ''}</p>`
+        : noEar? html`<p className="small muted">(${[OIDO.why, VOSK.err].filter(Boolean).join(' · ')})</p>` : null}</div>`}
   </div>`; }
 function StoryTask({lv, api, onEnd}){
   const st=useMemo(()=>storyFor(lv, Math.random),[]); const alone= lv>=7; const [j,setJ]=useState(0); const [phase,setPhase]=useState('read'); const [qi,setQi]=useState(0); const [mark,setMark]=useState({});
